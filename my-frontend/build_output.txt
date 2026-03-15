@@ -1,0 +1,5 @@
+
+> my-frontend@0.0.0 build
+> tsc -b && vite build
+
+src/main.tsx(4,17): error TS7016: Could not find a declaration file for module './App'. 'C:/Users/Windows/Desktop/EWE_NHOM4/my-frontend/src/App.jsx' implicitly has an 'any' type.

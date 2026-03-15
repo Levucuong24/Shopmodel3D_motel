@@ -1,0 +1,272 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+body {
+  margin: 0;
+  background-color: #f4f7f6;
+}
+
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* SIDEBAR STYLING - Matching Home page Navbar (Black) */
+.sidebar {
+  width: 250px;
+  background: #000;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+.sidebar-header {
+  padding: 30px 20px;
+  text-align: center;
+  border-bottom: 1px solid #333;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: white;
+  letter-spacing: 1px;
+}
+
+.role-badge {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: white;
+}
+
+/* Home primary color accent for Customer */
+.role-badge.customer {
+  background: #7cc242;
+}
+
+.nav-links {
+  list-style: none;
+  padding: 20px 0;
+  margin: 0;
+  flex: 1;
+}
+
+.nav-links li {
+  margin-bottom: 5px;
+}
+
+.nav-links a {
+  display: block;
+  padding: 15px 25px;
+  color: #a0aec0;
+  text-decoration: none;
+  font-size: 15px;
+  transition: 0.3s;
+  border-left: 4px solid transparent;
+}
+
+.nav-links a:hover {
+  background: #1a1a1a;
+  color: white;
+  border-left-color: #7cc242; /* Green Hover */
+}
+
+.nav-links li.active a {
+  background: #1a1a1a;
+  color: white;
+  border-left-color: #7cc242; /* Green Active */
+  font-weight: 600;
+}
+
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid #333;
+}
+
+.logout-btn {
+  display: block;
+  text-align: center;
+  padding: 10px;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: 0.3s;
+}
+
+.logout-btn:hover {
+  background: #dc2626;
+}
+
+/* MAIN CONTENT */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fa;
+}
+
+/* TOPBAR */
+.topbar {
+  background: white;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.user-profile img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #7cc242;
+}
+
+.dashboard-content {
+  padding: 30px 40px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* WELCOME BANNER - Matching Home Hero */
+.welcome-banner {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab");
+  background-size: cover;
+  background-position: center;
+  border-radius: 12px;
+  padding: 60px 40px;
+  color: white;
+  text-align: center;
+  margin-bottom: 40px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.welcome-banner h2 {
+  margin: 0 0 15px 0;
+  font-size: 32px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.welcome-banner p {
+  margin: 0 0 25px 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.explore-btn {
+  display: inline-block;
+  background: #ff6a00;
+  color: white;
+  padding: 15px 35px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 1px;
+  transition: 0.3s;
+  box-shadow: 0 4px 15px rgba(255, 106, 0, 0.3);
+}
+
+.explore-btn:hover {
+  background: #e65c00;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 106, 0, 0.4);
+}
+
+/* SAVED ROOMS GRID */
+.section-title {
+  font-size: 22px;
+  color: #0f172a;
+  margin-bottom: 20px;
+  border-left: 4px solid #7cc242;
+  padding-left: 10px;
+}
+
+.saved-rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+/* CARD MATCHING HOME (.card) */
+.saved-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.saved-card:hover {
+  transform: translateY(-5px);
+}
+
+.saved-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.saved-info {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.saved-info h4 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  color: #1a1a1a;
+}
+
+.saved-info .price {
+  color: #ff5a00;
+  font-weight: bold;
+  font-size: 16px;
+  margin: 0 0 15px 0;
+}
+
+.view-detail-btn {
+  margin-top: auto;
+  padding: 12px;
+  background: #f8fafc;
+  color: #333;
+  border-radius: 6px;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+  transition: 0.3s;
+}
+
+.view-detail-btn:hover {
+  background: #7cc242;
+  color: white;
+  border-color: #7cc242;
+}
+
+/* Rented Rooms Styling matching aesthetics */
+.rented-rooms-container .view-detail-btn {
+  background: white;
+  color: #7cc242;
+  border: 1px solid #7cc242;
+}
+
+.rented-rooms-container .view-detail-btn:hover {
+  background: #7cc242;
+  color: white;
+}
