@@ -16,6 +16,8 @@ function Navbar() {
 
   const handleLogout = () => {
     localStorage.removeItem('userRole');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
     setUserRole(null);
     navigate('/welcome');
     window.location.reload(); // Quick refresh to clear states

@@ -204,16 +204,86 @@
 
 .card-body h3 {
   font-size: 18px;
+  margin: 0 0 10px;
 }
 
 .location {
   color: #777;
+  margin: 0 0 8px;
 }
 
 .price {
   color: #ff5a00;
   font-weight: bold;
-  margin-top: 5px;
+  margin: 0 0 12px;
+}
+
+.room-status-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.status-available {
+  background: rgba(46, 125, 50, 0.88);
+}
+
+.status-reserved {
+  background: rgba(239, 108, 0, 0.88);
+}
+
+.status-rented {
+  background: rgba(198, 40, 40, 0.88);
+}
+
+.status-unknown {
+  background: rgba(69, 90, 100, 0.88);
+}
+
+.room-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.room-meta span {
+  background: #f5f7fa;
+  border: 1px solid #e3e8ef;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.amenities-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.amenity-chip {
+  background: #fff3e8;
+  color: #c05621;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pet-policy {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 /* HERO STATS (Glassmorphism) */

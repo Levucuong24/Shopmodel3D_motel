@@ -372,3 +372,153 @@ select, .status-badge {
   border-color: #ff6a00;
   box-shadow: 0 0 0 2px rgba(255, 106, 0, 0.2);
 }
+
+.table-subtext {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.viewing-status {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.viewing-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.viewing-confirmed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.viewing-cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.price-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 160px;
+}
+
+.price-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.price-save-btn {
+  border: none;
+  border-radius: 8px;
+  background: #ff6a00;
+  color: white;
+  padding: 8px 10px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.price-save-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.room-create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.room-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.room-form-grid input,
+.room-form-grid select,
+.room-description-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font: inherit;
+  background: white;
+}
+
+.room-upload-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: white;
+  color: #0f172a;
+}
+
+.room-upload-field span {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.room-upload-field input[type="file"] {
+  padding: 0;
+  border: none;
+}
+
+.room-upload-field small {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.room-description-input {
+  resize: vertical;
+}
+
+.room-image-preview {
+  width: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.room-image-preview img {
+  display: block;
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.create-room-btn {
+  align-self: flex-start;
+  border: none;
+  border-radius: 8px;
+  background: #0f172a;
+  color: white;
+  padding: 12px 18px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.create-room-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}

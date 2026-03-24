@@ -221,6 +221,22 @@
   font-size: 14px;
 }
 
+.status-reserved {
+  color: #92400e;
+  background: #fef3c7;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.status-rented {
+  color: #991b1b;
+  background: #fee2e2;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
 .book-btn, .call-btn {
   width: 100%;
   padding: 15px;
@@ -252,6 +268,30 @@
 
 .call-btn:hover {
   background: #f0f9ff;
+}
+
+.booking-form {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.booking-form h4 {
+  margin: 0 0 4px;
+  color: #0f172a;
+}
+
+.booking-form input,
+.booking-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font: inherit;
 }
 
 /* Reviews */

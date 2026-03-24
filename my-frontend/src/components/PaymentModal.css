@@ -1,0 +1,97 @@
+.payment-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.payment-modal-content {
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.payment-modal-content h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.qr-placeholder {
+  margin: 20px 0;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.loader {
+  color: #007bff;
+  font-weight: 500;
+  margin-bottom: 20px;
+  animation: pulse 1.5s infinite;
+}
+
+.confirm-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  margin-bottom: 16px;
+  transition: background 0.2s;
+}
+
+.confirm-btn:hover {
+  background: #218838;
+}
+
+.confirm-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.success-msg {
+  color: #28a745;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 20px 0;
+}
+
+.success-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.close-btn {
+  background: #e0e0e0;
+  color: #333;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.close-btn:hover {
+  background: #ccc;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
