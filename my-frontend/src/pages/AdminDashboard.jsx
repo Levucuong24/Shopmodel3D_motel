@@ -18,11 +18,15 @@ const roomStatusColor = {
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [rooms, setRooms] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [users, setUsers] = useState([]);
   const [viewings, setViewings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewingsLoading, setViewingsLoading] = useState(true);
+  const [tenantUpdatingId, setTenantUpdatingId] = useState(null);
   const [statusUpdatingId, setStatusUpdatingId] = useState(null);
   const [priceUpdatingId, setPriceUpdatingId] = useState(null);
+  const [editingRoomId, setEditingRoomId] = useState(null);
   const [creatingRoom, setCreatingRoom] = useState(false);
   const [uploadingRoomImage, setUploadingRoomImage] = useState(false);
   const [newRoomForm, setNewRoomForm] = useState({
@@ -38,12 +42,19 @@ function AdminDashboard() {
     model_3d_url: "",
     status: "available",
   });
-  const [revenues] = useState([
-    { id: 1, month: "Tháng 1", amount: 110000000, status: "Đã chốt" },
-    { id: 2, month: "Tháng 2", amount: 98000000, status: "Đã chốt" },
-    { id: 3, month: "Tháng 3", amount: 125000000, status: "Dự kiến" },
-    { id: 4, month: "Tháng 4", amount: 140000000, status: "Mục tiêu" },
-  ]);
+  const dynamicRevenues = useMemo(() => {
+    const totalDeposits = payments
+      .filter((p) => p.status === "success")
+      .reduce((sum, p) => sum + (p.amount || 0), 0);
+
+    return [
+      { id: 1, month: "Tháng 1", amount: 110000000, status: "Đã chốt" },
+      { id: 2, month: "Tháng 2", amount: 98000000, status: "Đã chốt" },
+      { id: 3, month: "Tháng 3", amount: 125000000 + totalDeposits, status: "Thực tế" },
+      { id: 4, month: "Tháng 4", amount: 140000000, status: "Mục tiêu" },
+    ];
+  }, [payments]);
+
   const [breakevenData, setBreakevenData] = useState({
     fixedCost: 50000000,
     variableCostPerRoom: 500000,
@@ -77,7 +88,36 @@ function AdminDashboard() {
         console.error("Error fetching viewings:", err);
         setViewingsLoading(false);
       });
+
+    if (token) {
+      fetch("/api/users", { headers })
+        .then((res) => res.json())
+        .then((data) => setUsers(Array.isArray(data) ? data : []))
+        .catch((err) => console.error("Error fetching users:", err));
+
+      fetch("/api/payments", { headers })
+        .then((res) => res.json())
+        .then((data) => setPayments(Array.isArray(data) ? data : []))
+        .catch((err) => console.error("Error fetching payments:", err));
+    }
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+    
+    let intervalId;
+    if (activeTab === "payments") {
+      intervalId = setInterval(() => {
+        fetch("/api/payments", { headers: { Authorization: token } })
+          .then((res) => res.json())
+          .then((data) => setPayments(Array.isArray(data) ? data : []))
+          .catch((err) => console.error("Error polling payments:", err));
+      }, 3000);
+    }
+    
+    return () => clearInterval(intervalId);
+  }, [activeTab]);
 
   const roomStats = useMemo(() => {
     const total = rooms.length;
@@ -139,6 +179,81 @@ function AdminDashboard() {
       alert(error.message);
     } finally {
       setStatusUpdatingId(null);
+    }
+  };
+
+  const handleConfirmRental = async (paymentId) => {
+    if (!window.confirm("Bạn có chắc chắn xác nhận người này đã thuê phòng?")) return;
+    
+    const token = localStorage.getItem("authToken");
+    if (!token) return alert("Bạn cần đăng nhập admin");
+
+    try {
+      const response = await fetch(`/api/payments/${paymentId}/confirm-rental`, {
+        method: "POST",
+        headers: { Authorization: token },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Không thể xác nhận thuê phòng");
+      }
+
+      setPayments((prev) => prev.map((p) => {
+        if (p._id === paymentId) {
+          return {
+            ...p,
+            status: "success",
+            room_id: {
+              ...p.room_id,
+              status: "rented",
+              tenant_id: p.user_id?._id || p.user_id
+            }
+          };
+        }
+        return p;
+      }));
+      
+      if(data.payment && data.payment.room_id) {
+         setRooms((prev) => prev.map((r) => r._id === (data.payment.room_id._id || data.payment.room_id) ? { ...r, status: "rented", tenant_id: data.payment.user_id } : r));
+      }
+      
+      alert("Xác nhận thuê phòng thành công!");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleTenantChange = async (id, newTenantId) => {
+    const token = localStorage.getItem("authToken");
+    if (!token) return alert("Bạn cần đăng nhập admin để cập nhật người thuê");
+
+    const previousRooms = rooms;
+    setTenantUpdatingId(id);
+    const updatedTenant = newTenantId === "" ? null : newTenantId;
+    setRooms((prev) => prev.map((room) => (room._id === id ? { ...room, tenant_id: updatedTenant } : room)));
+
+    try {
+      const response = await fetch(`/api/rooms/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+        body: JSON.stringify({ tenant_id: updatedTenant }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Không thể cập nhật người thuê");
+
+      setRooms((prev) => prev.map((room) => (room._id === id ? data : room)));
+      alert("Cập nhật người thuê thành công");
+    } catch (error) {
+      setRooms(previousRooms);
+      alert(error.message);
+    } finally {
+      setTenantUpdatingId(null);
     }
   };
 
@@ -232,12 +347,58 @@ function AdminDashboard() {
     }
   };
 
-  const handleCreateRoom = async (e) => {
+  const handleCancelEdit = () => {
+    setEditingRoomId(null);
+    setNewRoomForm({
+      name: "", price: "", location: "", area: "", layout: "", amenities: "",
+      pet_policy: "", description: "", image: "", model_3d_url: "", status: "available",
+    });
+  };
+
+  const handleEditRoomClick = (room) => {
+    setEditingRoomId(room._id);
+    setNewRoomForm({
+      name: room.name || "",
+      price: room.price || "",
+      location: room.location || "",
+      area: room.specs?.area || "",
+      layout: room.specs?.layout || "",
+      amenities: room.amenities ? room.amenities.join(", ") : "",
+      pet_policy: room.pet_policy || "",
+      description: room.description || "",
+      image: room.images && room.images.length > 0 ? room.images[0] : "",
+      model_3d_url: room.model_3d_url || "",
+      status: room.status || "available",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDeleteRoom = async (id) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa phòng này không?")) return;
+    const token = localStorage.getItem("authToken");
+    if (!token) return alert("Bạn cần đăng nhập admin để xóa phòng");
+    try {
+      const response = await fetch(`/api/rooms/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: token },
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Không thể xóa phòng");
+      }
+      setRooms((prev) => prev.filter((room) => room._id !== id));
+      alert("Xóa phòng thành công");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleSaveRoom = async (e) => {
     e.preventDefault();
 
     const token = localStorage.getItem("authToken");
     if (!token) {
-      alert("Bạn cần đăng nhập admin để thêm phòng mới");
+      alert("Bạn cần đăng nhập admin để cập nhật phòng");
       return;
     }
 
@@ -250,54 +411,53 @@ function AdminDashboard() {
 
     try {
       const storedUser = JSON.parse(localStorage.getItem("userData") || "null");
-      const response = await fetch("/api/rooms", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
+      
+      const payload = {
+        name: newRoomForm.name,
+        price: Number(newRoomForm.price),
+        status: newRoomForm.status,
+        location: newRoomForm.location,
+        specs: {
+          area: newRoomForm.area ? Number(newRoomForm.area) : undefined,
+          layout: newRoomForm.layout,
         },
-        body: JSON.stringify({
-          name: newRoomForm.name,
-          price: Number(newRoomForm.price),
-          status: newRoomForm.status,
-          location: newRoomForm.location,
-          specs: {
-            area: newRoomForm.area ? Number(newRoomForm.area) : undefined,
-            layout: newRoomForm.layout,
-          },
-          amenities: newRoomForm.amenities
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean),
-          pet_policy: newRoomForm.pet_policy,
-          description: newRoomForm.description,
-          images: newRoomForm.image ? [newRoomForm.image] : [],
-          model_3d_url: newRoomForm.model_3d_url,
-          created_by: storedUser?._id,
-        }),
+        amenities: newRoomForm.amenities.split(",").map((item) => item.trim()).filter(Boolean),
+        pet_policy: newRoomForm.pet_policy,
+        description: newRoomForm.description,
+        images: newRoomForm.image ? [newRoomForm.image] : [],
+        model_3d_url: newRoomForm.model_3d_url,
+      };
+
+      let url = "/api/rooms";
+      let method = "POST";
+
+      if (editingRoomId) {
+        url = `/api/rooms/${editingRoomId}`;
+        method = "PUT";
+      } else {
+        payload.created_by = storedUser?._id;
+      }
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json", Authorization: token },
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Không thể tạo phòng mới");
+        throw new Error(data.message || (editingRoomId ? "Không thể cập nhật phòng" : "Không thể tạo phòng mới"));
       }
 
-      setRooms((prev) => [data, ...prev]);
-      setNewRoomForm({
-        name: "",
-        price: "",
-        location: "",
-        area: "",
-        layout: "",
-        amenities: "",
-        pet_policy: "",
-        description: "",
-        image: "",
-        model_3d_url: "",
-        status: "available",
-      });
-      alert("Thêm phòng mới thành công");
+      if (editingRoomId) {
+        setRooms((prev) => prev.map((room) => (room._id === editingRoomId ? data : room)));
+        alert("Cập nhật phòng thành công");
+      } else {
+        setRooms((prev) => [data, ...prev]);
+        alert("Thêm phòng mới thành công");
+      }
+      handleCancelEdit();
     } catch (error) {
       alert(error.message);
     } finally {
@@ -321,6 +481,9 @@ function AdminDashboard() {
           </li>
           <li className={activeTab === "viewings" ? "active" : ""}>
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("viewings"); }}>Lịch xem phòng</a>
+          </li>
+          <li className={activeTab === "payments" ? "active" : ""}>
+            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("payments"); }}>Quản lý đặt cọc</a>
           </li>
           <li className={activeTab === "reports" ? "active" : ""}>
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("reports"); }}>Báo cáo doanh thu</a>
@@ -361,7 +524,7 @@ function AdminDashboard() {
                   <div className="stat-details">
                     <h3>Giá thuê trung bình</h3>
                     <p className="stat-number">{roomStats.avgPrice.toLocaleString("vi-VN")}đ</p>
-                    <span className="trend neutral">Tính từ dữ liệu MongoDB hiện có</span>
+                    <span className="trend neutral">Tính từ dữ liệu hệ thống</span>
                   </div>
                 </div>
                 <div className="stat-card">
@@ -415,7 +578,7 @@ function AdminDashboard() {
           {activeTab === "properties" && (
             <div className="recent-activity">
               <h3>Quản lý phòng</h3>
-              <form className="room-create-form" onSubmit={handleCreateRoom}>
+              <form className="room-create-form" onSubmit={handleSaveRoom}>
                 <div className="room-form-grid">
                   <input
                     type="text"
@@ -502,9 +665,16 @@ function AdminDashboard() {
                     <img src={newRoomForm.image} alt="Ảnh phòng xem trước" />
                   </div>
                 )}
-                <button type="submit" className="create-room-btn" disabled={creatingRoom}>
-                  {creatingRoom ? "Đang tạo phòng..." : "Thêm phòng mới"}
-                </button>
+                <div className="form-actions" style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                  <button type="submit" className="create-room-btn" disabled={creatingRoom} style={{ flex: 1 }}>
+                    {creatingRoom ? "Đang xử lý..." : editingRoomId ? "Lưu thay đổi" : "Thêm phòng mới"}
+                  </button>
+                  {editingRoomId && (
+                    <button type="button" className="cancel-edit-btn" onClick={handleCancelEdit} style={{ flex: 1, backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+                      Hủy
+                    </button>
+                  )}
+                </div>
               </form>
               {loading ? (
                 <p>Đang tải dữ liệu phòng...</p>
@@ -516,8 +686,10 @@ function AdminDashboard() {
                       <th>Giá thuê</th>
                       <th>Khu vực</th>
                       <th>Diện tích</th>
+                      <th>Người thuê</th>
                       <th>Trạng thái hiện tại</th>
                       <th>Chuyển trạng thái</th>
+                      <th>Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -545,6 +717,21 @@ function AdminDashboard() {
                         <td>{room.location}</td>
                         <td>{room.specs?.area ? `${room.specs.area}m²` : "Đang cập nhật"}</td>
                         <td>
+                          <select
+                            value={room.tenant_id || ""}
+                            onChange={(e) => handleTenantChange(room._id, e.target.value)}
+                            disabled={tenantUpdatingId === room._id}
+                            style={{ padding: "6px", borderRadius: "4px", border: "1px solid #ccc", maxWidth: "150px" }}
+                          >
+                            <option value="">-- Chưa có --</option>
+                            {users.map((u) => (
+                              <option key={u._id} value={u._id}>
+                                {u.full_name}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
                           <span style={{ padding: "5px 10px", borderRadius: "12px", color: "white", fontSize: "12px", fontWeight: "bold", background: roomStatusColor[room.status] || "#64748b" }}>
                             {roomStatusLabel[room.status] || room.status}
                           </span>
@@ -560,6 +747,12 @@ function AdminDashboard() {
                             <option value="reserved">Đã được cọc</option>
                             <option value="rented">Hết phòng</option>
                           </select>
+                        </td>
+                        <td>
+                          <div style={{ display: "flex", gap: "5px" }}>
+                            <button onClick={() => handleEditRoomClick(room)} style={{ padding: "5px 10px", background: "#f59e0b", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Sửa</button>
+                            <button onClick={() => handleDeleteRoom(room._id)} style={{ padding: "5px 10px", background: "#ef4444", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Xóa</button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -612,18 +805,74 @@ function AdminDashboard() {
             </div>
           )}
 
+          {activeTab === "payments" && (
+            <div className="recent-activity">
+              <h3>Quản lý Đặt cọc & Xác nhận Thuê phòng</h3>
+              {loading ? (
+                <p>Đang tải dữ liệu đặt cọc...</p>
+              ) : payments.length > 0 ? (
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Khách hàng</th>
+                      <th>Phòng</th>
+                      <th>Số tiền</th>
+                      <th>Ngày đặt</th>
+                      <th>Trạng thái</th>
+                      <th>Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payments.map((payment) => (
+                      <tr key={payment._id}>
+                        <td>
+                          <div>{payment.customer_name || payment.user_id?.full_name || "Khách"}</div>
+                          <div className="table-subtext">{payment.customer_email || payment.user_id?.email || ""}</div>
+                        </td>
+                        <td>
+                          <div>{payment.room_id?.name || "Phòng đã xóa"}</div>
+                          <div className="table-subtext">{payment.room_id?.location || ""}</div>
+                        </td>
+                        <td style={{ fontWeight: "bold", color: "#eab308" }}>{payment.amount?.toLocaleString("vi-VN")}đ</td>
+                        <td>{new Date(payment.created_at || payment.createdAt).toLocaleString("vi-VN")}</td>
+                        <td>
+                          <span className={`status-badge`} style={{ background: payment.status === "success" ? "#16a34a" : "#d97706", color: "#fff" }}>
+                            {payment.status === "success" ? "Khách đã CK" : "Chờ chuyển khoản"}
+                          </span>
+                        </td>
+                        <td>
+                          {payment.room_id?.status !== "rented" && (
+                            <button
+                              onClick={() => handleConfirmRental(payment._id)}
+                              style={{ padding: "6px 12px", background: "#10b981", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}
+                            >
+                              Xác nhận thuê phòng
+                            </button>
+                          )}
+                          {payment.room_id?.status === "rented" && <span style={{ color: "#10b981", fontWeight: "bold", marginLeft: "10px" }}>✓ Đã giao phòng</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p>Chưa có giao dịch đặt cọc nào.</p>
+              )}
+            </div>
+          )}
+
           {activeTab === "reports" && (
             <div className="recent-activity">
               <h3>Báo cáo doanh thu (Quý 1 - 2026)</h3>
-              <p style={{ color: "#64748b", marginBottom: "25px" }}>Biểu đồ doanh thu vẫn là dữ liệu mô phỏng, nhưng phần phòng đã đồng bộ hoàn toàn theo MongoDB.</p>
+              <p style={{ color: "#64748b", marginBottom: "25px" }}>Biểu đồ doanh thu dựa trên dữ liệu mô phỏng kết hợp với phòng thực tế trong hệ thống.</p>
 
               <div className="revenue-grid">
-                {revenues.slice(0, 3).map((item, index) => {
+                {dynamicRevenues.slice(0, 3).map((item, index) => {
                   let percentChange = null;
                   let isPositive = true;
 
                   if (index > 0) {
-                    const prevRevenue = revenues[index - 1].amount;
+                    const prevRevenue = dynamicRevenues[index - 1].amount;
                     const change = ((item.amount - prevRevenue) / prevRevenue) * 100;
                     percentChange = change.toFixed(1);
                     isPositive = change >= 0;
@@ -657,7 +906,7 @@ function AdminDashboard() {
                 <h4 style={{ marginBottom: "20px", fontSize: "18px", color: "#1e293b" }}>Sơ đồ đường Doanh Thu (VNĐ)</h4>
                 <div style={{ width: "100%", height: 350 }}>
                   <ResponsiveContainer>
-                    <AreaChart data={revenues} margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
+                    <AreaChart data={dynamicRevenues} margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#ff6a00" stopOpacity={0.3} />

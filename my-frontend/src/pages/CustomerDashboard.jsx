@@ -5,6 +5,7 @@ import "./CustomerDashboard.css";
 function CustomerDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [rooms, setRooms] = useState([]);
+  const [savedRooms, setSavedRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -47,6 +48,7 @@ function CustomerDashboard() {
             phone: data.phone || "",
             avatar: data.avatar || "",
           });
+          setSavedRooms(data.saved_rooms || []);
           localStorage.setItem("userData", JSON.stringify(data));
         }
       })
@@ -68,8 +70,8 @@ function CustomerDashboard() {
       });
   }, []);
 
-  const savedRooms = rooms.slice(0, 2);
-  const rentedRoom = rooms[0] || null;
+  const storedUser = JSON.parse(localStorage.getItem("userData") || "null");
+  const rentedRoom = rooms.find(room => room.tenant_id === storedUser?._id) || null;
   const customerAvatar =
     profileForm.avatar ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(customerName || "Khach Hang")}&background=00c6ff&color=fff`;
@@ -280,7 +282,7 @@ function CustomerDashboard() {
 
           {activeTab === "saved" && (
             <>
-              <h3 className="section-title">Phòng đang quan tâm (đồng bộ từ MongoDB)</h3>
+              <h3 className="section-title">Phòng đang quan tâm</h3>
               {loading ? (
                 <p>Đang tải dữ liệu phòng...</p>
               ) : (

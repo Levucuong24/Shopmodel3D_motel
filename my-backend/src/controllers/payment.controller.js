@@ -82,3 +82,37 @@ export const getPaymentById = async (req, res) => {
 
   res.json(payment);
 };
+
+export const getPayments = async (req, res) => {
+  try {
+    const payments = await Payment.find().populate("room_id").populate("user_id").sort({ created_at: -1 });
+    res.json(payments);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const confirmRental = async (req, res) => {
+  try {
+    const payment = await Payment.findById(req.params.id);
+    if (!payment) return res.status(404).json({ message: "Payment not found" });
+
+    payment.status = "success";
+    await payment.save();
+
+    if (payment.room_id) {
+      const room = await Room.findById(payment.room_id);
+      if (room) {
+        room.status = "rented";
+        if (payment.user_id) {
+          room.tenant_id = payment.user_id;
+        }
+        await room.save();
+      }
+    }
+
+    res.json({ message: "Room rental confirmed successfully", payment });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};

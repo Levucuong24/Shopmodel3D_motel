@@ -15,3 +15,7 @@ export const createRoom = async (data) => {
 export const updateRoomById = async (id, data) => {
   return await Room.findByIdAndUpdate(id, data, { new: true });
 };
+
+export const deleteRoomById = async (id) => {
+  return await Room.findByIdAndDelete(id);
+};

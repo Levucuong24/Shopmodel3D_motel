@@ -34,6 +34,8 @@ function ProductDetail() {
   const [showPayment, setShowPayment] = useState(false);
   const [currentPayment, setCurrentPayment] = useState(null);
   const [mainImage, setMainImage] = useState(fallbackImages[0]);
+  const [isSaved, setIsSaved] = useState(false);
+  const [savingRoom, setSavingRoom] = useState(false);
 
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
@@ -79,6 +81,20 @@ function ProductDetail() {
       });
   }, [id]);
 
+  useEffect(() => {
+    if (authToken) {
+      fetch("/api/users/me", { headers: { Authorization: authToken } })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.saved_rooms) {
+            const saved = data.saved_rooms.some((room) => room._id === id || room === id);
+            setIsSaved(saved);
+          }
+        })
+        .catch((err) => console.error(err));
+    }
+  }, [id, authToken]);
+
   const images = product?.images?.length ? product.images : fallbackImages;
 
   useEffect(() => {
@@ -92,6 +108,11 @@ function ProductDetail() {
   };
 
   const handleOpenPayment = async () => {
+    if (!authToken) {
+      alert("Bạn cần đăng nhập để đặt cọc giữ phòng!");
+      return;
+    }
+    
     if (!product) return;
 
     try {
@@ -105,6 +126,7 @@ function ProductDetail() {
           amount: product.price,
           customer_name: storedUser?.full_name || "",
           customer_email: storedUser?.email || "",
+          user_id: storedUser?._id,
           payment_type: "deposit",
           payment_method: "BANK_QR",
           note: `Đặt cọc phòng ${product.name}`,
@@ -159,6 +181,37 @@ function ProductDetail() {
       alert(error.message);
     } finally {
       setReviewSubmitting(false);
+    }
+  };
+
+  const handleToggleSave = async () => {
+    if (!authToken) {
+      alert("Bạn cần đăng nhập để lưu phòng");
+      return;
+    }
+
+    setSavingRoom(true);
+    const url = isSaved ? "/api/users/remove-room" : "/api/users/save-room";
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authToken,
+        },
+        body: JSON.stringify({ room_id: id }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Không thể thực hiện thao tác");
+      }
+
+      setIsSaved(!isSaved);
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setSavingRoom(false);
     }
   };
 
@@ -319,43 +372,67 @@ function ProductDetail() {
                 {roomStatusLabel[product.status] || "Đang cập nhật"}
               </span>
             </h3>
-            <button className="book-btn" onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}>
+            <button 
+              className="book-btn" 
+              onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}
+              disabled={product.status === "rented"}
+              style={{ opacity: product.status === "rented" ? 0.5 : 1, cursor: product.status === "rented" ? "not-allowed" : "pointer" }}
+            >
               Đặt lịch xem phòng
             </button>
-            <button className="book-btn" style={{ background: "#28a745", marginTop: "10px" }} onClick={handleOpenPayment}>
-              Đặt cọc giữ phòng
+            <button 
+              className="book-btn" 
+              style={{ background: product.status === "rented" ? "#6c757d" : "#28a745", marginTop: "10px", cursor: product.status === "rented" ? "not-allowed" : "pointer" }} 
+              onClick={handleOpenPayment}
+              disabled={product.status === "rented"}
+            >
+              {product.status === "rented" ? "Phòng đã cho thuê" : "Đặt cọc giữ phòng"}
+            </button>
+            <button 
+               className="book-btn" 
+               style={{ background: isSaved ? "#6c757d" : "#f59e0b", marginTop: "10px" }} 
+               onClick={handleToggleSave}
+               disabled={savingRoom}
+            >
+              {isSaved ? "❤️ Đã lưu (Hủy)" : "🤍 Lưu phòng"}
             </button>
             <button className="call-btn">📞 Gọi chủ nhà: 0912 345 678</button>
 
-            <form id="booking-form" className="booking-form" onSubmit={handleAppointmentSubmit}>
-              <h4>Đăng ký lịch xem</h4>
-              <input
-                type="text"
-                placeholder="Họ và tên"
-                value={appointmentForm.full_name}
-                onChange={(e) => setAppointmentForm((prev) => ({ ...prev, full_name: e.target.value }))}
-              />
-              <input
-                type="text"
-                placeholder="Số điện thoại"
-                value={appointmentForm.phone}
-                onChange={(e) => setAppointmentForm((prev) => ({ ...prev, phone: e.target.value }))}
-              />
-              <input
-                type="datetime-local"
-                value={appointmentForm.scheduled_at}
-                onChange={(e) => setAppointmentForm((prev) => ({ ...prev, scheduled_at: e.target.value }))}
-              />
-              <textarea
-                rows={3}
-                placeholder="Ghi chú thêm"
-                value={appointmentForm.note}
-                onChange={(e) => setAppointmentForm((prev) => ({ ...prev, note: e.target.value }))}
-              />
-              <button type="submit" className="submit-review-btn" disabled={appointmentSubmitting}>
-                {appointmentSubmitting ? "Đang gửi..." : "Xác nhận lịch xem"}
-              </button>
-            </form>
+            {product.status !== "rented" ? (
+              <form id="booking-form" className="booking-form" onSubmit={handleAppointmentSubmit}>
+                <h4>Đăng ký lịch xem</h4>
+                <input
+                  type="text"
+                  placeholder="Họ và tên"
+                  value={appointmentForm.full_name}
+                  onChange={(e) => setAppointmentForm((prev) => ({ ...prev, full_name: e.target.value }))}
+                />
+                <input
+                  type="text"
+                  placeholder="Số điện thoại"
+                  value={appointmentForm.phone}
+                  onChange={(e) => setAppointmentForm((prev) => ({ ...prev, phone: e.target.value }))}
+                />
+                <input
+                  type="datetime-local"
+                  value={appointmentForm.scheduled_at}
+                  onChange={(e) => setAppointmentForm((prev) => ({ ...prev, scheduled_at: e.target.value }))}
+                />
+                <textarea
+                  rows={3}
+                  placeholder="Ghi chú thêm"
+                  value={appointmentForm.note}
+                  onChange={(e) => setAppointmentForm((prev) => ({ ...prev, note: e.target.value }))}
+                />
+                <button type="submit" className="submit-review-btn" disabled={appointmentSubmitting}>
+                  {appointmentSubmitting ? "Đang gửi..." : "Xác nhận lịch xem"}
+                </button>
+              </form>
+            ) : (
+              <div className="booking-form" style={{ textAlign: "center", color: "#dc2626", fontWeight: "bold", marginTop: "20px" }}>
+                Phòng này đã có người thuê. Các chức năng đặt lịch và cọc phòng đã bị khóa.
+              </div>
+            )}
           </div>
 
           <div className="reviews-section">

@@ -1,4 +1,4 @@
-import { getAllRooms, createRoom, getRoomById as getRoomByIdService, updateRoomById } from "../services/room.service.js";
+import { getAllRooms, createRoom, getRoomById as getRoomByIdService, updateRoomById, deleteRoomById as deleteRoomByIdService } from "../services/room.service.js";
 
 export const getRooms = async (req, res) => {
   const data = await getAllRooms();
@@ -36,6 +36,16 @@ export const updateRoom = async (req, res) => {
     const room = await updateRoomById(req.params.id, req.body);
     if (!room) return res.status(404).json({ message: "Room not found" });
     res.json(room);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+export const deleteRoom = async (req, res) => {
+  try {
+    const room = await deleteRoomByIdService(req.params.id);
+    if (!room) return res.status(404).json({ message: "Room not found" });
+    res.json({ message: "Room deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }
