@@ -1,6 +1,6 @@
 import "dotenv/config";
 import mongoose from "mongoose";
-import Room from "./src/models/Room.js";
+import Room from "./src/modules/room/Room.js";
 
 const rooms = [
   {

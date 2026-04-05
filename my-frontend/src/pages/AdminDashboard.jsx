@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import "./AdminDashboard.css";
+import "../css/AdminDashboard.css";
 
 const roomStatusLabel = {
   available: "Còn phòng",

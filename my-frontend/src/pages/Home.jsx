@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import ProductCard from "../components/ProductCard";
-import Advantages from "../components/Advantages";
-import Gallery from "../components/Gallery";
-import PlansPrices from "../components/PlansPrices";
-import InvestmentStages from "../components/InvestmentStages";
-import CallToAction from "../components/CallToAction";
-import Footer from "../components/Footer";
-import Chatbot from "../components/Chatbot";
+import ProductCard from "../components/product/ProductCard";
+import Advantages from "../components/home/Advantages";
+import Gallery from "../components/product/Gallery";
+import PlansPrices from "../components/home/PlansPrices";
+import InvestmentStages from "../components/home/InvestmentStages";
+import CallToAction from "../components/home/CallToAction";
+import Footer from "../components/layout/Footer";
+import Chatbot from "../components/chatbot/Chatbot";
 
 function Home() {
   const [products, setProducts] = useState([]);

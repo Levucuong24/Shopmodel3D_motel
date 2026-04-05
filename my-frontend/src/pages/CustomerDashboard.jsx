@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import "./CustomerDashboard.css";
+import "../css/CustomerDashboard.css";
 
 function CustomerDashboard() {
   const [activeTab, setActiveTab] = useState("overview");

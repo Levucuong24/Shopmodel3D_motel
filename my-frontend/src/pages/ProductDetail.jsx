@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import StudentHouse3D from "../components/StudentHouse3D";
-import Chatbot from "../components/Chatbot";
-import PaymentModal from "../components/PaymentModal";
-import "./ProductDetail.css";
+import StudentHouse3D from "../components/3d/StudentHouse3D";
+import Chatbot from "../components/chatbot/Chatbot";
+import PaymentModal from "../components/payment/PaymentModal";
+import "../css/ProductDetail.css";
 
 const fallbackImages = [
   "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop",

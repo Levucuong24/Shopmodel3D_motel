@@ -1,9 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Navbar from "./components/Navbar.jsx";
+import Navbar from "./components/layout/Navbar.jsx";
 import Home from "./pages/Home.jsx";
 import ProductDetail from "./pages/ProductDetail.jsx";
-import Login from "./pages/Login.jsx";
-import Signup from "./pages/Signup.jsx";
+import Auth from "./pages/Auth.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import CustomerDashboard from "./pages/CustomerDashboard.jsx";
@@ -32,8 +31,8 @@ function App() {
         <Route path="/" element={<Navigate to="/welcome" />} />
         
         {/* Auth Routes without Navbar (optional depends on app design, currently Navbar holds just logo so we can omit it) */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Auth />} />
+        <Route path="/signup" element={<Auth />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* Dashboard Routes without Navbar */}
