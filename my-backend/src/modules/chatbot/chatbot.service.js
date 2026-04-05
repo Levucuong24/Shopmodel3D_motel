@@ -17,6 +17,15 @@ export const chatbotReply = async (text) => {
     };
   }
 
+  const loweredQuery = query.toLowerCase();
+  const supportKeywords = ["hỗ trợ khách hàng", "ho tro khach hang", "hỗ trợ", "liên hệ", "cskh"];
+  if (supportKeywords.some(kw => loweredQuery.includes(kw))) {
+    return {
+      reply: "Để được hỗ trợ nhanh nhất, vui lòng liên hệ trực tiếp qua <a href='https://www.facebook.com/le.vu.cuong.513937' target='_blank' style='color: #ff4b2b; font-weight: bold; text-decoration: underline;'>Facebook của tôi</a> nhé!",
+      suggestions: [],
+    };
+  }
+
   // Fetch all necessary data to build a RAG context
   const [rooms, reviews, payments, viewings, users, contracts, savedRooms] = await Promise.all([
     Room.find().lean(),

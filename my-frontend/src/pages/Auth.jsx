@@ -11,6 +11,26 @@ function Auth() {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   
+  // Captcha States
+  const [captchaText, setCaptchaText] = useState("");
+  const [captchaInput, setCaptchaInput] = useState("");
+  const [isRobotChecked, setIsRobotChecked] = useState(false);
+
+  const generateCaptcha = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+    let text = "";
+    for (let i = 0; i < 5; i++) {
+        text += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setCaptchaText(text);
+  };
+
+  useEffect(() => {
+    if (!isSignUp) {
+      generateCaptcha();
+    }
+  }, [isSignUp]);
+  
   // Signup States
   const [fullName, setFullName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
@@ -31,6 +51,17 @@ function Auth() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    if (!isRobotChecked) {
+      alert("Vui lòng xác nhận bạn không phải là người máy!");
+      return;
+    }
+    if (captchaInput !== captchaText) {
+      alert("Mã captcha không khớp, vui lòng nhập lại!");
+      generateCaptcha();
+      setCaptchaInput("");
+      return;
+    }
+
     setLoginSubmitting(true);
 
     try {
@@ -53,6 +84,8 @@ function Auth() {
       navigate(data.user.role === "admin" ? "/admin" : "/customer");
     } catch (error) {
       alert(error.message);
+      generateCaptcha();
+      setCaptchaInput("");
     } finally {
       setLoginSubmitting(false);
     }
@@ -126,6 +159,31 @@ function Auth() {
             <span className="subtitle">sử dụng tài khoản của bạn</span>
             <input type="text" placeholder="Họ và tên" required value={loginFullName} onChange={(e) => setLoginFullName(e.target.value)} />
             <input type="password" placeholder="Mật khẩu" required value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
+            
+            <div className="captcha-wrapper">
+              <div className="captcha-display" onClick={generateCaptcha} title="Nhấn để đổi mã">
+                {captchaText}
+              </div>
+              <input 
+                type="text" 
+                placeholder="Nhập mã captcha" 
+                required 
+                value={captchaInput} 
+                onChange={(e) => setCaptchaInput(e.target.value)} 
+                className="captcha-input"
+              />
+            </div>
+            
+            <label className="checkbox-wrapper">
+              <input 
+                type="checkbox" 
+                checked={isRobotChecked} 
+                onChange={(e) => setIsRobotChecked(e.target.checked)} 
+              />
+              <span className="checkmark"></span>
+              Tôi không phải là người máy
+            </label>
+
             <Link className="forgot-p" to="/forgot-password">Quên mật khẩu?</Link>
             <button className="action-btn" type="submit" disabled={loginSubmitting}>
               {loginSubmitting ? "Đang xử lý..." : "Đăng nhập"}
@@ -140,16 +198,16 @@ function Auth() {
         <div className="overlay-container">
           <div className="overlay">
             <div className="overlay-panel overlay-left">
-              <h1>Mừng bạn trở lại!</h1>
-              <p>Để duy trì kết nối với chúng tôi, vui lòng đăng nhập bằng thông tin cá nhân của bạn</p>
-              <button className="ghost action-btn" id="signIn" onClick={() => setIsSignUp(false)}>
+              <h1 style={{ transform: "translateX(-20px)" }}>Trọ FPT mừng bạn về nhà</h1>
+              <p style={{ transform: "translateX(-20px)" }}>Để duy trì kết nối với chúng tôi, vui lòng đăng nhập bằng thông tin cá nhân của bạn</p>
+              <button className="ghost action-btn" id="signIn" onClick={() => setIsSignUp(false)} style={{ transform: "translateX(-20px)" }}>
                 Đăng nhập
               </button>
             </div>
             <div className="overlay-panel overlay-right">
-              <h1>Chào bạn mới!</h1>
-              <p>Nhập thông tin cá nhân của bạn và bắt đầu hành trình với chúng tôi</p>
-              <button className="ghost action-btn" id="signUp" onClick={() => setIsSignUp(true)}>
+              <h1 style={{ transform: "translateX(20px)" }}>Trọ FPT kính chào quý khách!</h1>
+              <p style={{ transform: "translateX(20px)" }}>Nhập thông tin cá nhân của bạn và bắt đầu hành trình với chúng tôi</p>
+              <button className="ghost action-btn" id="signUp" onClick={() => setIsSignUp(true)} style={{ transform: "translateX(20px)" }}>
                 Đăng ký
               </button>
             </div>
