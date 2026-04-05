@@ -3,15 +3,41 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 function ForgotPassword() {
-  const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const handleReset = (e) => {
+  const handleReset = async (e) => {
     e.preventDefault();
-    // Simulate password reset logic here
-    console.log("Password reset requested for", email);
-    alert("Liên kết khôi phục đã được gửi vào email của bạn!");
-    navigate('/login');
+
+    if (newPassword !== confirmPassword) {
+      alert("Mật khẩu xác nhận không khớp!");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ full_name: fullName, new_password: newPassword }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Khôi phục thất bại");
+      }
+
+      alert("Khôi phục mật khẩu thành công!");
+      navigate('/login');
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -22,23 +48,47 @@ function ForgotPassword() {
       <div className="bg-circle bg-circle-3"></div>
 
       <div className="login-card">
-        <h2 className="login-title">Quên mật khẩu?</h2>
-        <p className="login-subtitle">Nhập email của bạn để nhận liên kết khôi phục</p>
+        <h2 className="login-title">Khôi phục mật khẩu</h2>
+        <p className="login-subtitle">Nhập thông tin để đặt lại mật khẩu của bạn</p>
 
         <form className="login-form" onSubmit={handleReset}>
           
           <div className="input-group">
             <input 
-              type="email" 
+              type="text" 
               required 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
             />
-            <label>Email của bạn</label>
+            <label>Họ và Tên</label>
             <div className="input-line"></div>
           </div>
 
-          <button type="submit" className="login-btn" style={{ marginTop: '20px' }}>Gửi liên kết khôi phục</button>
+          <div className="input-group">
+            <input 
+              type="password" 
+              required 
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <label>New Password</label>
+            <div className="input-line"></div>
+          </div>
+
+          <div className="input-group">
+            <input 
+              type="password" 
+              required 
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            <label>Confirm Password</label>
+            <div className="input-line"></div>
+          </div>
+
+          <button type="submit" className="login-btn" style={{ marginTop: '20px' }} disabled={isSubmitting}>
+            {isSubmitting ? "Đang xử lý..." : "Xác nhận"}
+          </button>
         </form>
 
         <div className="back-link" style={{ marginTop: '30px' }}>

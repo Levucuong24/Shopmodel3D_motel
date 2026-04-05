@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { GoogleLogin } from '@react-oauth/google';
 import "../css/Login.css";
 
 function Auth() {
@@ -16,6 +17,13 @@ function Auth() {
   const [captchaInput, setCaptchaInput] = useState("");
   const [isRobotChecked, setIsRobotChecked] = useState(false);
 
+  // Forgot Password States
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [fpFullName, setFpFullName] = useState("");
+  const [fpNewPassword, setFpNewPassword] = useState("");
+  const [fpConfirmPassword, setFpConfirmPassword] = useState("");
+  const [fpSubmitting, setFpSubmitting] = useState(false);
+
   const generateCaptcha = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
     let text = "";
@@ -30,10 +38,59 @@ function Auth() {
       generateCaptcha();
     }
   }, [isSignUp]);
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (fpNewPassword !== fpConfirmPassword) {
+      alert("Mật khẩu xác nhận không khớp!");
+      return;
+    }
+    setFpSubmitting(true);
+    try {
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ full_name: fpFullName, new_password: fpNewPassword }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Khôi phục thất bại");
+      }
+      alert("Khôi phục mật khẩu thành công!");
+      setShowForgotPassword(false);
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setFpSubmitting(false);
+    }
+  };
+  
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const res = await fetch("/api/auth/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: credentialResponse.credential })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Lỗi đăng nhập Google");
+
+      localStorage.setItem("userRole", data.user.role);
+      localStorage.setItem("authToken", data.token);
+      localStorage.setItem("userData", JSON.stringify(data.user));
+
+      navigate(data.user.role === "admin" ? "/admin" : "/customer");
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleGoogleError = () => {
+    alert("Đăng nhập Google thất bại! API thiếu cấu hình.");
+  };
   
   // Signup States
   const [fullName, setFullName] = useState("");
-  const [signupEmail, setSignupEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -94,6 +151,12 @@ function Auth() {
   const handleSignup = async (e) => {
     e.preventDefault();
 
+    const phoneRegex = /^(032|033|034|035|036|037|038|039|086|096|097|098)\d{7}$/;
+    if (!phoneRegex.test(phone)) {
+      alert("Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 số không kèm kí tự đặc biệt và thuộc các đầu số cho phép.");
+      return;
+    }
+
     if (signupPassword !== confirmPassword) {
       alert("Mật khẩu không khớp");
       return;
@@ -107,7 +170,6 @@ function Auth() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           full_name: fullName,
-          email: signupEmail,
           phone,
           password: signupPassword,
           role: "customer",
@@ -140,9 +202,15 @@ function Auth() {
         <div className="form-container sign-up-container">
           <form className="auth-form" onSubmit={handleSignup}>
             <h1>Tạo tài khoản</h1>
-            <span className="subtitle">hoặc sử dụng email của bạn để đăng ký</span>
+            <span className="subtitle" style={{marginBottom: "10px"}}>Nhập thông tin cá nhân của bạn để đăng ký</span>
+            <GoogleLogin
+               onSuccess={handleGoogleSuccess}
+               onError={handleGoogleError}
+               shape="pill"
+               width="280"
+            />
+            <div style={{ margin: '15px 0', fontSize: '12px', color: '#999' }}>HOẶC ĐĂNG KÝ BẰNG TÊN</div>
             <input type="text" placeholder="Họ và tên" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
-            <input type="email" placeholder="Email" required value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} />
             <input type="tel" placeholder="Số điện thoại" value={phone} onChange={(e) => setPhone(e.target.value)} />
             <input type="password" placeholder="Mật khẩu" required value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} />
             <input type="password" placeholder="Xác nhận mật khẩu" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
@@ -152,46 +220,70 @@ function Auth() {
           </form>
         </div>
 
-        {/* Sign In Content */}
+        {/* Sign In / Forgot Password Content */}
         <div className="form-container sign-in-container">
-          <form className="auth-form" onSubmit={handleLogin}>
-            <h1>Đăng nhập</h1>
-            <span className="subtitle">sử dụng tài khoản của bạn</span>
-            <input type="text" placeholder="Họ và tên" required value={loginFullName} onChange={(e) => setLoginFullName(e.target.value)} />
-            <input type="password" placeholder="Mật khẩu" required value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
-            
-            <div className="captcha-wrapper">
-              <div className="captcha-display" onClick={generateCaptcha} title="Nhấn để đổi mã">
-                {captchaText}
+          {showForgotPassword ? (
+            <form className="auth-form" onSubmit={handleResetPassword}>
+              <h1>Khôi phục mật khẩu</h1>
+              <span className="subtitle">Nhập thông tin xác thực để đổi mật khẩu cá nhân</span>
+              <input type="text" placeholder="Họ và tên" required value={fpFullName} onChange={(e) => setFpFullName(e.target.value)} />
+              <input type="password" placeholder="Mật khẩu mới" required value={fpNewPassword} onChange={(e) => setFpNewPassword(e.target.value)} />
+              <input type="password" placeholder="Xác nhận mật khẩu" required value={fpConfirmPassword} onChange={(e) => setFpConfirmPassword(e.target.value)} />
+              
+              <button className="action-btn" type="submit" disabled={fpSubmitting} style={{ marginTop: '10px' }}>
+                {fpSubmitting ? "Đang xử lý..." : "Xác nhận đổi"}
+              </button>
+              <div className="back-link-wrapper" style={{marginTop: "20px"}}>
+                 <span className="back-home" onClick={() => setShowForgotPassword(false)} style={{cursor: "pointer", color: "#333", fontSize: "14px", transition: "color 0.3s"}} onMouseOver={(e)=>e.target.style.color="#ff4b2b"} onMouseOut={(e)=>e.target.style.color="#333"}>&larr; Quay lại Đăng nhập</span>
               </div>
-              <input 
-                type="text" 
-                placeholder="Nhập mã captcha" 
-                required 
-                value={captchaInput} 
-                onChange={(e) => setCaptchaInput(e.target.value)} 
-                className="captcha-input"
+            </form>
+          ) : (
+            <form className="auth-form" onSubmit={handleLogin}>
+              <h1>Đăng nhập</h1>
+              <span className="subtitle" style={{marginBottom: "10px"}}>sử dụng tài khoản của bạn</span>
+              <GoogleLogin
+                 onSuccess={handleGoogleSuccess}
+                 onError={handleGoogleError}
+                 shape="pill"
+                 width="280"
               />
-            </div>
-            
-            <label className="checkbox-wrapper">
-              <input 
-                type="checkbox" 
-                checked={isRobotChecked} 
-                onChange={(e) => setIsRobotChecked(e.target.checked)} 
-              />
-              <span className="checkmark"></span>
-              Tôi không phải là người máy
-            </label>
+              <div style={{ margin: '15px 0', fontSize: '12px', color: '#999' }}>HOẶC ĐĂNG NHẬP BẰNG TÊN</div>
+              <input type="text" placeholder="Họ và tên" required value={loginFullName} onChange={(e) => setLoginFullName(e.target.value)} />
+              <input type="password" placeholder="Mật khẩu" required value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
+              
+              <div className="captcha-wrapper">
+                <div className="captcha-display" onClick={generateCaptcha} title="Nhấn để đổi mã">
+                  {captchaText}
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="Nhập mã captcha" 
+                  required 
+                  value={captchaInput} 
+                  onChange={(e) => setCaptchaInput(e.target.value)} 
+                  className="captcha-input"
+                />
+              </div>
+              
+              <label className="checkbox-wrapper">
+                <input 
+                  type="checkbox" 
+                  checked={isRobotChecked} 
+                  onChange={(e) => setIsRobotChecked(e.target.checked)} 
+                />
+                <span className="checkmark"></span>
+                Tôi không phải là người máy
+              </label>
 
-            <Link className="forgot-p" to="/forgot-password">Quên mật khẩu?</Link>
-            <button className="action-btn" type="submit" disabled={loginSubmitting}>
-              {loginSubmitting ? "Đang xử lý..." : "Đăng nhập"}
-            </button>
-            <div className="back-link-wrapper" style={{marginTop: "20px"}}>
-               <Link className="back-home" to="/welcome">&larr; Quay lại trang chủ</Link>
-            </div>
-          </form>
+              <span className="forgot-p" onClick={() => setShowForgotPassword(true)} style={{cursor: "pointer", fontSize: "14px", margin: "15px 0", transition: "color 0.3s"}} onMouseOver={(e)=>e.target.style.color="#ff4b2b"} onMouseOut={(e)=>e.target.style.color="#333"}>Quên mật khẩu?</span>
+              <button className="action-btn" type="submit" disabled={loginSubmitting}>
+                {loginSubmitting ? "Đang xử lý..." : "Đăng nhập"}
+              </button>
+              <div className="back-link-wrapper" style={{marginTop: "20px"}}>
+                 <Link className="back-home" to="/welcome">&larr; Quay lại trang chủ</Link>
+              </div>
+            </form>
+          )}
         </div>
 
         {/* Overlay Container */}
