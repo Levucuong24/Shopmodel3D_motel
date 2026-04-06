@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import logo from "../../assets/logo.png";
 
@@ -6,6 +6,13 @@ function Navbar() {
   const [selectedCampus, setSelectedCampus] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
+
+  useEffect(() => {
+    const q = searchParams.get("search");
+    if(q !== null) setSearchTerm(q);
+  }, [searchParams]);
 
   useEffect(() => {
     const role = localStorage.getItem('userRole');
@@ -22,6 +29,16 @@ function Navbar() {
     navigate('/welcome');
     window.location.reload(); // Quick refresh to clear states
   };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/welcome?search=${encodeURIComponent(searchTerm.trim())}`);
+    } else {
+      navigate(`/welcome`);
+    }
+  };
+
 
   const campuses = {
     "Hà Nội": ["Xã Thạch Hòa", "Xã Tân Xã", "Xã Bình Yên"],
@@ -68,7 +85,15 @@ function Navbar() {
 
             {selectedCampus &&
               campuses[selectedCampus].map((area) => (
-                <div key={area} className="dropdown-item">
+                <div 
+                  key={area} 
+                  className="dropdown-item"
+                  onClick={() => {
+                    navigate(`/welcome?search=${encodeURIComponent(area)}`);
+                    setSearchTerm(area);
+                  }}
+                  style={{ cursor: "pointer" }}
+                >
                   {area}
                 </div>
               ))}
@@ -83,7 +108,14 @@ function Navbar() {
 
       {/* Search */}
       <div className="navbar-center">
-        <input type="text" placeholder="Search 3D models..." />
+        <form onSubmit={handleSearch} style={{ width: '100%', margin: 0, display: 'flex' }}>
+          <input 
+            type="text" 
+            placeholder="Search for accommodation..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </form>
       </div>
 
       {/* Login / Signup / Dashboard */}

@@ -47,3 +47,42 @@ export const createViewingRequest = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getMyViewingRequests = async (req, res, next) => {
+  try {
+    if (!req.user || !req.user.id) {
+       return res.status(401).json({ message: "Vui lòng đăng nhập" });
+    }
+    const requests = await ViewingRequest.find({ user_id: req.user.id })
+      .sort({ createdAt: -1 })
+      .populate("room_id", "name location price");
+    res.json(requests);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateViewingStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!["pending", "confirmed", "cancelled"].includes(status)) {
+      return res.status(400).json({ message: "Trạng thái không hợp lệ" });
+    }
+
+    const viewing = await ViewingRequest.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    ).populate("room_id", "name location").populate("user_id", "full_name");
+
+    if (!viewing) {
+      return res.status(404).json({ message: "Không tìm thấy lịch xem phòng" });
+    }
+
+    res.json(viewing);
+  } catch (error) {
+    next(error);
+  }
+};

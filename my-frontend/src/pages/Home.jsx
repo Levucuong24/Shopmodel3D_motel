@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/product/ProductCard";
 import Advantages from "../components/home/Advantages";
 import Gallery from "../components/product/Gallery";
@@ -11,6 +12,8 @@ import Chatbot from "../components/chatbot/Chatbot";
 function Home() {
   const [products, setProducts] = useState([]);
   const [loadingError, setLoadingError] = useState("");
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("search") || "";
 
   useEffect(() => {
     fetch("/api/rooms")
@@ -81,10 +84,6 @@ function Home() {
       </div>
 
       <Advantages />
-      <Gallery />
-      <PlansPrices />
-      <InvestmentStages />
-      <CallToAction />
 
       <div className="projects">
         <h2>DỰ ÁN MỚI NHẤT</h2>
@@ -96,11 +95,24 @@ function Home() {
         )}
 
         <div className="product-grid">
-          {products.map((p) => (
-            <ProductCard key={p._id || p.id} product={p} />
-          ))}
+          {products
+            .filter((p) => {
+              if (!searchQuery) return true;
+              const q = searchQuery.toLowerCase();
+              const loc = p.location ? p.location.toLowerCase() : "";
+              const name = (p.name || p.title) ? (p.name || p.title).toLowerCase() : "";
+              return loc.includes(q) || name.includes(q);
+            })
+            .map((p) => (
+              <ProductCard key={p._id || p.id} product={p} />
+            ))}
         </div>
       </div>
+
+      <Gallery />
+      <PlansPrices />
+      <InvestmentStages />
+      <CallToAction />
 
       <Footer />
       <Chatbot />

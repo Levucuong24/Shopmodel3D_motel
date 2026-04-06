@@ -10,6 +10,7 @@ const Revenue = require("./payment/Revenue.js");
 const ChatSession = require("./chatbot/ChatSession.js");
 const Message = require("./chatbot/Message.js");
 const AIGeneration = require("./ai/AIGeneration.js");
+const Gallery = require("./gallery/Gallery.js");
 
 module.exports = {
   User,
@@ -21,5 +22,6 @@ module.exports = {
   Revenue,
   ChatSession,
   Message,
-  AIGeneration
+  AIGeneration,
+  Gallery
 };

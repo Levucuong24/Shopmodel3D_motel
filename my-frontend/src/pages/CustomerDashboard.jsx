@@ -6,6 +6,8 @@ function CustomerDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [rooms, setRooms] = useState([]);
   const [savedRooms, setSavedRooms] = useState([]);
+  const [viewings, setViewings] = useState([]);
+  const [viewingsLoading, setViewingsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -68,6 +70,24 @@ function CustomerDashboard() {
         console.error("Error fetching rooms:", err);
         setLoading(false);
       });
+
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      fetch("/api/viewings/my-viewings", {
+        headers: { Authorization: token }
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setViewings(Array.isArray(data) ? data : []);
+          setViewingsLoading(false);
+        })
+        .catch((err) => {
+          console.error("Error fetching viewings:", err);
+          setViewingsLoading(false);
+        });
+    } else {
+      setViewingsLoading(false);
+    }
   }, []);
 
   const storedUser = JSON.parse(localStorage.getItem("userData") || "null");
@@ -194,6 +214,9 @@ function CustomerDashboard() {
           <li className={activeTab === "saved" ? "active" : ""}>
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("saved"); }}>Phòng đã lưu</a>
           </li>
+          <li className={activeTab === "viewings" ? "active" : ""}>
+            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("viewings"); }}>Lịch xem phòng</a>
+          </li>
           <li className={activeTab === "rented" ? "active" : ""}>
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("rented"); }}>Phòng đang thuê</a>
           </li>
@@ -303,6 +326,55 @@ function CustomerDashboard() {
                     </div>
                   ))}
                 </div>
+              )}
+            </>
+          )}
+
+          {activeTab === "viewings" && (
+            <>
+              <h3 className="section-title">Lịch xem phòng của bạn</h3>
+              {viewingsLoading ? (
+                <p>Đang tải lịch xem phòng...</p>
+              ) : viewings.length > 0 ? (
+                <div style={{ background: "white", padding: "20px", borderRadius: "12px", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr style={{ borderBottom: "2px solid #f1f5f9", textAlign: "left" }}>
+                        <th style={{ padding: "12px", color: "#64748b" }}>Phòng</th>
+                        <th style={{ padding: "12px", color: "#64748b" }}>Thời gian xem</th>
+                        <th style={{ padding: "12px", color: "#64748b" }}>Ghi chú</th>
+                        <th style={{ padding: "12px", color: "#64748b" }}>Trạng thái</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {viewings.map((item) => (
+                        <tr key={item._id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                          <td style={{ padding: "12px", fontWeight: "bold" }}>
+                            {item.room_id?.name || "Phòng đã xóa"}
+                            <br />
+                            <span style={{ fontSize: "13px", color: "#64748b", fontWeight: "normal" }}>{item.room_id?.location || ""}</span>
+                          </td>
+                          <td style={{ padding: "12px" }}>{item.scheduled_at ? new Date(item.scheduled_at).toLocaleString("vi-VN") : "Đang cập nhật"}</td>
+                          <td style={{ padding: "12px", maxWidth: "200px" }}>{item.note || "Không có"}</td>
+                          <td style={{ padding: "12px" }}>
+                            <span style={{
+                              padding: "6px 12px",
+                              borderRadius: "20px",
+                              fontSize: "13px",
+                              fontWeight: "600",
+                              backgroundColor: item.status === "confirmed" ? "#dcfce7" : item.status === "cancelled" ? "#fee2e2" : "#fef3c7",
+                              color: item.status === "confirmed" ? "#16a34a" : item.status === "cancelled" ? "#dc2626" : "#d97706"
+                            }}>
+                              {item.status === "confirmed" ? "Đã duyệt" : item.status === "cancelled" ? "Bị từ chối" : "Chờ xác nhận"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p style={{ color: "#64748b" }}>Bạn chưa có lịch đặt xem phòng nào.</p>
               )}
             </>
           )}
