@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/product/ProductCard";
-import Advantages from "../components/home/Advantages";
 import Gallery from "../components/product/Gallery";
 import PlansPrices from "../components/home/PlansPrices";
 import InvestmentStages from "../components/home/InvestmentStages";
 import CallToAction from "../components/home/CallToAction";
 import Footer from "../components/layout/Footer";
 import Chatbot from "../components/chatbot/Chatbot";
+import "../css/Home.css";
 
 function Home() {
   const [products, setProducts] = useState([]);
+  const [topLandlords, setTopLandlords] = useState([]);
   const [loadingError, setLoadingError] = useState("");
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
@@ -26,6 +27,11 @@ function Home() {
         console.error("Error fetching rooms:", err);
         setLoadingError("Không thể tải danh sách room. Hãy kiểm tra backend đang chạy ở cổng 3000.");
       });
+
+    fetch("/api/reviews/top-landlords")
+      .then((res) => res.json())
+      .then((data) => setTopLandlords(Array.isArray(data) ? data : []))
+      .catch((err) => console.error("Error fetching landlords", err));
   }, []);
 
   return (
@@ -83,29 +89,51 @@ function Home() {
         </div>
       </div>
 
-      <Advantages />
+      <div className="home-content-wrapper">
+        <div className="projects-section" style={{ flex: '7' }}>
+          <h2 className="section-title">DỰ ÁN MỚI NHẤT</h2>
 
-      <div className="projects">
-        <h2>DỰ ÁN MỚI NHẤT</h2>
+          {loadingError && (
+            <p style={{ color: "#c62828", textAlign: "center", marginBottom: "16px" }}>
+              {loadingError}
+            </p>
+          )}
 
-        {loadingError && (
-          <p style={{ color: "#c62828", textAlign: "center", marginBottom: "16px" }}>
-            {loadingError}
-          </p>
-        )}
+          <div className="product-grid modern-grid">
+            {products
+              .filter((p) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                const loc = p.location ? p.location.toLowerCase() : "";
+                const name = (p.name || p.title) ? (p.name || p.title).toLowerCase() : "";
+                return loc.includes(q) || name.includes(q);
+              })
+              .map((p) => (
+                <ProductCard key={p._id || p.id} product={p} />
+              ))}
+          </div>
+        </div>
 
-        <div className="product-grid">
-          {products
-            .filter((p) => {
-              if (!searchQuery) return true;
-              const q = searchQuery.toLowerCase();
-              const loc = p.location ? p.location.toLowerCase() : "";
-              const name = (p.name || p.title) ? (p.name || p.title).toLowerCase() : "";
-              return loc.includes(q) || name.includes(q);
-            })
-            .map((p) => (
-              <ProductCard key={p._id || p.id} product={p} />
-            ))}
+        <div className="top-landlords-section" style={{ flex: '3' }}>
+          <h2 className="section-title">TOP CHỦ PHÒNG</h2>
+          <div className="top-landlords-list">
+            {topLandlords.length > 0 ? topLandlords.map((landlord, index) => (
+               <div key={landlord._id} className="landlord-card">
+                 <div className="landlord-rank">#{index + 1}</div>
+                 <img src={landlord.landlord?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(landlord.landlord?.full_name || 'NV')}&background=4f46e5&color=fff`} className="landlord-avatar" alt="avatar" />
+                 <div className="landlord-info">
+                   <h4 className="landlord-name">{landlord.landlord?.full_name || 'Khuyết danh'}</h4>
+                   <div className="landlord-stats">
+                     <span className="landlord-rating">⭐ {landlord.avgRating.toFixed(1)}</span>
+                     <span className="landlord-reviews">💬 {landlord.totalReviews} lượt đánh giá</span>
+                     <span className="landlord-rooms">📦 {landlord.roomCount} bài đăng</span>
+                   </div>
+                 </div>
+               </div>
+            )) : (
+              <p style={{ color: '#64748b', fontStyle: 'italic', fontSize: '14px' }}>Chưa có danh sách thống kê xếp hạng chủ phòng.</p>
+            )}
+          </div>
         </div>
       </div>
 

@@ -1,0 +1,169 @@
+{
+  "stage2": [
+    {
+      "_id": "69d52ba10333ffc107ab904e",
+      "avgRoomRating": 5,
+      "room": [
+        {
+          "_id": "69d52ba10333ffc107ab904e",
+          "name": " phòng trọ nhà Cường",
+          "price": 1000,
+          "status": "available",
+          "location": "Tân Xã",
+          "specs": {
+            "area": 20,
+            "layout": "đẹp"
+          },
+          "amenities": [
+            "đẹp"
+          ],
+          "pet_policy": "được",
+          "description": "",
+          "images": [
+            "/uploads/1775578011902-screenshot-2026-03-10-220223.png"
+          ],
+          "model_3d_url": "",
+          "created_by": "69d28ec4d6980bfa102deaff",
+          "tenant_id": null,
+          "approval_status": "approved",
+          "createdAt": "2026-04-07T16:06:57.274Z",
+          "updatedAt": "2026-04-07T16:07:55.285Z",
+          "__v": 0
+        }
+      ]
+    },
+    {
+      "_id": "69c38b157dd4183eaa9a8455",
+      "avgRoomRating": 5,
+      "room": [
+        {
+          "_id": "69c38b157dd4183eaa9a8455",
+          "name": "khu đông",
+          "price": 500000,
+          "status": "reserved",
+          "location": "Hà Đông",
+          "specs": {
+            "area": 10,
+            "layout": "đẹp"
+          },
+          "amenities": [
+            "đẹp"
+          ],
+          "pet_policy": "đẹp",
+          "description": "đẹp",
+          "images": [
+            "/uploads/1774422769511-screenshot-2026-03-19-110104.png"
+          ],
+          "model_3d_url": "",
+          "created_by": "65dfa2000000000000000001",
+          "tenant_id": null,
+          "createdAt": "2026-03-25T07:13:25.982Z",
+          "updatedAt": "2026-04-07T16:18:55.008Z",
+          "__v": 0,
+          "approval_status": "approved"
+        }
+      ]
+    },
+    {
+      "_id": "69c23d235a1eba772cb59800",
+      "avgRoomRating": 3.6666666666666665,
+      "room": [
+        {
+          "_id": "69c23d235a1eba772cb59800",
+          "name": "Nhà Sinh viên Tân Xã",
+          "price": 2000,
+          "status": "available",
+          "location": "Khu Công Nghệ Cao Hòa Lạc",
+          "specs": {
+            "area": 30,
+            "layout": "1 Ngủ, 1 Khách"
+          },
+          "amenities": [
+            "Điều hòa",
+            "Nóng lạnh",
+            "Tủ lạnh"
+          ],
+          "pet_policy": "Được phép (dưới 5kg)",
+          "description": "Phòng trọ giá bình dân nhưng đầy đủ tiện nghi thiết yếu dành cho sinh viên khu vực Tân Xã. Gần các chợ đêm và bến xe bus lớn.",
+          "images": [
+            "/uploads/1774419727799-screenshot-2026-03-16-122416.png"
+          ],
+          "model_3d_url": "custom_house_1",
+          "__v": 0,
+          "createdAt": "2026-03-24T07:28:35.258Z",
+          "updatedAt": "2026-04-07T16:56:00.420Z",
+          "approval_status": "approved",
+          "created_by": "65dfa2000000000000000001"
+        }
+      ]
+    },
+    {
+      "_id": "69c23d235a1eba772cb59801",
+      "avgRoomRating": 5,
+      "room": [
+        {
+          "_id": "69c23d235a1eba772cb59801",
+          "name": "Phòng trọ cao cấp Bình Yên",
+          "price": 6000000,
+          "status": "rented",
+          "location": "Khu Công Nghệ Cao Hòa Lạc",
+          "specs": {
+            "area": 45,
+            "layout": "2 Ngủ, 1 Khách"
+          },
+          "amenities": [
+            "Điều hòa",
+            "Nóng lạnh",
+            "Máy giặt",
+            "Tivi",
+            "Ban công"
+          ],
+          "pet_policy": "Không được phép",
+          "description": "Căn hộ dịch vụ cao cấp ngay Khu Công Nghệ Cao Hòa Lạc. Được trang bị thiết kế nội thất thông minh, cửa sổ lớn đón nắng và hầm gửi xe miễn phí.",
+          "images": [
+            "https://images.unsplash.com/photo-1502672023488-70e25813eb80?q=80&w=1964&auto=format&fit=crop"
+          ],
+          "model_3d_url": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Fox/glTF-Binary/Fox.glb",
+          "__v": 0,
+          "createdAt": "2026-03-24T07:28:35.262Z",
+          "updatedAt": "2026-04-07T16:56:00.474Z",
+          "tenant_id": "69c252d3ee9f9a05d90aacc4",
+          "approval_status": "approved",
+          "created_by": "65dfa2000000000000000001"
+        }
+      ]
+    }
+  ],
+  "topLandlords": [
+    {
+      "_id": "69d28ec4d6980bfa102deaff",
+      "avgRating": 5,
+      "roomCount": 1,
+      "landlord": {
+        "_id": "69d28ec4d6980bfa102deaff",
+        "full_name": "cuongdola123",
+        "email": "cuong.abc@gmail.com",
+        "password": "123456",
+        "phone": "0352624919",
+        "role": "staff",
+        "saved_rooms": [],
+        "createdAt": "2026-04-05T16:33:08.813Z",
+        "updatedAt": "2026-04-07T16:29:57.474Z",
+        "__v": 2
+      }
+    },
+    {
+      "_id": "65dfa2000000000000000001",
+      "avgRating": 4.555555555555555,
+      "roomCount": 3,
+      "landlord": {
+        "_id": "65dfa2000000000000000001",
+        "full_name": "Admin 1",
+        "email": "levucuong0319@gmail.com",
+        "password": "123456",
+        "role": "admin",
+        "created_at": "2026-03-01T00:00:00.000Z"
+      }
+    }
+  ]
+}

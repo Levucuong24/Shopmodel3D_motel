@@ -37,6 +37,24 @@ function StaffDashboard() {
   const [creatingRoom, setCreatingRoom] = useState(false);
   const [uploadingRoomImage, setUploadingRoomImage] = useState(false);
   
+  const [viewingRoom, setViewingRoom] = useState(null);
+  const [viewingRoomReviews, setViewingRoomReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+
+  const handleViewRoomClick = async (room) => {
+    setViewingRoom(room);
+    setLoadingReviews(true);
+    try {
+      const response = await fetch(`/api/reviews/${room._id}`);
+      const data = await response.json();
+      setViewingRoomReviews(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+  
   const [newRoomForm, setNewRoomForm] = useState({
     name: "",
     price: "",
@@ -338,6 +356,7 @@ function StaffDashboard() {
                         </td>
                         <td>
                           <div style={{ display: "flex", gap: "5px" }}>
+                            <button onClick={() => handleViewRoomClick(room)} style={{ padding: "5px 10px", background: "#3b82f6", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Xem</button>
                             <button onClick={() => handleEditRoomClick(room)} style={{ padding: "5px 10px", background: "#f59e0b", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Sửa</button>
                             <button onClick={() => handleDeleteRoom(room._id)} style={{ padding: "5px 10px", background: "#ef4444", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Xóa</button>
                           </div>
@@ -351,6 +370,50 @@ function StaffDashboard() {
           )}
         </section>
       </main>
+
+      {viewingRoom && (
+        <div className="modal-overlay" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000}}>
+          <div className="modal-content" style={{ background: "white", padding: "20px", borderRadius: "8px", width: "80%", maxWidth: "800px", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #ddd", paddingBottom: "10px", marginBottom: "20px" }}>
+              <h2>Chi tiết phòng: {viewingRoom.name}</h2>
+              <button onClick={() => setViewingRoom(null)} style={{ background: "transparent", border: "none", fontSize: "28px", cursor: "pointer" }}>&times;</button>
+            </div>
+            
+            <div className="modal-body">
+              <h3>Hình ảnh</h3>
+              <div style={{ display: "flex", gap: "10px", overflowX: "auto", marginBottom: "20px" }}>
+                {viewingRoom.images && viewingRoom.images.length > 0 ? (
+                  viewingRoom.images.map((img, idx) => (
+                    <img key={idx} src={img} alt="Room" style={{ width: "200px", height: "150px", objectFit: "cover", borderRadius: "8px" }} />
+                  ))
+                ) : (
+                  <p>Không có hình ảnh đính kèm</p>
+                )}
+              </div>
+
+              <h3>Đánh giá từ người thuê</h3>
+              {loadingReviews ? (
+                <p>Đang tải đánh giá...</p>
+              ) : viewingRoomReviews.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                  {viewingRoomReviews.map((review) => (
+                    <div key={review._id} style={{ padding: "10px", background: "#f9fafb", borderRadius: "8px", border: "1px solid #e5e7eb" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <strong>{review.user_id?.full_name || "Người dùng"}</strong>
+                        <span style={{ color: "#f59e0b" }}>{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</span>
+                      </div>
+                      <p style={{ margin: "5px 0 0", color: "#4b5563" }}>{review.content}</p>
+                      <small style={{ color: "#9ca3af" }}>{new Date(review.createdAt).toLocaleDateString("vi-VN")}</small>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p>Chưa có đánh giá nào.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

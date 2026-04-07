@@ -55,7 +55,9 @@ function ProductDetail() {
   useEffect(() => {
     setLoading(true);
 
-    fetch(`/api/rooms/${id}`)
+    fetch(`/api/rooms/${id}`, {
+      headers: authToken ? { Authorization: authToken } : {}
+    })
       .then((res) => res.json())
       .then((data) => {
         setProduct(data);
