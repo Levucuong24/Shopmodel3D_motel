@@ -1,7 +1,7 @@
 import Room from "./Room.js";
 
-export const getAllRooms = async () => {
-  return await Room.find();
+export const getAllRooms = async (query = {}) => {
+  return await Room.find(query);
 };
 
 export const getRoomById = async (id) => {

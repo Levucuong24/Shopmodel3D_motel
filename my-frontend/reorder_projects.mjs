@@ -12,7 +12,7 @@ if (projectsMatch) {
   homeCode = homeCode.replace(projectsBlock, '');
   
   // Insert it right after <Advantages />
-  homeCode = homeCode.replace(/<Advantages \/>/, \`<Advantages />\n\n      \${projectsBlock}\`);
+  homeCode = homeCode.replace(/<Advantages \/>/, `<Advantages />\n\n      ${projectsBlock}`);
   
   fs.writeFileSync(homePath, homeCode);
   console.log("Successfully moved 'projects' block after Advantages.");

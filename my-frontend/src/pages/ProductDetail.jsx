@@ -50,6 +50,7 @@ function ProductDetail() {
     note: "",
   });
   const [appointmentSubmitting, setAppointmentSubmitting] = useState(false);
+  const [showBookingForm, setShowBookingForm] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -374,7 +375,10 @@ function ProductDetail() {
             </h3>
             <button 
               className="book-btn" 
-              onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}
+              onClick={() => {
+                setShowBookingForm(!showBookingForm);
+                setTimeout(() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" }), 100);
+              }}
               disabled={product.status === "rented"}
               style={{ opacity: product.status === "rented" ? 0.5 : 1, cursor: product.status === "rented" ? "not-allowed" : "pointer" }}
             >
@@ -399,35 +403,37 @@ function ProductDetail() {
             <button className="call-btn">📞 Gọi chủ nhà: 0352824919</button>
 
             {product.status !== "rented" ? (
-              <form id="booking-form" className="booking-form" onSubmit={handleAppointmentSubmit}>
-                <h4>Đăng ký lịch xem</h4>
-                <input
-                  type="text"
-                  placeholder="Họ và tên"
-                  value={appointmentForm.full_name}
-                  onChange={(e) => setAppointmentForm((prev) => ({ ...prev, full_name: e.target.value }))}
-                />
-                <input
-                  type="text"
-                  placeholder="Số điện thoại"
-                  value={appointmentForm.phone}
-                  onChange={(e) => setAppointmentForm((prev) => ({ ...prev, phone: e.target.value }))}
-                />
-                <input
-                  type="datetime-local"
-                  value={appointmentForm.scheduled_at}
-                  onChange={(e) => setAppointmentForm((prev) => ({ ...prev, scheduled_at: e.target.value }))}
-                />
-                <textarea
-                  rows={3}
-                  placeholder="Ghi chú thêm"
-                  value={appointmentForm.note}
-                  onChange={(e) => setAppointmentForm((prev) => ({ ...prev, note: e.target.value }))}
-                />
-                <button type="submit" className="submit-review-btn" disabled={appointmentSubmitting}>
-                  {appointmentSubmitting ? "Đang gửi..." : "Xác nhận lịch xem"}
-                </button>
-              </form>
+              showBookingForm && (
+                <form id="booking-form" className="booking-form" onSubmit={handleAppointmentSubmit}>
+                  <h4>Đăng ký lịch xem</h4>
+                  <input
+                    type="text"
+                    placeholder="Họ và tên"
+                    value={appointmentForm.full_name}
+                    onChange={(e) => setAppointmentForm((prev) => ({ ...prev, full_name: e.target.value }))}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Số điện thoại"
+                    value={appointmentForm.phone}
+                    onChange={(e) => setAppointmentForm((prev) => ({ ...prev, phone: e.target.value }))}
+                  />
+                  <input
+                    type="datetime-local"
+                    value={appointmentForm.scheduled_at}
+                    onChange={(e) => setAppointmentForm((prev) => ({ ...prev, scheduled_at: e.target.value }))}
+                  />
+                  <textarea
+                    rows={3}
+                    placeholder="Ghi chú thêm"
+                    value={appointmentForm.note}
+                    onChange={(e) => setAppointmentForm((prev) => ({ ...prev, note: e.target.value }))}
+                  />
+                  <button type="submit" className="submit-review-btn" disabled={appointmentSubmitting}>
+                    {appointmentSubmitting ? "Đang gửi..." : "Xác nhận lịch xem"}
+                  </button>
+                </form>
+              )
             ) : (
               <div className="booking-form" style={{ textAlign: "center", color: "#dc2626", fontWeight: "bold", marginTop: "20px" }}>
                 Phòng này đã có người thuê. Các chức năng đặt lịch và cọc phòng đã bị khóa.

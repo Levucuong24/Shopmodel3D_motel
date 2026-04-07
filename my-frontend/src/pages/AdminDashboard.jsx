@@ -15,6 +15,18 @@ const roomStatusColor = {
   rented: "#dc2626",
 };
 
+const approvalStatusLabel = {
+  pending: "Chờ duyệt",
+  approved: "Được duyệt",
+  rejected: "Bị từ chối",
+};
+
+const approvalStatusColor = {
+  pending: "#f59e0b",
+  approved: "#10b981",
+  rejected: "#ef4444",
+};
+
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [rooms, setRooms] = useState([]);
@@ -65,7 +77,10 @@ function AdminDashboard() {
   });
 
   useEffect(() => {
-    fetch("/api/rooms")
+    const token = localStorage.getItem("authToken");
+    const headers = token ? { Authorization: token } : {};
+    
+    fetch("/api/rooms/all", { headers })
       .then((res) => res.json())
       .then((data) => {
         setRooms(Array.isArray(data) ? data : []);
@@ -174,6 +189,33 @@ function AdminDashboard() {
       
       const updated = await response.json();
       setViewings((prev) => prev.map((v) => (v._id === id ? updated : v)));
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleUserRoleChange = async (id, newRole) => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("Bạn cần đăng nhập admin để thao tác");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/users/${id}/role`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+        body: JSON.stringify({ role: newRole }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Lỗi đổi quyền user");
+
+      setUsers((prev) => prev.map((u) => (u._id === id ? data : u)));
+      alert("Cập nhật quyền thành công");
     } catch (error) {
       alert(error.message);
     }
@@ -575,6 +617,26 @@ function AdminDashboard() {
     }
   };
 
+  const handleApproveRoom = async (id, status) => {
+    const token = localStorage.getItem("authToken");
+    if (!token) return alert("Bạn cần đăng nhập admin");
+    if (!window.confirm(`Bạn có chắc chắn muốn ${status === "approved" ? "duyệt" : "từ chối"} phòng này?`)) return;
+    
+    try {
+      const response = await fetch(`/api/rooms/${id}/approve`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: token },
+        body: JSON.stringify({ status })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Lỗi duyệt phòng");
+      setRooms((prev) => prev.map((r) => r._id === id ? data : r));
+      alert("Cập nhật trạng thái duyệt thành công!");
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   return (
     <div className="dashboard-container">
       <aside className="sidebar admin-theme">
@@ -589,6 +651,9 @@ function AdminDashboard() {
           <li className={activeTab === "properties" ? "active" : ""}>
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("properties"); }}>Quản lý phòng</a>
           </li>
+          <li className={activeTab === "approvals" ? "active" : ""}>
+            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("approvals"); }}>Phê duyệt phòng đăng</a>
+          </li>
           <li className={activeTab === "viewings" ? "active" : ""}>
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("viewings"); }}>Lịch xem phòng</a>
           </li>
@@ -600,6 +665,9 @@ function AdminDashboard() {
           </li>
           <li className={activeTab === "gallery" ? "active" : ""}>
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("gallery"); }}>Quản lý 3D Gallery</a>
+          </li>
+          <li className={activeTab === "users" ? "active" : ""}>
+            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("users"); }}>Quản lý Người dùng</a>
           </li>
           <li className={activeTab === "breakeven" ? "active" : ""}>
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("breakeven"); }}>Điểm hòa vốn</a>
@@ -801,6 +869,7 @@ function AdminDashboard() {
                       <th>Diện tích</th>
                       <th>Người thuê</th>
                       <th>Trạng thái hiện tại</th>
+                      <th>Trạng thái duyệt</th>
                       <th>Chuyển trạng thái</th>
                       <th>Thao tác</th>
                     </tr>
@@ -850,6 +919,11 @@ function AdminDashboard() {
                           </span>
                         </td>
                         <td>
+                          <span style={{ padding: "5px 10px", borderRadius: "12px", color: "white", fontSize: "12px", fontWeight: "bold", background: approvalStatusColor[room.approval_status] || "#64748b" }}>
+                            {approvalStatusLabel[room.approval_status] || room.approval_status}
+                          </span>
+                        </td>
+                        <td>
                           <select
                             value={room.status}
                             onChange={(e) => handleStatusChange(room._id, e.target.value)}
@@ -865,6 +939,43 @@ function AdminDashboard() {
                           <div style={{ display: "flex", gap: "5px" }}>
                             <button onClick={() => handleEditRoomClick(room)} style={{ padding: "5px 10px", background: "#f59e0b", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Sửa</button>
                             <button onClick={() => handleDeleteRoom(room._id)} style={{ padding: "5px 10px", background: "#ef4444", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Xóa</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+
+          {activeTab === "approvals" && (
+            <div className="recent-activity">
+              <h3>Phê duyệt phòng đăng</h3>
+              {loading ? (
+                <p>Đang tải dữ liệu...</p>
+              ) : rooms.filter(r => r.approval_status === "pending").length === 0 ? (
+                <p>Không có phòng nào đang chờ duyệt.</p>
+              ) : (
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Tên phòng</th>
+                      <th>Giá thuê</th>
+                      <th>Khu vực</th>
+                      <th>Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rooms.filter(r => r.approval_status === "pending").map((room) => (
+                      <tr key={room._id}>
+                        <td style={{ fontWeight: "bold" }}>{room.name}</td>
+                        <td>{room.price?.toLocaleString("vi-VN")}đ</td>
+                        <td>{room.location}</td>
+                        <td>
+                          <div style={{ display: "flex", gap: "10px" }}>
+                            <button onClick={() => handleApproveRoom(room._id, "approved")} style={{ padding: "5px 10px", background: "#10b981", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Duyệt</button>
+                            <button onClick={() => handleApproveRoom(room._id, "rejected")} style={{ padding: "5px 10px", background: "#ef4444", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Từ chối</button>
                           </div>
                         </td>
                       </tr>
@@ -1135,6 +1246,49 @@ function AdminDashboard() {
                 ))}
               </div>
               {galleryImages.length === 0 && <p style={{ color: "#64748b" }}>Chưa có hình ảnh nào trong Gallery.</p>}
+            </div>
+          )}
+
+          {activeTab === "users" && (
+            <div className="recent-activity">
+              <h3>Quản lý Người Dùng</h3>
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Họ Tên</th>
+                    <th>Email / SĐT</th>
+                    <th>Vai trò hiện tại</th>
+                    <th>Chuyển vai trò</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user._id}>
+                      <td style={{ fontWeight: "bold" }}>{user.full_name}</td>
+                      <td>
+                        <div>{user.email || "N/A"}</div>
+                        <div className="table-subtext">{user.phone || "N/A"}</div>
+                      </td>
+                      <td>
+                        <span className="status-badge" style={{ background: user.role === "admin" ? "#dc2626" : user.role === "staff" ? "#f59e0b" : "#3b82f6", color: "white" }}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td>
+                        <select
+                          value={user.role}
+                          onChange={(e) => handleUserRoleChange(user._id, e.target.value)}
+                          style={{ padding: "6px", borderRadius: "4px", border: "1px solid #ccc" }}
+                          disabled={user.role === "admin"} // Không cho phép tự đổi quyền admin
+                        >
+                          <option value="customer">Customer</option>
+                          <option value="staff">Staff</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </section>

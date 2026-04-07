@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { GoogleLogin } from '@react-oauth/google';
+import GoogleAuth from "../components/auth/GoogleAuth";
 import "../css/Login.css";
 
 function Auth() {
@@ -65,29 +65,6 @@ function Auth() {
     }
   };
   
-  const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      const res = await fetch("/api/auth/google", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: credentialResponse.credential })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Lỗi đăng nhập Google");
-
-      localStorage.setItem("userRole", data.user.role);
-      localStorage.setItem("authToken", data.token);
-      localStorage.setItem("userData", JSON.stringify(data.user));
-
-      navigate(data.user.role === "admin" ? "/admin" : "/customer");
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  const handleGoogleError = () => {
-    alert("Đăng nhập Google thất bại! API thiếu cấu hình.");
-  };
   
   // Signup States
   const [fullName, setFullName] = useState("");
@@ -138,7 +115,7 @@ function Auth() {
       localStorage.setItem("authToken", data.token);
       localStorage.setItem("userData", JSON.stringify(data.user));
 
-      navigate(data.user.role === "admin" ? "/admin" : "/customer");
+      navigate(data.user.role === "admin" ? "/admin" : data.user.role === "staff" ? "/staff" : "/customer");
     } catch (error) {
       alert(error.message);
       generateCaptcha();
@@ -203,12 +180,7 @@ function Auth() {
           <form className="auth-form" onSubmit={handleSignup}>
             <h1>Tạo tài khoản</h1>
             <span className="subtitle" style={{marginBottom: "10px"}}>Nhập thông tin cá nhân của bạn để đăng ký</span>
-            <GoogleLogin
-               onSuccess={handleGoogleSuccess}
-               onError={handleGoogleError}
-               shape="pill"
-               width="280"
-            />
+            <GoogleAuth width="280" />
             <div style={{ margin: '15px 0', fontSize: '12px', color: '#999' }}>HOẶC ĐĂNG KÝ BẰNG TÊN</div>
             <input type="text" placeholder="Họ và tên" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
             <input type="tel" placeholder="Số điện thoại" value={phone} onChange={(e) => setPhone(e.target.value)} />
@@ -241,12 +213,7 @@ function Auth() {
             <form className="auth-form" onSubmit={handleLogin}>
               <h1>Đăng nhập</h1>
               <span className="subtitle" style={{marginBottom: "10px"}}>sử dụng tài khoản của bạn</span>
-              <GoogleLogin
-                 onSuccess={handleGoogleSuccess}
-                 onError={handleGoogleError}
-                 shape="pill"
-                 width="280"
-              />
+              <GoogleAuth width="280" />
               <div style={{ margin: '15px 0', fontSize: '12px', color: '#999' }}>HOẶC ĐĂNG NHẬP BẰNG TÊN</div>
               <input type="text" placeholder="Họ và tên" required value={loginFullName} onChange={(e) => setLoginFullName(e.target.value)} />
               <input type="password" placeholder="Mật khẩu" required value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />

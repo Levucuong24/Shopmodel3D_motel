@@ -6,7 +6,8 @@ import Auth from "./pages/Auth.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import CustomerDashboard from "./pages/CustomerDashboard.jsx";
-
+import StaffDashboard from "./pages/StaffDashboard.jsx";
+import ScrollToTop from "./components/layout/ScrollToTop.jsx";
 // Dashboard Wrapper to selectively render Navbar
 function DashboardLayout({ children }) {
   return <>{children}</>;
@@ -38,7 +39,9 @@ function App() {
         {/* Dashboard Routes without Navbar */}
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/customer" element={<CustomerDashboard />} />
+        <Route path="/staff" element={<StaffDashboard />} />
       </Routes>
+      <ScrollToTop />
     </BrowserRouter>
   );
 }

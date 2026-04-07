@@ -39,6 +39,12 @@ const roomSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+
+    approval_status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
   },
   { timestamps: true }
 );

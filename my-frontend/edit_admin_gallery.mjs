@@ -6,16 +6,16 @@ let code = fs.readFileSync(adminPath, 'utf8');
 // 1. Add states for gallery
 code = code.replace(
   /const \[viewingsLoading, setViewingsLoading\] = useState\(true\);/,
-  \`const [viewingsLoading, setViewingsLoading] = useState(true);
+  `const [viewingsLoading, setViewingsLoading] = useState(true);
   const [galleryImages, setGalleryImages] = useState([]);
   const [uploadingGallery, setUploadingGallery] = useState(false);
-  const [newGalleryUrl, setNewGalleryUrl] = useState("");\`
+  const [newGalleryUrl, setNewGalleryUrl] = useState("");`
 );
 
 // 2. Add fetch logic inside useEffect
 code = code.replace(
   /fetch\("\/api\/payments", \{ headers \}\)/,
-  \`fetch("/api/payments", { headers })
+  `fetch("/api/payments", { headers })
         .then((res) => res.json())
         .then((data) => setPayments(Array.isArray(data) ? data : []))
         .catch((err) => console.error("Error fetching payments:", err));
@@ -25,13 +25,13 @@ code = code.replace(
         .then((data) => setGalleryImages(Array.isArray(data) ? data : []))
         .catch((err) => console.error("Error fetching gallery:", err));
 
-      // dummy replacement to fix duplicated payments\`
+      // dummy replacement to fix duplicated payments`
 );
 
 // wait the previous step might replace incorrectly, let me be very precise.
 code = code.replace(
   /fetch\("\/api\/payments", \{ headers \}\)[\s\S]*?\.catch\(\(err\) => console\.error\("Error fetching payments:", err\)\);/,
-  \`fetch("/api/payments", { headers })
+  `fetch("/api/payments", { headers })
         .then((res) => res.json())
         .then((data) => setPayments(Array.isArray(data) ? data : []))
         .catch((err) => console.error("Error fetching payments:", err));
@@ -39,12 +39,12 @@ code = code.replace(
       fetch("/api/gallery", { headers })
         .then((res) => res.json())
         .then((data) => setGalleryImages(Array.isArray(data) ? data : []))
-        .catch((err) => console.error("Error fetching gallery:", err));\`
+        .catch((err) => console.error("Error fetching gallery:", err));`
 );
 
 
 // 3. Add handle functions for gallery
-const galleryHandlers = \`
+const galleryHandlers = `
   const handleGalleryUpload = async (e) => {
     const file = e.target.files?.[0];
     const token = localStorage.getItem("authToken");
@@ -110,7 +110,7 @@ const galleryHandlers = \`
     const token = localStorage.getItem("authToken");
 
     try {
-      const res = await fetch(\`/api/gallery/\${id}\`, {
+      const res = await fetch("/api/gallery/" + id, {
         method: "DELETE",
         headers: { Authorization: token },
       });
@@ -121,26 +121,26 @@ const galleryHandlers = \`
       alert(error.message);
     }
   };
-\`;
+`;
 
 code = code.replace(
   /const handleCancelEdit = \(\) => \{/,
-  \`\${galleryHandlers}\n\n  const handleCancelEdit = () => {\`
+  `${galleryHandlers}\n\n  const handleCancelEdit = () => {`
 );
 
 
 // 4. Add the menu item
 code = code.replace(
   /<li className=\{activeTab === "breakeven" \? "active" : ""\}>/,
-  \`<li className={activeTab === "gallery" ? "active" : ""}>
+  `<li className={activeTab === "gallery" ? "active" : ""}>
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("gallery"); }}>Quản lý Gallery</a>
           </li>
-          <li className={activeTab === "breakeven" ? "active" : ""}>\`
+          <li className={activeTab === "breakeven" ? "active" : ""}>`
 );
 
 
 // 5. Add the activeTab === "gallery" content logic
-const galleryTabHtml = \`
+const galleryTabHtml = `
           {activeTab === "gallery" && (
             <div className="recent-activity">
               <h3>Quản lý Gallery (3D Renderings)</h3>
@@ -177,11 +177,11 @@ const galleryTabHtml = \`
               {galleryImages.length === 0 && <p style={{ color: "#64748b" }}>Chưa có hình ảnh nào trong Gallery.</p>}
             </div>
           )}
-\`;
+`;
 
 code = code.replace(
   /\{activeTab === "breakeven" && \(/,
-  \`\${galleryTabHtml}\n\n          {activeTab === "breakeven" && (\`
+  `${galleryTabHtml}\n\n          {activeTab === "breakeven" && (`
 );
 
 fs.writeFileSync(adminPath, code);

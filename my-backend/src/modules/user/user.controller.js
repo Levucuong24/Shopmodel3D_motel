@@ -74,3 +74,30 @@ export const uploadAvatar = async (req, res) => {
 
   res.json(user);
 };
+
+export const updateUserRole = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Không có quyền truy cập" });
+    }
+
+    const { role } = req.body;
+    if (!["admin", "customer", "staff"].includes(role)) {
+      return res.status(400).json({ message: "Role không hợp lệ" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { role },
+      { new: true }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "Không tìm thấy user" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message || "Lỗi server" });
+  }
+};
