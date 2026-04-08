@@ -8,6 +8,9 @@ function CustomerDashboard() {
   const [savedRooms, setSavedRooms] = useState([]);
   const [viewings, setViewings] = useState([]);
   const [viewingsLoading, setViewingsLoading] = useState(true);
+  const [rentalPayment, setRentalPayment] = useState(null);
+  const [rentalPaymentLoading, setRentalPaymentLoading] = useState(true);
+  const [requestingCancellation, setRequestingCancellation] = useState(false);
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -33,7 +36,10 @@ function CustomerDashboard() {
       });
     }
 
-    if (!token) return;
+    if (!token) {
+      setRentalPaymentLoading(false);
+      return;
+    }
 
     fetch("/api/users/me", {
       headers: {
@@ -56,6 +62,21 @@ function CustomerDashboard() {
       })
       .catch((err) => {
         console.error("Error fetching profile:", err);
+      });
+
+    fetch("/api/payments/my-rental", {
+      headers: {
+        Authorization: token,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setRentalPayment(data && !data.message ? data : null);
+        setRentalPaymentLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching rental payment:", err);
+        setRentalPaymentLoading(false);
       });
   }, []);
 
@@ -91,7 +112,7 @@ function CustomerDashboard() {
   }, []);
 
   const storedUser = JSON.parse(localStorage.getItem("userData") || "null");
-  const rentedRoom = rooms.find(room => room.tenant_id === storedUser?._id) || null;
+  const rentedRoom = rentalPayment?.room_id || rooms.find(room => room.tenant_id === storedUser?._id) || null;
   const customerAvatar =
     profileForm.avatar ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(customerName || "Khach Hang")}&background=00c6ff&color=fff`;
@@ -104,6 +125,37 @@ function CustomerDashboard() {
 
   const handleProfileChange = (field, value) => {
     setProfileForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleRequestCancellation = async () => {
+    const token = localStorage.getItem("authToken");
+    if (!token || !rentalPayment?._id) return;
+
+    if (!window.confirm("Bạn muốn gửi yêu cầu hủy thuê phòng này tới chủ phòng?")) return;
+
+    setRequestingCancellation(true);
+    try {
+      const response = await fetch(`/api/payments/${rentalPayment._id}/request-cancel`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+        body: JSON.stringify({}),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Không thể gửi yêu cầu hủy thuê");
+      }
+
+      setRentalPayment(data.payment || null);
+      alert(data.message || "Đã gửi yêu cầu hủy thuê");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setRequestingCancellation(false);
+    }
   };
 
   const handleProfileSave = async (e) => {
@@ -382,7 +434,7 @@ function CustomerDashboard() {
           {activeTab === "rented" && (
             <>
               <h3 className="section-title">Thông tin phòng đang thuê</h3>
-              {loading ? (
+              {loading || rentalPaymentLoading ? (
                 <p>Đang tải dữ liệu phòng...</p>
               ) : rentedRoom ? (
                 <div className="rented-rooms-container" style={{ background: "white", padding: "20px", borderRadius: "12px", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
@@ -406,6 +458,29 @@ function CustomerDashboard() {
                     <li><strong>Bố trí:</strong> {rentedRoom.specs?.layout || "Đang cập nhật"}</li>
                     <li><strong>Thú cưng:</strong> {rentedRoom.pet_policy || "Đang cập nhật"}</li>
                   </ul>
+                  {rentalPayment?.cancellation_status === "pending" ? (
+                    <div style={{ marginTop: "16px", padding: "14px", borderRadius: "10px", background: "#fff7ed", color: "#c2410c", fontWeight: "600" }}>
+                      Yêu cầu hủy thuê đã được gửi. Hệ thống đang chờ chủ phòng xác nhận.
+                    </div>
+                  ) : rentalPayment?.status === "success" ? (
+                    <button
+                      type="button"
+                      onClick={handleRequestCancellation}
+                      disabled={requestingCancellation}
+                      style={{
+                        marginTop: "16px",
+                        padding: "10px 16px",
+                        background: "#dc2626",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        cursor: requestingCancellation ? "not-allowed" : "pointer",
+                        opacity: requestingCancellation ? 0.7 : 1,
+                      }}
+                    >
+                      {requestingCancellation ? "Đang gửi yêu cầu..." : "Yêu cầu hủy thuê"}
+                    </button>
+                  ) : null}
                 </div>
               ) : (
                 <p>Chưa có dữ liệu phòng để hiển thị.</p>

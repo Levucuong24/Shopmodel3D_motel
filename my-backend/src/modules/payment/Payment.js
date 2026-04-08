@@ -72,6 +72,18 @@ const paymentSchema = new mongoose.Schema(
     paid_at: Date,
 
     rental_confirmed_at: Date,
+
+    cancellation_status: {
+      type: String,
+      enum: ["none", "pending", "approved"],
+      default: "none",
+    },
+
+    cancellation_requested_at: Date,
+
+    cancellation_confirmed_at: Date,
+
+    cancellation_note: String,
   }
 );
 

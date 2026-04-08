@@ -125,8 +125,29 @@ export const uploadRoomImage = async (req, res) => {
 
 export const updateRoom = async (req, res) => {
   try {
-    const room = await updateRoomById(req.params.id, req.body);
-    if (!room) return res.status(404).json({ message: "Room not found" });
+    const existingRoom = await getRoomByIdService(req.params.id);
+    if (!existingRoom) return res.status(404).json({ message: "Room not found" });
+
+    const isAdmin = req.user.role === "admin";
+    const isOwner = existingRoom.created_by?.toString() === req.user.id;
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: "Bạn không có quyền chỉnh sửa phòng này" });
+    }
+
+    if (existingRoom.status === "rented") {
+      return res.status(400).json({ message: "Phòng đã hết phòng nên không thể chỉnh sửa" });
+    }
+
+    const roomPayload = { ...req.body };
+
+    if (!isAdmin) {
+      delete roomPayload.created_by;
+      delete roomPayload.tenant_id;
+      delete roomPayload.approval_status;
+    }
+
+    const room = await updateRoomById(req.params.id, roomPayload);
     res.json(room);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
@@ -135,6 +156,16 @@ export const updateRoom = async (req, res) => {
 
 export const deleteRoom = async (req, res) => {
   try {
+    const existingRoom = await getRoomByIdService(req.params.id);
+    if (!existingRoom) return res.status(404).json({ message: "Room not found" });
+
+    const isAdmin = req.user.role === "admin";
+    const isOwner = existingRoom.created_by?.toString() === req.user.id;
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: "Bạn không có quyền xóa phòng này" });
+    }
+
     const room = await deleteRoomByIdService(req.params.id);
     if (!room) return res.status(404).json({ message: "Room not found" });
     res.json({ message: "Room deleted successfully" });

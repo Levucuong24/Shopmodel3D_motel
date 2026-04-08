@@ -60,16 +60,34 @@ function AdminDashboard() {
     model_3d_url: "",
     status: "available",
   });
-  const dynamicRevenues = useMemo(() => {
-    const totalDeposits = payments.reduce((sum, p) => sum + (p.admin_commission || 0), 0);
 
-    return [
-      { id: 1, month: "Tháng 1", amount: 110000000, status: "Đã chốt" },
-      { id: 2, month: "Tháng 2", amount: 98000000, status: "Đã chốt" },
-      { id: 3, month: "Tháng 3", amount: 125000000 + totalDeposits, status: "Thực tế" },
-      { id: 4, month: "Tháng 4", amount: 140000000, status: "Mục tiêu" },
-    ];
-  }, [payments]);
+  const currentReportDate = new Date();
+  const currentMonthLabel = currentReportDate.toLocaleDateString("vi-VN", { month: "long", year: "numeric" });
+  const reportMonths = Array.from({ length: 4 }, (_, index) => {
+    const date = new Date(currentReportDate.getFullYear(), currentReportDate.getMonth() - (3 - index), 1);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    return {
+      id: key,
+      key,
+      month: date.toLocaleDateString("vi-VN", { month: "long" }),
+      year: date.getFullYear(),
+    };
+  });
+
+  const dynamicRevenues = useMemo(() => {
+    const monthlyMap = new Map(
+      monthlyRevenue.map((item) => [item.month, Number(item.amount || 0)])
+    );
+
+    const latestMonthKey = reportMonths[reportMonths.length - 1]?.key;
+
+    return reportMonths.map((item) => ({
+      id: item.key,
+      month: item.month,
+      amount: monthlyMap.get(item.key) || 0,
+      status: item.key === latestMonthKey ? "Thực tế hiện tại" : "Đã chốt",
+    }));
+  }, [monthlyRevenue]);
 
   const [breakevenData, setBreakevenData] = useState({
     fixedCost: 50000000,
@@ -1184,11 +1202,11 @@ function AdminDashboard() {
 
           {activeTab === "reports" && (
             <div className="recent-activity">
-              <h3>Báo cáo doanh thu (Quý 1 - 2026)</h3>
-              <p style={{ color: "#64748b", marginBottom: "25px" }}>Biểu đồ doanh thu dựa trên dữ liệu mô phỏng kết hợp với phòng thực tế trong hệ thống.</p>
+              <h3>{`Báo cáo doanh thu (${currentMonthLabel})`}</h3>
+              <p style={{ color: "#64748b", marginBottom: "25px" }}>Biểu đồ doanh thu được cập nhật theo các tháng gần thời điểm hiện tại của hệ thống.</p>
 
               <div className="revenue-grid">
-                {dynamicRevenues.slice(0, 3).map((item, index) => {
+                {dynamicRevenues.map((item, index) => {
                   let percentChange = null;
                   let isPositive = true;
 
@@ -1203,7 +1221,7 @@ function AdminDashboard() {
                     <div className="revenue-card" key={item.id}>
                       <div className="revenue-header">
                         <h4>{item.month}</h4>
-                        <span className={`revenue-badge ${item.status === "Dự kiến" ? "pending" : "completed"}`}>{item.status}</span>
+                        <span className={`revenue-badge ${item.status === "Thực tế hiện tại" ? "pending" : "completed"}`}>{item.status}</span>
                       </div>
                       <div className="revenue-body">
                         <p className="revenue-amount">{item.amount.toLocaleString("vi-VN")}đ</p>

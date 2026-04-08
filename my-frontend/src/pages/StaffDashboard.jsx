@@ -31,13 +31,16 @@ function StaffDashboard() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState("properties");
   const [rooms, setRooms] = useState([]);
-  const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [paymentsLoading, setPaymentsLoading] = useState(true);
+  const [payments, setPayments] = useState([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
 
   const [editingRoomId, setEditingRoomId] = useState(null);
   const [creatingRoom, setCreatingRoom] = useState(false);
   const [uploadingRoomImage, setUploadingRoomImage] = useState(false);
+
+  const [editingPaymentId, setEditingPaymentId] = useState(null);
+  const [savingPayment, setSavingPayment] = useState(false);
 
   const [viewingRoom, setViewingRoom] = useState(null);
   const [viewingRoomReviews, setViewingRoomReviews] = useState([]);
@@ -57,6 +60,15 @@ function StaffDashboard() {
     status: "available",
   });
 
+  const [paymentForm, setPaymentForm] = useState({
+    customer_name: "",
+    customer_email: "",
+    amount: "",
+    note: "",
+    status: "pending",
+    payment_method: "BANK_QR",
+  });
+
   useEffect(() => {
     const role = localStorage.getItem("userRole");
     const token = localStorage.getItem("authToken");
@@ -68,21 +80,9 @@ function StaffDashboard() {
 
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
     setUser(userData);
-
     fetchRooms(token);
     fetchPayments(token);
   }, [navigate]);
-
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (!token || activeTab !== "payments") return;
-
-    const intervalId = setInterval(() => {
-      fetchPayments(token);
-    }, 3000);
-
-    return () => clearInterval(intervalId);
-  }, [activeTab]);
 
   const fetchRooms = (token) => {
     setLoading(true);
@@ -128,6 +128,10 @@ function StaffDashboard() {
 
   const handleNewRoomChange = (field, value) => {
     setNewRoomForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handlePaymentChange = (field, value) => {
+    setPaymentForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleRoomImageUpload = async (e) => {
@@ -177,6 +181,18 @@ function StaffDashboard() {
     });
   };
 
+  const handleCancelPaymentEdit = () => {
+    setEditingPaymentId(null);
+    setPaymentForm({
+      customer_name: "",
+      customer_email: "",
+      amount: "",
+      note: "",
+      status: "pending",
+      payment_method: "BANK_QR",
+    });
+  };
+
   const handleEditRoomClick = (room) => {
     setEditingRoomId(room._id);
     setNewRoomForm({
@@ -208,6 +224,130 @@ function StaffDashboard() {
       if (!response.ok) throw new Error("Không thể xóa phòng");
       setRooms((prev) => prev.filter((room) => room._id !== id));
       alert("Xóa phòng thành công");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleEditPaymentClick = (payment) => {
+    setActiveTab("payments");
+    setEditingPaymentId(payment._id);
+    setPaymentForm({
+      customer_name: payment.customer_name || "",
+      customer_email: payment.customer_email || "",
+      amount: payment.amount ?? "",
+      note: payment.note || "",
+      status: payment.status || "pending",
+      payment_method: payment.payment_method || "BANK_QR",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleSavePayment = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("authToken");
+    if (!token || !editingPaymentId) return;
+
+    if (!paymentForm.customer_name || paymentForm.amount === "") {
+      alert("Vui lòng nhập tên khách và số tiền đặt cọc");
+      return;
+    }
+
+    setSavingPayment(true);
+    try {
+      const response = await fetch(`/api/payments/${editingPaymentId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: token },
+        body: JSON.stringify({
+          customer_name: paymentForm.customer_name,
+          customer_email: paymentForm.customer_email,
+          amount: Number(paymentForm.amount),
+          note: paymentForm.note,
+          status: paymentForm.status,
+          payment_method: paymentForm.payment_method,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Không thể cập nhật đặt cọc");
+
+      handleCancelPaymentEdit();
+      fetchPayments(token);
+      alert("Cập nhật đặt cọc thành công");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setSavingPayment(false);
+    }
+  };
+
+  const handleDeletePayment = async (id) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa giao dịch đặt cọc này không?")) return;
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+
+    try {
+      const response = await fetch(`/api/payments/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: token },
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Không thể xóa đặt cọc");
+
+      if (editingPaymentId === id) {
+        handleCancelPaymentEdit();
+      }
+
+      fetchPayments(token);
+      fetchRooms(token);
+      alert(data.message || "Xóa đặt cọc thành công");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleConfirmRental = async (paymentId) => {
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+
+    if (!window.confirm("Xác nhận giao phòng và chốt doanh thu (admin nhận 5%)?")) return;
+
+    try {
+      const response = await fetch(`/api/payments/${paymentId}/confirm-rental`, {
+        method: "POST",
+        headers: { Authorization: token },
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Không thể xác nhận thuê phòng");
+
+      fetchPayments(token);
+      fetchRooms(token);
+      alert("Đã xác nhận thuê phòng thành công");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleConfirmCancellation = async (paymentId) => {
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+
+    if (!window.confirm("Xác nhận cho khách hủy thuê và mở lại phòng này?")) return;
+
+    try {
+      const response = await fetch(`/api/payments/${paymentId}/confirm-cancel`, {
+        method: "POST",
+        headers: { Authorization: token },
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Không thể xác nhận hủy thuê");
+
+      fetchPayments(token);
+      fetchRooms(token);
+      alert(data.message || "Đã xác nhận hủy thuê thành công");
     } catch (error) {
       alert(error.message);
     }
@@ -273,55 +413,6 @@ function StaffDashboard() {
     }
   };
 
-  const handleConfirmRental = async (paymentId) => {
-    if (!window.confirm("Bạn có chắc chắn xác nhận khách này đã thuê phòng không?")) return;
-
-    const token = localStorage.getItem("authToken");
-    if (!token) return alert("Bạn cần đăng nhập chủ nhà");
-
-    try {
-      const response = await fetch(`/api/payments/${paymentId}/confirm-rental`, {
-        method: "POST",
-        headers: { Authorization: token },
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Không thể xác nhận thuê phòng");
-      }
-
-      setPayments((prev) =>
-        prev.map((payment) =>
-          payment._id === paymentId
-            ? {
-                ...payment,
-                status: "success",
-                room_id: {
-                  ...payment.room_id,
-                  status: "rented",
-                  tenant_id: payment.user_id?._id || payment.user_id,
-                },
-              }
-            : payment
-        )
-      );
-
-      if (data.payment?.room_id) {
-        setRooms((prev) =>
-          prev.map((room) =>
-            room._id === (data.payment.room_id._id || data.payment.room_id)
-              ? { ...room, status: "rented", tenant_id: data.payment.user_id }
-              : room
-          )
-        );
-      }
-
-      alert("Xác nhận thuê phòng thành công");
-    } catch (error) {
-      alert(error.message);
-    }
-  };
-
   if (!user) {
     return <div style={{ padding: "20px", textAlign: "center" }}>Đang tải dữ liệu...</div>;
   }
@@ -371,7 +462,7 @@ function StaffDashboard() {
             <div style={{ backgroundColor: "#fff", padding: "20px", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
               <h2>Bảng tổng quan chủ nhà</h2>
               <p>Chào mừng <strong>{user.full_name}</strong>. Bạn đang đăng nhập với tư cách Chủ nhà.</p>
-              <p>Bạn có thể quản lý phòng và trực tiếp xử lý các giao dịch đặt cọc của phòng mình.</p>
+              <p>Bạn có thể quản lý phòng và cập nhật giá/phòng của chính mình tại đây.</p>
             </div>
           )}
 
@@ -450,7 +541,21 @@ function StaffDashboard() {
                         <td>
                           <div style={{ display: "flex", gap: "5px" }}>
                             <button onClick={() => handleViewRoomClick(room)} style={{ padding: "5px 10px", background: "#3b82f6", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Xem</button>
-                            <button onClick={() => handleEditRoomClick(room)} style={{ padding: "5px 10px", background: "#f59e0b", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Sửa</button>
+                            <button
+                              onClick={() => handleEditRoomClick(room)}
+                              disabled={room.status === "rented"}
+                              style={{
+                                padding: "5px 10px",
+                                background: room.status === "rented" ? "#9ca3af" : "#f59e0b",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "4px",
+                                cursor: room.status === "rented" ? "not-allowed" : "pointer",
+                                opacity: room.status === "rented" ? 0.7 : 1,
+                              }}
+                            >
+                              Sửa
+                            </button>
                             <button onClick={() => handleDeleteRoom(room._id)} style={{ padding: "5px 10px", background: "#ef4444", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Xóa</button>
                           </div>
                         </td>
@@ -461,60 +566,168 @@ function StaffDashboard() {
               )}
             </div>
           )}
-
           {activeTab === "payments" && (
             <div className="recent-activity">
-              <h3>Quản lý Đặt cọc & Xác nhận Thuê phòng</h3>
+              <h3>Quản lý đặt cọc</h3>
+
+              {editingPaymentId && (
+                <form className="room-create-form" onSubmit={handleSavePayment} style={{ marginBottom: "24px" }}>
+                  <div className="room-form-grid">
+                    <input type="text" placeholder="Tên khách" value={paymentForm.customer_name} onChange={(e) => handlePaymentChange("customer_name", e.target.value)} />
+                    <input type="email" placeholder="Email khách" value={paymentForm.customer_email} onChange={(e) => handlePaymentChange("customer_email", e.target.value)} />
+                    <input type="number" placeholder="Số tiền đặt cọc" value={paymentForm.amount} onChange={(e) => handlePaymentChange("amount", e.target.value)} />
+                    <select value={paymentForm.status} onChange={(e) => handlePaymentChange("status", e.target.value)}>
+                      <option value="pending">Chờ chuyển khoản</option>
+                      <option value="success">Đã chuyển khoản</option>
+                      <option value="failed">Thất bại</option>
+                      <option value="cancelled">Đã hủy</option>
+                    </select>
+                    <select value={paymentForm.payment_method} onChange={(e) => handlePaymentChange("payment_method", e.target.value)}>
+                      <option value="BANK_QR">Bank QR</option>
+                      <option value="MOMO">MoMo</option>
+                      <option value="VNPAY">VNPay</option>
+                      <option value="CASH">Tiền mặt</option>
+                    </select>
+                    <input type="text" placeholder="Ghi chú" value={paymentForm.note} onChange={(e) => handlePaymentChange("note", e.target.value)} />
+                  </div>
+
+                  <div className="form-actions" style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
+                    <button type="submit" className="create-room-btn" disabled={savingPayment} style={{ flex: 1, backgroundColor: "#4f46e5" }}>
+                      {savingPayment ? "Đang lưu..." : "Lưu chỉnh sửa"}
+                    </button>
+                    <button type="button" onClick={handleCancelPaymentEdit} style={{ flex: 1, padding: "10px", backgroundColor: "#6b7280", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer" }}>
+                      Hủy
+                    </button>
+                  </div>
+                </form>
+              )}
+
               {paymentsLoading ? (
                 <p>Đang tải dữ liệu đặt cọc...</p>
-              ) : payments.length > 0 ? (
+              ) : payments.length === 0 ? (
+                <p>Chưa có giao dịch đặt cọc nào cho các phòng của bạn.</p>
+              ) : (
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>Khách hàng</th>
+                      <th>Khách thuê</th>
                       <th>Phòng</th>
                       <th>Số tiền</th>
-                      <th>Ngày đặt</th>
                       <th>Trạng thái</th>
+                      <th>Ngày tạo</th>
                       <th>Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {payments.map((payment) => (
-                      <tr key={payment._id}>
-                        <td>
-                          <div>{payment.customer_name || payment.user_id?.full_name || "Khách"}</div>
-                          <div className="table-subtext">{payment.customer_email || payment.user_id?.email || ""}</div>
-                        </td>
-                        <td>
-                          <div>{payment.room_id?.name || "Phòng đã xóa"}</div>
-                          <div className="table-subtext">{payment.room_id?.location || ""}</div>
-                        </td>
-                        <td style={{ fontWeight: "bold", color: "#eab308" }}>{payment.amount?.toLocaleString("vi-VN")}đ</td>
-                        <td>{new Date(payment.created_at || payment.createdAt).toLocaleString("vi-VN")}</td>
-                        <td>
-                          <span className="status-badge" style={{ background: payment.status === "success" ? "#16a34a" : "#d97706", color: "#fff" }}>
-                            {payment.status === "success" ? "Khách đã CK" : "Chờ chuyển khoản"}
-                          </span>
-                        </td>
-                        <td>
-                          {payment.room_id?.status !== "rented" ? (
-                            <button
-                              onClick={() => handleConfirmRental(payment._id)}
-                              style={{ padding: "6px 12px", background: "#10b981", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}
-                            >
-                              Xác nhận thuê phòng
-                            </button>
-                          ) : (
-                            <span style={{ color: "#10b981", fontWeight: "bold", marginLeft: "10px" }}>✓ Đã giao phòng</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                    {payments.map((payment) => {
+                      const isCancelledRental = payment.cancellation_status === "approved" || payment.status === "cancelled";
+                      const isConfirmed =
+                        !isCancelledRental &&
+                        (payment.status === "success" || Boolean(payment.rental_confirmed_at) || payment.room_id?.status === "rented");
+                      const hasCancellationRequest = payment.cancellation_status === "pending";
+                      const disableDepositActions = isConfirmed || hasCancellationRequest || isCancelledRental;
+                      const statusLabel =
+                        payment.status === "success"
+                          ? "Đã chuyển khoản"
+                          : payment.status === "failed"
+                          ? "Thất bại"
+                          : payment.status === "cancelled"
+                          ? "Đã hủy"
+                          : "Chờ chuyển khoản";
+
+                      const statusColor =
+                        payment.status === "success"
+                          ? "#16a34a"
+                          : payment.status === "failed" || payment.status === "cancelled"
+                          ? "#dc2626"
+                          : "#d97706";
+
+                      return (
+                        <tr key={payment._id}>
+                          <td>
+                            <div style={{ fontWeight: "bold" }}>{payment.customer_name || payment.user_id?.full_name || "Khách"}</div>
+                            <div className="table-subtext">{payment.customer_email || payment.user_id?.email || ""}</div>
+                          </td>
+                          <td>
+                            <div>{payment.room_id?.name || "Phòng đã xóa"}</div>
+                            <div className="table-subtext">{payment.room_id?.location || ""}</div>
+                          </td>
+                          <td style={{ fontWeight: "bold" }}>{payment.amount?.toLocaleString("vi-VN")}đ</td>
+                          <td>
+                            <span className="status-badge" style={{ background: statusColor, color: "#fff" }}>
+                              {statusLabel}
+                            </span>
+                          </td>
+                          <td>{new Date(payment.created_at || payment.createdAt).toLocaleString("vi-VN")}</td>
+                          <td>
+                            <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                              <button
+                                onClick={() => handleEditPaymentClick(payment)}
+                                disabled={disableDepositActions}
+                                style={{
+                                  padding: "5px 10px",
+                                  background: disableDepositActions ? "#9ca3af" : "#f59e0b",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "4px",
+                                  cursor: disableDepositActions ? "not-allowed" : "pointer",
+                                }}
+                              >
+                                Sửa
+                              </button>
+                              <button
+                                onClick={() => handleDeletePayment(payment._id)}
+                                disabled={disableDepositActions}
+                                style={{
+                                  padding: "5px 10px",
+                                  background: disableDepositActions ? "#9ca3af" : "#ef4444",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "4px",
+                                  cursor: disableDepositActions ? "not-allowed" : "pointer",
+                                }}
+                              >
+                                Xóa
+                              </button>
+                              <button
+                                onClick={() => handleConfirmRental(payment._id)}
+                                disabled={disableDepositActions}
+                                style={{
+                                  padding: "5px 10px",
+                                  background: disableDepositActions ? "#9ca3af" : "#10b981",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "4px",
+                                  cursor: disableDepositActions ? "not-allowed" : "pointer",
+                                }}
+                              >
+                                Xác nhận thuê
+                              </button>
+                              {hasCancellationRequest && (
+                                <button
+                                  onClick={() => handleConfirmCancellation(payment._id)}
+                                  style={{
+                                    padding: "5px 10px",
+                                    background: "#dc2626",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "4px",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  Xác nhận hủy thuê
+                                </button>
+                              )}
+                              {isConfirmed && <span style={{ color: "#10b981", fontWeight: "bold" }}>Đã chốt thuê</span>}
+                              {hasCancellationRequest && <span style={{ color: "#c2410c", fontWeight: "bold" }}>Khách đang yêu cầu hủy</span>}
+                              {isCancelledRental && <span style={{ color: "#6b7280", fontWeight: "bold" }}>Đã hủy thuê</span>}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
-              ) : (
-                <p>Chưa có giao dịch đặt cọc nào thuộc phòng của bạn.</p>
               )}
             </div>
           )}
