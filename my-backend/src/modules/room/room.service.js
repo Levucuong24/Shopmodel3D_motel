@@ -5,7 +5,7 @@ export const getAllRooms = async (query = {}) => {
 };
 
 export const getRoomById = async (id) => {
-  return await Room.findById(id);
+  return await Room.findById(id).populate("created_by", "full_name phone avatar role");
 };
 
 export const createRoom = async (data) => {

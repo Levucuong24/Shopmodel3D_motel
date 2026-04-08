@@ -1,44 +1,77 @@
-// src/controllers/review.controller.js
 import Review from "./Review.js";
+import Room from "../room/Room.js";
 
 export const getTopLandlords = async (req, res, next) => {
   try {
     try {
-      const topLandlords = await Review.aggregate([
-        { $match: { status: "approved" } },
+      const topLandlords = await Room.aggregate([
+        {
+          $match: {
+            approval_status: "approved",
+            created_by: { $exists: true, $ne: null },
+          },
+        },
+        {
+          $group: {
+            _id: "$created_by",
+            roomIds: { $addToSet: "$_id" },
+            roomCount: { $sum: 1 },
+          },
+        },
         {
           $lookup: {
-            from: "rooms",
-            localField: "room_id",
-            foreignField: "_id",
-            as: "room"
-          }
+            from: "reviews",
+            let: { roomIds: "$roomIds" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $in: ["$room_id", "$$roomIds"] },
+                  status: "approved",
+                },
+              },
+              {
+                $group: {
+                  _id: null,
+                  avgRating: { $avg: "$rating" },
+                  totalReviews: { $sum: 1 },
+                },
+              },
+            ],
+            as: "reviewStats",
+          },
         },
-        { $unwind: "$room" },
-        { $group: {
-            _id: "$room.created_by",
-            avgRating: { $avg: "$rating" },
-            totalReviews: { $sum: 1 }
-        }},
+        {
+          $addFields: {
+            avgRating: {
+              $ifNull: [{ $arrayElemAt: ["$reviewStats.avgRating", 0] }, 0],
+            },
+            totalReviews: {
+              $ifNull: [{ $arrayElemAt: ["$reviewStats.totalReviews", 0] }, 0],
+            },
+          },
+        },
         {
           $lookup: {
             from: "users",
             localField: "_id",
             foreignField: "_id",
-            as: "landlord"
-          }
+            as: "landlord",
+          },
         },
         { $unwind: "$landlord" },
         { $match: { "landlord.role": "staff" } },
-        { $sort: { avgRating: -1, totalReviews: -1 } },
+        { $sort: { avgRating: -1, totalReviews: -1, roomCount: -1 } },
         { $limit: 5 },
-        { $project: {
+        {
+          $project: {
             _id: 1,
             avgRating: 1,
             totalReviews: 1,
+            roomCount: 1,
             "landlord.full_name": 1,
-            "landlord.avatar": 1
-        }}
+            "landlord.avatar": 1,
+          },
+        },
       ]);
       res.json(topLandlords);
     } catch (error) {

@@ -99,10 +99,34 @@ function ProductDetail() {
   }, [id, authToken]);
 
   const images = product?.images?.length ? product.images : fallbackImages;
+  const landlordPhone = product?.created_by?.phone || "Đang cập nhật";
+  const landlordName = product?.created_by?.full_name || "chủ nhà";
+  const landlordRoomCount = Number(product?.owner_room_count || 0);
+  const canCallLandlord = Boolean(product?.created_by?.phone);
 
   useEffect(() => {
     setMainImage(images[0]);
   }, [id, product]);
+
+  useEffect(() => {
+    const callButton = document.querySelector(".call-btn");
+    if (!callButton) return;
+
+    callButton.textContent = `📞 Gọi chủ nhà: ${landlordPhone}`;
+    callButton.title = `${landlordName} hiện có ${landlordRoomCount} phòng đã đăng.`;
+    callButton.disabled = !canCallLandlord;
+    callButton.style.opacity = canCallLandlord ? "1" : "0.6";
+    callButton.style.cursor = canCallLandlord ? "pointer" : "not-allowed";
+    callButton.onclick = () => {
+      if (canCallLandlord) {
+        window.location.href = `tel:${product.created_by.phone}`;
+      }
+    };
+
+    return () => {
+      callButton.onclick = null;
+    };
+  }, [canCallLandlord, landlordName, landlordPhone, landlordRoomCount, product]);
 
   const refreshReviews = async () => {
     const response = await fetch(`/api/reviews/${id}`);

@@ -1,3 +1,4 @@
+import Room from "./Room.js";
 import { getAllRooms, createRoom, getRoomById as getRoomByIdService, updateRoomById, deleteRoomById as deleteRoomByIdService } from "./room.service.js";
 
 export const getRooms = async (req, res) => {
@@ -48,7 +49,21 @@ export const getRoomById = async (req, res) => {
       }
     }
 
-    res.json(data);
+    const ownerId =
+      data.created_by && typeof data.created_by === "object"
+        ? data.created_by._id
+        : data.created_by;
+
+    const ownerRoomCount = ownerId
+      ? await Room.countDocuments({ created_by: ownerId, approval_status: "approved" })
+      : 0;
+
+    const roomData = data.toObject ? data.toObject() : data;
+
+    res.json({
+      ...roomData,
+      owner_room_count: ownerRoomCount,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }
