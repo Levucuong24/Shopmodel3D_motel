@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "../css/AdminDashboard.css"; // Reuse styling where possible
+import "../css/AdminDashboard.css";
 
 const roomStatusLabel = {
   available: "Còn phòng",
@@ -31,30 +31,18 @@ function StaffDashboard() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState("properties");
   const [rooms, setRooms] = useState([]);
+  const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+  const [paymentsLoading, setPaymentsLoading] = useState(true);
+
   const [editingRoomId, setEditingRoomId] = useState(null);
   const [creatingRoom, setCreatingRoom] = useState(false);
   const [uploadingRoomImage, setUploadingRoomImage] = useState(false);
-  
+
   const [viewingRoom, setViewingRoom] = useState(null);
   const [viewingRoomReviews, setViewingRoomReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
 
-  const handleViewRoomClick = async (room) => {
-    setViewingRoom(room);
-    setLoadingReviews(true);
-    try {
-      const response = await fetch(`/api/reviews/${room._id}`);
-      const data = await response.json();
-      setViewingRoomReviews(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoadingReviews(false);
-    }
-  };
-  
   const [newRoomForm, setNewRoomForm] = useState({
     name: "",
     price: "",
@@ -80,9 +68,21 @@ function StaffDashboard() {
 
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
     setUser(userData);
-    
+
     fetchRooms(token);
+    fetchPayments(token);
   }, [navigate]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token || activeTab !== "payments") return;
+
+    const intervalId = setInterval(() => {
+      fetchPayments(token);
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, [activeTab]);
 
   const fetchRooms = (token) => {
     setLoading(true);
@@ -96,6 +96,34 @@ function StaffDashboard() {
         console.error("Error fetching rooms:", err);
         setLoading(false);
       });
+  };
+
+  const fetchPayments = (token) => {
+    setPaymentsLoading(true);
+    fetch("/api/payments", { headers: { Authorization: token } })
+      .then((res) => res.json())
+      .then((data) => {
+        setPayments(Array.isArray(data) ? data : []);
+        setPaymentsLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching payments:", err);
+        setPaymentsLoading(false);
+      });
+  };
+
+  const handleViewRoomClick = async (room) => {
+    setViewingRoom(room);
+    setLoadingReviews(true);
+    try {
+      const response = await fetch(`/api/reviews/${room._id}`);
+      const data = await response.json();
+      setViewingRoomReviews(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingReviews(false);
+    }
   };
 
   const handleNewRoomChange = (field, value) => {
@@ -121,7 +149,6 @@ function StaffDashboard() {
       });
 
       const data = await response.json();
-
       if (!response.ok) throw new Error(data.message || "Lỗi tải ảnh");
 
       setNewRoomForm((prev) => ({ ...prev, image: data.imageUrl }));
@@ -136,8 +163,17 @@ function StaffDashboard() {
   const handleCancelEdit = () => {
     setEditingRoomId(null);
     setNewRoomForm({
-      name: "", price: "", location: "", area: "", layout: "", amenities: "",
-      pet_policy: "", description: "", image: "", model_3d_url: "", status: "available",
+      name: "",
+      price: "",
+      location: "",
+      area: "",
+      layout: "",
+      amenities: "",
+      pet_policy: "",
+      description: "",
+      image: "",
+      model_3d_url: "",
+      status: "available",
     });
   };
 
@@ -162,11 +198,13 @@ function StaffDashboard() {
   const handleDeleteRoom = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa phòng này không?")) return;
     const token = localStorage.getItem("authToken");
+
     try {
       const response = await fetch(`/api/rooms/${id}`, {
         method: "DELETE",
         headers: { Authorization: token },
       });
+
       if (!response.ok) throw new Error("Không thể xóa phòng");
       setRooms((prev) => prev.filter((room) => room._id !== id));
       alert("Xóa phòng thành công");
@@ -218,7 +256,6 @@ function StaffDashboard() {
       });
 
       const data = await response.json();
-
       if (!response.ok) throw new Error(data.message || "Thao tác thất bại");
 
       if (editingRoomId) {
@@ -236,7 +273,58 @@ function StaffDashboard() {
     }
   };
 
-  if (!user) return <div style={{ padding: '20px', textAlign: 'center' }}>Đang tải dữ liệu...</div>;
+  const handleConfirmRental = async (paymentId) => {
+    if (!window.confirm("Bạn có chắc chắn xác nhận khách này đã thuê phòng không?")) return;
+
+    const token = localStorage.getItem("authToken");
+    if (!token) return alert("Bạn cần đăng nhập chủ nhà");
+
+    try {
+      const response = await fetch(`/api/payments/${paymentId}/confirm-rental`, {
+        method: "POST",
+        headers: { Authorization: token },
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Không thể xác nhận thuê phòng");
+      }
+
+      setPayments((prev) =>
+        prev.map((payment) =>
+          payment._id === paymentId
+            ? {
+                ...payment,
+                status: "success",
+                room_id: {
+                  ...payment.room_id,
+                  status: "rented",
+                  tenant_id: payment.user_id?._id || payment.user_id,
+                },
+              }
+            : payment
+        )
+      );
+
+      if (data.payment?.room_id) {
+        setRooms((prev) =>
+          prev.map((room) =>
+            room._id === (data.payment.room_id._id || data.payment.room_id)
+              ? { ...room, status: "rented", tenant_id: data.payment.user_id }
+              : room
+          )
+        );
+      }
+
+      alert("Xác nhận thuê phòng thành công");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  if (!user) {
+    return <div style={{ padding: "20px", textAlign: "center" }}>Đang tải dữ liệu...</div>;
+  }
 
   return (
     <div className="dashboard-container">
@@ -251,6 +339,9 @@ function StaffDashboard() {
           </li>
           <li className={activeTab === "properties" ? "active" : ""}>
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("properties"); }}>Quản lý phòng</a>
+          </li>
+          <li className={activeTab === "payments" ? "active" : ""}>
+            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("payments"); }}>Quản lý đặt cọc</a>
           </li>
         </ul>
         <div className="sidebar-footer">
@@ -268,9 +359,9 @@ function StaffDashboard() {
 
       <main className="main-content bg-light">
         <header className="topbar">
-          <h1>Bảng Điều Khiển Nhân Viên</h1>
+          <h1>Bảng Điều Khiển Chủ nhà</h1>
           <div className="user-profile">
-            <span style={{ marginRight: '10px', fontWeight: 'bold' }}>{user.full_name}</span>
+            <span style={{ marginRight: "10px", fontWeight: "bold" }}>{user.full_name}</span>
             <img src="https://ui-avatars.com/api/?name=Staff&background=4f46e5&color=fff" alt="Staff Avatar" />
           </div>
         </header>
@@ -278,9 +369,9 @@ function StaffDashboard() {
         <section className="dashboard-content">
           {activeTab === "overview" && (
             <div style={{ backgroundColor: "#fff", padding: "20px", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
-              <h2>Bảng tổng quan nhân viên</h2>
-              <p>Chào mừng <strong>{user.full_name}</strong>. Bạn đang đăng nhập với tư cách Nhân viên.</p>
-              <p>Vui lòng chuyển sang tab <strong>Quản lý phòng</strong> để xem và đăng bài.</p>
+              <h2>Bảng tổng quan chủ nhà</h2>
+              <p>Chào mừng <strong>{user.full_name}</strong>. Bạn đang đăng nhập với tư cách Chủ nhà.</p>
+              <p>Bạn có thể quản lý phòng và trực tiếp xử lý các giao dịch đặt cọc của phòng mình.</p>
             </div>
           )}
 
@@ -310,18 +401,20 @@ function StaffDashboard() {
                 </div>
                 <textarea className="room-description-input" rows={4} placeholder="Mô tả chi tiết phòng" value={newRoomForm.description} onChange={(e) => handleNewRoomChange("description", e.target.value)} />
                 {newRoomForm.image && <div className="room-image-preview"><img src={newRoomForm.image} alt="Xem trước" /></div>}
-                
-                <div className="form-actions" style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+
+                <div className="form-actions" style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
                   <button type="submit" className="create-room-btn" disabled={creatingRoom} style={{ flex: 1, backgroundColor: "#4f46e5" }}>
                     {creatingRoom ? "Đang xử lý..." : editingRoomId ? "Lưu thay đổi" : "Đăng phòng"}
                   </button>
                   {editingRoomId && (
-                    <button type="button" onClick={handleCancelEdit} style={{ flex: 1, padding: "10px", backgroundColor: "#6b7280", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer" }}>Hủy</button>
+                    <button type="button" onClick={handleCancelEdit} style={{ flex: 1, padding: "10px", backgroundColor: "#6b7280", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer" }}>
+                      Hủy
+                    </button>
                   )}
                 </div>
               </form>
 
-              <h3 style={{ marginTop: '30px' }}>Danh sách bài đăng của bạn</h3>
+              <h3 style={{ marginTop: "30px" }}>Danh sách bài đăng của bạn</h3>
               {loading ? (
                 <p>Đang tải dữ liệu...</p>
               ) : rooms.length === 0 ? (
@@ -368,17 +461,74 @@ function StaffDashboard() {
               )}
             </div>
           )}
+
+          {activeTab === "payments" && (
+            <div className="recent-activity">
+              <h3>Quản lý Đặt cọc & Xác nhận Thuê phòng</h3>
+              {paymentsLoading ? (
+                <p>Đang tải dữ liệu đặt cọc...</p>
+              ) : payments.length > 0 ? (
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Khách hàng</th>
+                      <th>Phòng</th>
+                      <th>Số tiền</th>
+                      <th>Ngày đặt</th>
+                      <th>Trạng thái</th>
+                      <th>Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payments.map((payment) => (
+                      <tr key={payment._id}>
+                        <td>
+                          <div>{payment.customer_name || payment.user_id?.full_name || "Khách"}</div>
+                          <div className="table-subtext">{payment.customer_email || payment.user_id?.email || ""}</div>
+                        </td>
+                        <td>
+                          <div>{payment.room_id?.name || "Phòng đã xóa"}</div>
+                          <div className="table-subtext">{payment.room_id?.location || ""}</div>
+                        </td>
+                        <td style={{ fontWeight: "bold", color: "#eab308" }}>{payment.amount?.toLocaleString("vi-VN")}đ</td>
+                        <td>{new Date(payment.created_at || payment.createdAt).toLocaleString("vi-VN")}</td>
+                        <td>
+                          <span className="status-badge" style={{ background: payment.status === "success" ? "#16a34a" : "#d97706", color: "#fff" }}>
+                            {payment.status === "success" ? "Khách đã CK" : "Chờ chuyển khoản"}
+                          </span>
+                        </td>
+                        <td>
+                          {payment.room_id?.status !== "rented" ? (
+                            <button
+                              onClick={() => handleConfirmRental(payment._id)}
+                              style={{ padding: "6px 12px", background: "#10b981", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}
+                            >
+                              Xác nhận thuê phòng
+                            </button>
+                          ) : (
+                            <span style={{ color: "#10b981", fontWeight: "bold", marginLeft: "10px" }}>✓ Đã giao phòng</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p>Chưa có giao dịch đặt cọc nào thuộc phòng của bạn.</p>
+              )}
+            </div>
+          )}
         </section>
       </main>
 
       {viewingRoom && (
-        <div className="modal-overlay" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000}}>
+        <div className="modal-overlay" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 }}>
           <div className="modal-content" style={{ background: "white", padding: "20px", borderRadius: "8px", width: "80%", maxWidth: "800px", maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #ddd", paddingBottom: "10px", marginBottom: "20px" }}>
               <h2>Chi tiết phòng: {viewingRoom.name}</h2>
               <button onClick={() => setViewingRoom(null)} style={{ background: "transparent", border: "none", fontSize: "28px", cursor: "pointer" }}>&times;</button>
             </div>
-            
+
             <div className="modal-body">
               <h3>Hình ảnh</h3>
               <div style={{ display: "flex", gap: "10px", overflowX: "auto", marginBottom: "20px" }}>

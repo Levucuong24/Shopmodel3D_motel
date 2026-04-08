@@ -31,10 +31,13 @@ function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [rooms, setRooms] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [revenueSummary, setRevenueSummary] = useState({ totalCommission: 0, totalLandlordPayout: 0, totalTransactions: 0 });
+  const [monthlyRevenue, setMonthlyRevenue] = useState([]);
   const [users, setUsers] = useState([]);
   const [viewings, setViewings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewingsLoading, setViewingsLoading] = useState(true);
+  const [revenueLoading, setRevenueLoading] = useState(true);
   const [galleryImages, setGalleryImages] = useState([]);
   const [uploadingGallery, setUploadingGallery] = useState(false);
   const [newGalleryUrl, setNewGalleryUrl] = useState("");
@@ -58,9 +61,7 @@ function AdminDashboard() {
     status: "available",
   });
   const dynamicRevenues = useMemo(() => {
-    const totalDeposits = payments
-      .filter((p) => p.status === "success")
-      .reduce((sum, p) => sum + (p.amount || 0), 0);
+    const totalDeposits = payments.reduce((sum, p) => sum + (p.admin_commission || 0), 0);
 
     return [
       { id: 1, month: "Tháng 1", amount: 110000000, status: "Đã chốt" },
@@ -108,15 +109,23 @@ function AdminDashboard() {
       });
 
     if (token) {
+      fetch("/api/payments/admin-revenue", { headers })
+        .then((res) => res.json())
+        .then((data) => {
+          setPayments(Array.isArray(data.payments) ? data.payments : []);
+          setMonthlyRevenue(Array.isArray(data.monthlyRevenue) ? data.monthlyRevenue : []);
+          setRevenueSummary(data.summary || { totalCommission: 0, totalLandlordPayout: 0, totalTransactions: 0 });
+          setRevenueLoading(false);
+        })
+        .catch((err) => {
+          console.error("Error fetching admin revenue:", err);
+          setRevenueLoading(false);
+        });
+
       fetch("/api/users", { headers })
         .then((res) => res.json())
         .then((data) => setUsers(Array.isArray(data) ? data : []))
         .catch((err) => console.error("Error fetching users:", err));
-
-      fetch("/api/payments", { headers })
-        .then((res) => res.json())
-        .then((data) => setPayments(Array.isArray(data) ? data : []))
-        .catch((err) => console.error("Error fetching payments:", err));
 
       fetch("/api/gallery", { headers })
         .then((res) => res.json())
@@ -127,18 +136,19 @@ function AdminDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-    if (!token) return;
-    
-    let intervalId;
-    if (activeTab === "payments") {
-      intervalId = setInterval(() => {
-        fetch("/api/payments", { headers: { Authorization: token } })
-          .then((res) => res.json())
-          .then((data) => setPayments(Array.isArray(data) ? data : []))
-          .catch((err) => console.error("Error polling payments:", err));
-      }, 3000);
-    }
-    
+    if (!token || activeTab !== "accounting") return;
+
+    const intervalId = setInterval(() => {
+      fetch("/api/payments/admin-revenue", { headers: { Authorization: token } })
+        .then((res) => res.json())
+        .then((data) => {
+          setPayments(Array.isArray(data.payments) ? data.payments : []);
+          setMonthlyRevenue(Array.isArray(data.monthlyRevenue) ? data.monthlyRevenue : []);
+          setRevenueSummary(data.summary || { totalCommission: 0, totalLandlordPayout: 0, totalTransactions: 0 });
+        })
+        .catch((err) => console.error("Error polling admin revenue:", err));
+    }, 3000);
+
     return () => clearInterval(intervalId);
   }, [activeTab]);
 
@@ -657,8 +667,8 @@ function AdminDashboard() {
           <li className={activeTab === "viewings" ? "active" : ""}>
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("viewings"); }}>Lịch xem phòng</a>
           </li>
-          <li className={activeTab === "payments" ? "active" : ""}>
-            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("payments"); }}>Quản lý đặt cọc</a>
+          <li className={activeTab === "accounting" ? "active" : ""}>
+            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("accounting"); }}>Kế toán doanh thu</a>
           </li>
           <li className={activeTab === "reports" ? "active" : ""}>
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("reports"); }}>Báo cáo doanh thu</a>
@@ -1031,6 +1041,87 @@ function AdminDashboard() {
                 </table>
               ) : (
                 <p>Chưa có lịch đặt xem phòng nào.</p>
+              )}
+            </div>
+          )}
+
+          {activeTab === "accounting" && (
+            <div className="recent-activity">
+              <h3>Kế toán doanh thu admin</h3>
+              <div className="stats-grid" style={{ marginBottom: "24px" }}>
+                <div className="stat-card">
+                  <div className="stat-details">
+                    <h3>Tổng hoa hồng 5%</h3>
+                    <p className="stat-number">{Number(revenueSummary.totalCommission || 0).toLocaleString("vi-VN")}đ</p>
+                    <span className="trend positive">{revenueSummary.totalTransactions || 0} giao dịch đã xác nhận</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-details">
+                    <h3>Chủ nhà thực nhận</h3>
+                    <p className="stat-number">{Number(revenueSummary.totalLandlordPayout || 0).toLocaleString("vi-VN")}đ</p>
+                    <span className="trend neutral">Tương ứng 95% sau chiết khấu</span>
+                  </div>
+                </div>
+              </div>
+
+              {revenueLoading ? (
+                <p>Đang tải dữ liệu kế toán doanh thu...</p>
+              ) : payments.length > 0 ? (
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Khách hàng</th>
+                      <th>Phòng</th>
+                      <th>Tổng tiền</th>
+                      <th>Hoa hồng admin 5%</th>
+                      <th>Chủ nhà nhận</th>
+                      <th>Ngày xác nhận</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payments.map((payment) => (
+                      <tr key={payment._id}>
+                        <td>
+                          <div>{payment.customer_name || payment.user_id?.full_name || "Khách"}</div>
+                          <div className="table-subtext">{payment.customer_email || payment.user_id?.email || ""}</div>
+                        </td>
+                        <td>
+                          <div>{payment.room_id?.name || "Phòng đã xóa"}</div>
+                          <div className="table-subtext">{payment.room_id?.location || ""}</div>
+                        </td>
+                        <td style={{ fontWeight: "bold" }}>{payment.amount?.toLocaleString("vi-VN")}đ</td>
+                        <td style={{ fontWeight: "bold", color: "#dc2626" }}>{payment.admin_commission?.toLocaleString("vi-VN")}đ</td>
+                        <td style={{ fontWeight: "bold", color: "#16a34a" }}>{payment.landlord_payout?.toLocaleString("vi-VN")}đ</td>
+                        <td>{new Date(payment.rental_confirmed_at || payment.created_at || payment.createdAt).toLocaleString("vi-VN")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p>Chưa có khoản hoa hồng 5% nào được ghi nhận.</p>
+              )}
+
+              {!revenueLoading && monthlyRevenue.length > 0 && (
+                <div style={{ marginTop: "28px" }}>
+                  <h4 style={{ marginBottom: "14px" }}>Tổng hợp theo tháng</h4>
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Tháng</th>
+                        <th>Tổng hoa hồng 5%</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {monthlyRevenue.map((item) => (
+                        <tr key={`${item.month}-${item.status}`}>
+                          <td>{item.month}</td>
+                          <td style={{ fontWeight: "bold", color: "#dc2626" }}>{Number(item.amount || 0).toLocaleString("vi-VN")}đ</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           )}

@@ -24,6 +24,16 @@ const paymentSchema = new mongoose.Schema(
 
     amount: Number,
 
+    admin_commission: {
+      type: Number,
+      default: 0,
+    },
+
+    landlord_payout: {
+      type: Number,
+      default: 0,
+    },
+
     payment_type: {
       type: String,
       enum: ["deposit", "monthly_rent"],
@@ -60,6 +70,8 @@ const paymentSchema = new mongoose.Schema(
     expired_at: Date,
 
     paid_at: Date,
+
+    rental_confirmed_at: Date,
   }
 );
 
