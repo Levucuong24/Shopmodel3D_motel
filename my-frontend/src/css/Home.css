@@ -35,6 +35,40 @@
   border-radius: 4px;
 }
 
+.section-header-with-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.clear-landlord-filter {
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  color: #ffffff;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.18);
+}
+
+.clear-landlord-filter:hover {
+  transform: translateY(-1px);
+}
+
+.empty-products-message {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #475569;
+  text-align: center;
+  border: 1px dashed #cbd5e1;
+}
+
 /* Modern Grid overrides */
 .modern-grid {
   display: grid;
@@ -78,6 +112,7 @@
 .landlord-card {
   display: flex;
   align-items: center;
+  width: 100%;
   padding: 15px;
   background: #ffffff;
   border-radius: 12px;
@@ -86,12 +121,21 @@
   position: relative;
   overflow: hidden;
   border: 1px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  appearance: none;
 }
 
 .landlord-card:hover {
   border-color: #bae6fd;
   transform: translateX(5px);
   box-shadow: 0 5px 15px rgba(14, 165, 233, 0.1);
+}
+
+.landlord-card.active {
+  border-color: #0ea5e9;
+  box-shadow: 0 12px 25px rgba(14, 165, 233, 0.18);
+  transform: translateX(5px);
 }
 
 .landlord-card:nth-child(1) {
@@ -161,4 +205,19 @@
 .landlord-reviews {
   color: #6366f1;
   font-weight: 600;
+}
+
+.landlord-rooms {
+  color: #0f766e;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .section-header-with-action {
+    align-items: flex-start;
+  }
+
+  .clear-landlord-filter {
+    width: 100%;
+  }
 }

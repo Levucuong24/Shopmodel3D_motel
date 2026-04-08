@@ -13,6 +13,7 @@ function Home() {
   const [products, setProducts] = useState([]);
   const [topLandlords, setTopLandlords] = useState([]);
   const [loadingError, setLoadingError] = useState("");
+  const [selectedLandlordId, setSelectedLandlordId] = useState("");
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
 
@@ -33,6 +34,28 @@ function Home() {
       .then((data) => setTopLandlords(Array.isArray(data) ? data : []))
       .catch((err) => console.error("Error fetching landlords", err));
   }, []);
+
+  const selectedLandlord = topLandlords.find((item) => item._id === selectedLandlordId);
+
+  const filteredProducts = products.filter((product) => {
+    const ownerId =
+      typeof product.created_by === "object" && product.created_by !== null
+        ? product.created_by._id?.toString()
+        : product.created_by?.toString();
+
+    const matchesLandlord = selectedLandlordId ? ownerId === selectedLandlordId : true;
+    if (!matchesLandlord) return false;
+
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    const loc = product.location ? product.location.toLowerCase() : "";
+    const name = (product.name || product.title) ? (product.name || product.title).toLowerCase() : "";
+    return loc.includes(q) || name.includes(q);
+  });
+
+  const handleLandlordClick = (landlordId) => {
+    setSelectedLandlordId((currentId) => (currentId === landlordId ? "" : landlordId));
+  };
 
   return (
     <div>
@@ -90,8 +113,23 @@ function Home() {
       </div>
 
       <div className="home-content-wrapper">
-        <div className="projects-section" style={{ flex: '7' }}>
-          <h2 className="section-title">DỰ ÁN MỚI NHẤT</h2>
+        <div className="projects-section" style={{ flex: "7" }}>
+          <div className="section-header-with-action">
+            <h2 className="section-title">
+              {selectedLandlord
+                ? `PHÒNG CỦA ${selectedLandlord.landlord?.full_name?.toUpperCase() || "CHỦ PHÒNG"}`
+                : "DỰ ÁN MỚI NHẤT"}
+            </h2>
+            {selectedLandlord && (
+              <button
+                type="button"
+                className="clear-landlord-filter"
+                onClick={() => setSelectedLandlordId("")}
+              >
+                Xem tất cả phòng
+              </button>
+            )}
+          </div>
 
           {loadingError && (
             <p style={{ color: "#c62828", textAlign: "center", marginBottom: "16px" }}>
@@ -100,38 +138,49 @@ function Home() {
           )}
 
           <div className="product-grid modern-grid">
-            {products
-              .filter((p) => {
-                if (!searchQuery) return true;
-                const q = searchQuery.toLowerCase();
-                const loc = p.location ? p.location.toLowerCase() : "";
-                const name = (p.name || p.title) ? (p.name || p.title).toLowerCase() : "";
-                return loc.includes(q) || name.includes(q);
-              })
-              .map((p) => (
-                <ProductCard key={p._id || p.id} product={p} />
-              ))}
+            {filteredProducts.map((product) => (
+              <ProductCard key={product._id || product.id} product={product} />
+            ))}
           </div>
+
+          {!loadingError && filteredProducts.length === 0 && (
+            <p className="empty-products-message">
+              {selectedLandlord
+                ? `Hiện chưa có phòng công khai phù hợp của ${selectedLandlord.landlord?.full_name || "chủ phòng này"}.`
+                : "Không tìm thấy phòng phù hợp."}
+            </p>
+          )}
         </div>
 
-        <div className="top-landlords-section" style={{ flex: '3' }}>
+        <div className="top-landlords-section" style={{ flex: "3" }}>
           <h2 className="section-title">TOP CHỦ PHÒNG</h2>
           <div className="top-landlords-list">
             {topLandlords.length > 0 ? topLandlords.map((landlord, index) => (
-               <div key={landlord._id} className="landlord-card">
-                 <div className="landlord-rank">#{index + 1}</div>
-                 <img src={landlord.landlord?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(landlord.landlord?.full_name || 'NV')}&background=4f46e5&color=fff`} className="landlord-avatar" alt="avatar" />
-                 <div className="landlord-info">
-                   <h4 className="landlord-name">{landlord.landlord?.full_name || 'Khuyết danh'}</h4>
-                   <div className="landlord-stats">
-                     <span className="landlord-rating">⭐ {landlord.avgRating.toFixed(1)}</span>
-                     <span className="landlord-reviews">💬 {landlord.totalReviews} lượt đánh giá</span>
-                     <span className="landlord-rooms">📦 {landlord.roomCount} bài đăng</span>
-                   </div>
-                 </div>
-               </div>
+              <button
+                key={landlord._id}
+                type="button"
+                className={`landlord-card ${selectedLandlordId === landlord._id ? "active" : ""}`}
+                onClick={() => handleLandlordClick(landlord._id)}
+              >
+                <div className="landlord-rank">#{index + 1}</div>
+                <img
+                  src={landlord.landlord?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(landlord.landlord?.full_name || "NV")}&background=4f46e5&color=fff`}
+                  className="landlord-avatar"
+                  alt="avatar"
+                />
+                <div className="landlord-info">
+                  <h4 className="landlord-name">{landlord.landlord?.full_name || "Khuyết danh"}</h4>
+                  <div className="landlord-stats">
+                    <span className="landlord-rating">★ {landlord.avgRating.toFixed(1)}</span>
+                    <span className="landlord-reviews">{landlord.totalReviews} lượt đánh giá</span>
+                    <span className="landlord-rooms">{landlord.roomCount} bài đăng</span>
+                  </div>
+                </div>
+              </button>
             )) : (
-              <p style={{ color: '#64748b', fontStyle: 'italic', fontSize: '14px' }}>Chưa có danh sách thống kê xếp hạng chủ phòng.</p>
+              <p style={{ color: "#64748b", fontStyle: "italic", fontSize: "14px" }}>
+                Chưa có danh sách thống kê xếp hạng chủ phòng.
+              </p>
             )}
           </div>
         </div>
