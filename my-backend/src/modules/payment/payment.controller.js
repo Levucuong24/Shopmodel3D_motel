@@ -248,7 +248,6 @@ export const updatePayment = async (req, res) => {
     }
 
     if (
-      payment.status === "success" ||
       payment.rental_confirmed_at ||
       payment.room_id?.status === "rented" ||
       payment.cancellation_status === "pending"
@@ -302,7 +301,6 @@ export const deletePayment = async (req, res) => {
     }
 
     if (
-      payment.status === "success" ||
       payment.rental_confirmed_at ||
       payment.room_id?.status === "rented" ||
       payment.cancellation_status === "pending"

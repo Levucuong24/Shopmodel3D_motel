@@ -634,13 +634,15 @@ function StaffDashboard() {
                   <tbody>
                     {payments.map((payment) => {
                       const isCancelledRental = payment.cancellation_status === "approved" || payment.status === "cancelled";
+                      const hasTransferred = payment.status === "success";
                       const isConfirmed =
                         !isCancelledRental &&
-                        (payment.status === "success" || Boolean(payment.rental_confirmed_at) || payment.room_id?.status === "rented");
+                        (Boolean(payment.rental_confirmed_at) || payment.room_id?.status === "rented");
                       const hasCancellationRequest = payment.cancellation_status === "pending";
-                      const disableDepositActions = isConfirmed || hasCancellationRequest || isCancelledRental;
+                      const disableEditDelete = isConfirmed || hasCancellationRequest || isCancelledRental;
+                      const disableConfirmRental = !hasTransferred || isConfirmed || hasCancellationRequest || isCancelledRental;
                       const statusLabel =
-                        payment.status === "success"
+                        isConfirmed
                           ? "Đã chuyển khoản"
                           : payment.status === "failed"
                           ? "Thất bại"
@@ -649,7 +651,7 @@ function StaffDashboard() {
                           : "Chờ chuyển khoản";
 
                       const statusColor =
-                        payment.status === "success"
+                        isConfirmed
                           ? "#16a34a"
                           : payment.status === "failed" || payment.status === "cancelled"
                           ? "#dc2626"
@@ -676,42 +678,42 @@ function StaffDashboard() {
                             <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
                               <button
                                 onClick={() => handleEditPaymentClick(payment)}
-                                disabled={disableDepositActions}
+                                disabled={disableEditDelete}
                                 style={{
                                   padding: "5px 10px",
-                                  background: disableDepositActions ? "#9ca3af" : "#f59e0b",
+                                  background: disableEditDelete ? "#9ca3af" : "#f59e0b",
                                   color: "white",
                                   border: "none",
                                   borderRadius: "4px",
-                                  cursor: disableDepositActions ? "not-allowed" : "pointer",
+                                  cursor: disableEditDelete ? "not-allowed" : "pointer",
                                 }}
                               >
                                 Sửa
                               </button>
                               <button
                                 onClick={() => handleDeletePayment(payment._id)}
-                                disabled={disableDepositActions}
+                                disabled={disableEditDelete}
                                 style={{
                                   padding: "5px 10px",
-                                  background: disableDepositActions ? "#9ca3af" : "#ef4444",
+                                  background: disableEditDelete ? "#9ca3af" : "#ef4444",
                                   color: "white",
                                   border: "none",
                                   borderRadius: "4px",
-                                  cursor: disableDepositActions ? "not-allowed" : "pointer",
+                                  cursor: disableEditDelete ? "not-allowed" : "pointer",
                                 }}
                               >
                                 Xóa
                               </button>
                               <button
                                 onClick={() => handleConfirmRental(payment._id)}
-                                disabled={disableDepositActions}
+                                disabled={disableConfirmRental}
                                 style={{
                                   padding: "5px 10px",
-                                  background: disableDepositActions ? "#9ca3af" : "#10b981",
+                                  background: disableConfirmRental ? "#9ca3af" : "#10b981",
                                   color: "white",
                                   border: "none",
                                   borderRadius: "4px",
-                                  cursor: disableDepositActions ? "not-allowed" : "pointer",
+                                  cursor: disableConfirmRental ? "not-allowed" : "pointer",
                                 }}
                               >
                                 Xác nhận thuê
