@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import GoogleAuth from "../components/auth/GoogleAuth";
-import { setAuthSession } from "../utils/authStorage.js";
+import { getWelcomePath, setAuthSession } from "../utils/authStorage.js";
 import "../css/Login.css";
 
 function Auth() {
@@ -114,7 +114,7 @@ function Auth() {
 
       setAuthSession(data.token, data.user);
 
-      navigate(data.user.role === "admin" ? "/admin" : data.user.role === "staff" ? "/staff" : "/customer");
+      navigate(getWelcomePath(data.user));
     } catch (error) {
       alert(error.message);
       generateCaptcha();
@@ -161,7 +161,7 @@ function Auth() {
       setAuthSession(data.token, data.user);
 
       alert("Đăng ký thành công");
-      navigate("/customer");
+      navigate(getWelcomePath(data.user));
     } catch (error) {
       alert(error.message);
     } finally {

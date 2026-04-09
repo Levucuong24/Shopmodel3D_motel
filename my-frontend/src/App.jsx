@@ -34,6 +34,7 @@ function App() {
       <Routes>
         {/* Main Routes with Navbar */}
         <Route path="/welcome" element={<MainLayout><Home /></MainLayout>} />
+        <Route path="/welcome/:userId" element={<MainLayout><Home /></MainLayout>} />
         <Route path="/product/:id" element={<MainLayout><ProductDetail /></MainLayout>} />
         <Route path="/" element={<Navigate to="/welcome" />} />
         

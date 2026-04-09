@@ -1,61 +1,85 @@
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import logo from "../../assets/logo.png";
-import { clearAuthSession, getUserRole } from "../../utils/authStorage.js";
+import { clearAuthSession, getUserData, getUserId, getUserRole, getWelcomePath } from "../../utils/authStorage.js";
 
 function Navbar() {
   const [selectedCampus, setSelectedCampus] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { userId: routeUserId } = useParams();
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
 
   useEffect(() => {
     const q = searchParams.get("search");
-    if(q !== null) setSearchTerm(q);
+    if (q !== null) setSearchTerm(q);
   }, [searchParams]);
 
   useEffect(() => {
-    const role = getUserRole();
-    if (role) {
-      setUserRole(role);
-    }
+    setUserRole(getUserRole());
+    setUserData(getUserData());
   }, []);
+
+  const currentUserId = getUserId();
+  const welcomePath = useMemo(() => {
+    if (routeUserId) return `/welcome/${routeUserId}`;
+    if (currentUserId) return `/welcome/${currentUserId}`;
+    return "/welcome";
+  }, [routeUserId, currentUserId]);
 
   const handleLogout = () => {
     clearAuthSession();
     setUserRole(null);
-    navigate('/welcome');
-    window.location.reload(); // Quick refresh to clear states
+    setUserData(null);
+    setMenuOpen(false);
+    navigate("/welcome");
+    window.location.reload();
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
+    const basePath = welcomePath;
     if (searchTerm.trim()) {
-      navigate(`/welcome?search=${encodeURIComponent(searchTerm.trim())}`);
+      navigate(`${basePath}?search=${encodeURIComponent(searchTerm.trim())}`);
     } else {
-      navigate(`/welcome`);
+      navigate(basePath);
     }
   };
 
+  const handleGoTo = (path) => {
+    setMenuOpen(false);
+    navigate(path);
+  };
 
   const campuses = {
-    "Hà Nội": ["Xã Thạch Hòa", "Xã Tân Xã", "Xã Bình Yên"],
-    "Đà Nẵng": ["Ngũ Hành Sơn"],
-    "TP HCM": ["Quận 9"],
-    "Cần Thơ": ["Quận Ninh Kiều"],
-    "Quy Nhơn": ["Khu đô thị FPT"]
+    "Ha Noi": ["Xa Thach Hoa", "Xa Tan Xa", "Xa Binh Yen"],
+    "Da Nang": ["Ngu Hanh Son"],
+    "TP HCM": ["Quan 9"],
+    "Can Tho": ["Quan Ninh Kieu"],
+    "Quy Nhon": ["Khu do thi FPT"],
   };
+
+  const avatarUrl =
+    userData?.avatar ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.full_name || "User")}&background=0f172a&color=ffffff`;
+
+  const customerMenuItems = [
+    { label: "Thong tin ca nhan", path: "/customer?tab=profile" },
+    { label: "Phong da luu", path: "/customer?tab=saved" },
+    { label: "Lich xem phong", path: "/customer?tab=viewings" },
+    { label: "Phong dang thue", path: "/customer?tab=rented" },
+  ];
 
   return (
     <nav className="navbar">
       <div className="navbar-left">
-        {/* Logo */}
-        <Link to="/welcome">
+        <Link to={welcomePath}>
           <img src={logo} alt="Logo" className="logo" />
         </Link>
 
-        {/* For Business */}
         <div className="dropdown">
           <span className="nav-link">For Business</span>
           <div className="dropdown-menu">
@@ -66,10 +90,8 @@ function Navbar() {
           </div>
         </div>
 
-        {/* Location dropdown */}
         <div className="dropdown">
           <span className="nav-link">Location</span>
-
           <div className="dropdown-menu">
             {!selectedCampus &&
               Object.keys(campuses).map((campus) => (
@@ -84,11 +106,11 @@ function Navbar() {
 
             {selectedCampus &&
               campuses[selectedCampus].map((area) => (
-                <div 
-                  key={area} 
+                <div
+                  key={area}
                   className="dropdown-item"
                   onClick={() => {
-                    navigate(`/welcome?search=${encodeURIComponent(area)}`);
+                    navigate(`${welcomePath}?search=${encodeURIComponent(area)}`);
                     setSearchTerm(area);
                   }}
                   style={{ cursor: "pointer" }}
@@ -99,33 +121,68 @@ function Navbar() {
           </div>
         </div>
 
-        {/* Blog */}
         <Link to="/blog" className="nav-link">
           Blog
         </Link>
       </div>
 
-      {/* Search */}
       <div className="navbar-center">
-        <form onSubmit={handleSearch} style={{ width: '100%', margin: 0, display: 'flex' }}>
-          <input 
-            type="text" 
-            placeholder="Search for accommodation..." 
+        <form onSubmit={handleSearch} style={{ width: "100%", margin: 0, display: "flex" }}>
+          <input
+            type="text"
+            placeholder="Search for accommodation..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </form>
       </div>
 
-      {/* Login / Signup / Dashboard */}
       <div className="navbar-right">
         {userRole ? (
-          <>
-            <Link to={`/${userRole}`} className="nav-link" style={{ fontWeight: 'bold', color: '#0ea5e9' }}>
-              {userRole === 'admin' ? 'Admin Dashboard' : 'My Dashboard'}
-            </Link>
-            <span className="nav-link" onClick={handleLogout} style={{ cursor: 'pointer' }}>Đăng xuất</span>
-          </>
+          <div className="user-menu-wrapper">
+            <button
+              type="button"
+              className="user-menu-trigger"
+              onClick={() => setMenuOpen((current) => !current)}
+            >
+              <img src={avatarUrl} alt="User avatar" className="user-menu-avatar" />
+            </button>
+
+            {menuOpen && (
+              <div className="user-menu-dropdown">
+                <div className="user-menu-header">
+                  <strong>{userData?.full_name || "Nguoi dung"}</strong>
+                  <span>{userRole}</span>
+                </div>
+
+                {userRole === "customer" &&
+                  customerMenuItems.map((item) => (
+                    <button
+                      key={item.path}
+                      type="button"
+                      className="user-menu-item"
+                      onClick={() => handleGoTo(item.path)}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+
+                {userRole !== "customer" && (
+                  <button
+                    type="button"
+                    className="user-menu-item"
+                    onClick={() => handleGoTo(`/${userRole}`)}
+                  >
+                    {userRole === "admin" ? "Admin Dashboard" : "Staff Dashboard"}
+                  </button>
+                )}
+
+                <button type="button" className="user-menu-item logout" onClick={handleLogout}>
+                  Dang xuat
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
           <>
             <Link to="/login" className="nav-link">Login</Link>

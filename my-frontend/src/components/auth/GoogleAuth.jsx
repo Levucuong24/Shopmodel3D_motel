@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import { setAuthSession } from "../../utils/authStorage.js";
+import { getWelcomePath, setAuthSession } from "../../utils/authStorage.js";
 
 const GoogleAuth = ({ width }) => {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ const GoogleAuth = ({ width }) => {
 
       setAuthSession(data.token, data.user);
 
-      navigate(data.user.role === "admin" ? "/admin" : data.user.role === "staff" ? "/staff" : "/customer");
+      navigate(getWelcomePath(data.user));
     } catch (err) {
       alert(err.message);
     }

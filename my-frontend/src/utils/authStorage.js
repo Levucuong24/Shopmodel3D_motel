@@ -24,6 +24,10 @@ export function getUserRole() {
   return sessionStorage.getItem("userRole");
 }
 
+export function getUserId() {
+  return getUserData()?._id || null;
+}
+
 export function getUserData() {
   try {
     return JSON.parse(sessionStorage.getItem("userData") || "null");
@@ -34,4 +38,9 @@ export function getUserData() {
 
 export function setUserData(user) {
   sessionStorage.setItem("userData", JSON.stringify(user));
+}
+
+export function getWelcomePath(user) {
+  const userId = user?._id;
+  return userId ? `/welcome/${userId}` : "/welcome";
 }

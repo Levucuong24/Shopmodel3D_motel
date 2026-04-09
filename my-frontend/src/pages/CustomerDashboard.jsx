@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { clearAuthSession, getAuthToken, getUserData, setUserData } from "../utils/authStorage.js";
 import { formatDateTime, formatPriceByUnit, formatRentalDuration } from "../utils/rentalFormat.js";
 import "../css/CustomerDashboard.css";
 
 function CustomerDashboard() {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
   const [rooms, setRooms] = useState([]);
   const [savedRooms, setSavedRooms] = useState([]);
   const [viewings, setViewings] = useState([]);
@@ -23,6 +24,13 @@ function CustomerDashboard() {
     phone: "",
     avatar: "",
   });
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const token = getAuthToken();
