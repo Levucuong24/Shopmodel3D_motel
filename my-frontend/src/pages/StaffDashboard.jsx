@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { clearAuthSession, getAuthToken, getUserData, getUserRole } from "../utils/authStorage.js";
+import { formatDateTime, formatPriceByUnit, formatRentalDuration, getRentalUnitLabel } from "../utils/rentalFormat.js";
 import "../css/AdminDashboard.css";
 
 const roomStatusLabel = {
@@ -49,6 +51,7 @@ function StaffDashboard() {
   const [newRoomForm, setNewRoomForm] = useState({
     name: "",
     price: "",
+    price_unit: "month",
     location: "",
     area: "",
     layout: "",
@@ -70,15 +73,15 @@ function StaffDashboard() {
   });
 
   useEffect(() => {
-    const role = localStorage.getItem("userRole");
-    const token = localStorage.getItem("authToken");
+    const role = getUserRole();
+    const token = getAuthToken();
 
     if (!token || role !== "staff") {
       navigate("/login");
       return;
     }
 
-    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    const userData = getUserData() || {};
     setUser(userData);
     fetchRooms(token);
     fetchPayments(token);
@@ -136,7 +139,7 @@ function StaffDashboard() {
 
   const handleRoomImageUpload = async (e) => {
     const file = e.target.files?.[0];
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
 
     if (!file || !token) return;
 
@@ -169,6 +172,7 @@ function StaffDashboard() {
     setNewRoomForm({
       name: "",
       price: "",
+      price_unit: "month",
       location: "",
       area: "",
       layout: "",
@@ -198,6 +202,7 @@ function StaffDashboard() {
     setNewRoomForm({
       name: room.name || "",
       price: room.price || "",
+      price_unit: room.price_unit || "month",
       location: room.location || "",
       area: room.specs?.area || "",
       layout: room.specs?.layout || "",
@@ -213,7 +218,7 @@ function StaffDashboard() {
 
   const handleDeleteRoom = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa phòng này không?")) return;
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
 
     try {
       const response = await fetch(`/api/rooms/${id}`, {
@@ -245,7 +250,7 @@ function StaffDashboard() {
 
   const handleSavePayment = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     if (!token || !editingPaymentId) return;
 
     if (!paymentForm.customer_name || paymentForm.amount === "") {
@@ -283,7 +288,7 @@ function StaffDashboard() {
 
   const handleDeletePayment = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa giao dịch đặt cọc này không?")) return;
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     if (!token) return;
 
     try {
@@ -308,7 +313,7 @@ function StaffDashboard() {
   };
 
   const handleConfirmRental = async (paymentId) => {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     if (!token) return;
 
     if (!window.confirm("Xác nhận giao phòng và chốt doanh thu (admin nhận 5%)?")) return;
@@ -331,7 +336,7 @@ function StaffDashboard() {
   };
 
   const handleConfirmCancellation = async (paymentId) => {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     if (!token) return;
 
     if (!window.confirm("Xác nhận cho khách hủy thuê và mở lại phòng này?")) return;
@@ -355,7 +360,7 @@ function StaffDashboard() {
 
   const handleSaveRoom = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
 
     if (!newRoomForm.name || !newRoomForm.price || !newRoomForm.location) {
       alert("Vui lòng điền ít nhất tên phòng, giá và khu vực");
@@ -368,6 +373,7 @@ function StaffDashboard() {
       const payload = {
         name: newRoomForm.name,
         price: Number(newRoomForm.price),
+        price_unit: newRoomForm.price_unit,
         status: newRoomForm.status,
         location: newRoomForm.location,
         specs: {
@@ -440,7 +446,7 @@ function StaffDashboard() {
             to="/welcome"
             className="logout-btn"
             onClick={() => {
-              localStorage.clear();
+              clearAuthSession();
             }}
           >
             Đăng xuất
@@ -473,6 +479,13 @@ function StaffDashboard() {
                 <div className="room-form-grid">
                   <input type="text" placeholder="Tên phòng" value={newRoomForm.name} onChange={(e) => handleNewRoomChange("name", e.target.value)} />
                   <input type="number" placeholder="Giá phòng" value={newRoomForm.price} onChange={(e) => handleNewRoomChange("price", e.target.value)} />
+                  <select value={newRoomForm.price_unit} onChange={(e) => handleNewRoomChange("price_unit", e.target.value)}>
+                    <option value="month">Theo {getRentalUnitLabel("month")}</option>
+                    <option value="week">Theo {getRentalUnitLabel("week")}</option>
+                    <option value="day">Theo {getRentalUnitLabel("day")}</option>
+                    <option value="hour">Theo {getRentalUnitLabel("hour")}</option>
+                    <option value="minute">Theo {getRentalUnitLabel("minute")}</option>
+                  </select>
                   <input type="text" placeholder="Khu vực" value={newRoomForm.location} onChange={(e) => handleNewRoomChange("location", e.target.value)} />
                   <input type="number" placeholder="Diện tích (m²)" value={newRoomForm.area} onChange={(e) => handleNewRoomChange("area", e.target.value)} />
                   <input type="text" placeholder="Bố trí" value={newRoomForm.layout} onChange={(e) => handleNewRoomChange("layout", e.target.value)} />
@@ -526,7 +539,7 @@ function StaffDashboard() {
                     {rooms.map((room) => (
                       <tr key={room._id}>
                         <td style={{ fontWeight: "bold" }}>{room.name}</td>
-                        <td>{room.price?.toLocaleString("vi-VN")}đ</td>
+                        <td>{formatPriceByUnit(room.price, room.price_unit)}</td>
                         <td>{room.location}</td>
                         <td>
                           <span style={{ padding: "4px 8px", borderRadius: "12px", color: "#fff", fontSize: "12px", background: roomStatusColor[room.status] || "#64748b" }}>
@@ -782,3 +795,9 @@ function StaffDashboard() {
 }
 
 export default StaffDashboard;
+
+
+
+
+
+

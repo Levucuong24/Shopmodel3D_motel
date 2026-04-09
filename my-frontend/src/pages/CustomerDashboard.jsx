@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { clearAuthSession, getAuthToken, getUserData, setUserData } from "../utils/authStorage.js";
+import { formatDateTime, formatPriceByUnit, formatRentalDuration } from "../utils/rentalFormat.js";
 import "../css/CustomerDashboard.css";
 
 function CustomerDashboard() {
@@ -23,8 +25,8 @@ function CustomerDashboard() {
   });
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    const storedUser = JSON.parse(localStorage.getItem("userData") || "null");
+    const token = getAuthToken();
+    const storedUser = getUserData();
 
     if (storedUser) {
       setCustomerName(storedUser.full_name || "Khách hàng");
@@ -57,7 +59,7 @@ function CustomerDashboard() {
             avatar: data.avatar || "",
           });
           setSavedRooms(data.saved_rooms || []);
-          localStorage.setItem("userData", JSON.stringify(data));
+          setUserData(data);
         }
       })
       .catch((err) => {
@@ -92,7 +94,7 @@ function CustomerDashboard() {
         setLoading(false);
       });
 
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     if (token) {
       fetch("/api/viewings/my-viewings", {
         headers: { Authorization: token }
@@ -111,16 +113,14 @@ function CustomerDashboard() {
     }
   }, []);
 
-  const storedUser = JSON.parse(localStorage.getItem("userData") || "null");
+  const storedUser = getUserData();
   const rentedRoom = rentalPayment?.room_id || rooms.find(room => room.tenant_id === storedUser?._id) || null;
   const customerAvatar =
     profileForm.avatar ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(customerName || "Khach Hang")}&background=00c6ff&color=fff`;
 
   const handleLogout = () => {
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userData");
+    clearAuthSession();
   };
 
   const handleProfileChange = (field, value) => {
@@ -128,7 +128,7 @@ function CustomerDashboard() {
   };
 
   const handleRequestCancellation = async () => {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     if (!token || !rentalPayment?._id) return;
 
     if (!window.confirm("Bạn muốn gửi yêu cầu hủy thuê phòng này tới chủ phòng?")) return;
@@ -161,7 +161,7 @@ function CustomerDashboard() {
   const handleProfileSave = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     if (!token) {
       alert("Bạn cần đăng nhập lại để cập nhật thông tin");
       return;
@@ -192,7 +192,7 @@ function CustomerDashboard() {
         phone: data.phone || "",
         avatar: data.avatar || "",
       });
-      localStorage.setItem("userData", JSON.stringify(data));
+      setUserData(data);
       alert("Cập nhật thông tin thành công");
     } catch (error) {
       alert(error.message);
@@ -203,7 +203,7 @@ function CustomerDashboard() {
 
   const handleAvatarUpload = async (event) => {
     const file = event.target.files?.[0];
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
 
     if (!file) return;
 
@@ -239,7 +239,7 @@ function CustomerDashboard() {
         phone: data.phone || "",
         avatar: data.avatar || "",
       });
-      localStorage.setItem("userData", JSON.stringify(data));
+      setUserData(data);
       alert("Tải ảnh đại diện thành công");
     } catch (error) {
       alert(error.message);
@@ -368,7 +368,7 @@ function CustomerDashboard() {
                       <div className="saved-info">
                         <h4>{room.name}</h4>
                         <p>{room.location}</p>
-                        <p className="price">{room.price?.toLocaleString("vi-VN")}đ / tháng</p>
+                        <p className="price">{formatPriceByUnit(room.price, room.price_unit)}</p>
                         <p>Diện tích: {room.specs?.area ? `${room.specs.area}m²` : "Đang cập nhật"}</p>
                         <p>Trạng thái: {room.status}</p>
                         <Link to={`/product/${room._id}`} className="view-detail-btn" style={{ display: "block", textAlign: "center", textDecoration: "none" }}>
@@ -453,7 +453,10 @@ function CustomerDashboard() {
                   </div>
                   <ul style={{ listStyle: "none", padding: 0, lineHeight: 1.8 }}>
                     <li><strong>Địa điểm:</strong> {rentedRoom.location}</li>
-                    <li><strong>Giá thuê:</strong> {rentedRoom.price?.toLocaleString("vi-VN")}đ/tháng</li>
+                    <li><strong>Giá thuê:</strong> {formatPriceByUnit(rentedRoom.price, rentedRoom.price_unit)}
+                    <li><strong>Chu k??? thu??:</strong> {formatRentalDuration(rentalPayment?.rental_duration_value, rentalPayment?.rental_duration_unit)}</li>
+                    <li><strong>B???t ?????u:</strong> {formatDateTime(rentalPayment?.rental_start_at || rentalPayment?.rental_confirmed_at)}</li>
+                    <li><strong>H???t h???n:</strong> {formatDateTime(rentalPayment?.rental_end_at)}</li></li>
                     <li><strong>Diện tích:</strong> {rentedRoom.specs?.area ? `${rentedRoom.specs.area}m²` : "Đang cập nhật"}</li>
                     <li><strong>Bố trí:</strong> {rentedRoom.specs?.layout || "Đang cập nhật"}</li>
                     <li><strong>Thú cưng:</strong> {rentedRoom.pet_policy || "Đang cập nhật"}</li>
@@ -494,3 +497,9 @@ function CustomerDashboard() {
 }
 
 export default CustomerDashboard;
+
+
+
+
+
+

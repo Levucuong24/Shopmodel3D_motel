@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
+import { setAuthSession } from "../../utils/authStorage.js";
 
 const GoogleAuth = ({ width }) => {
   const navigate = useNavigate();
@@ -15,9 +16,7 @@ const GoogleAuth = ({ width }) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Lỗi đăng nhập Google");
 
-      localStorage.setItem("userRole", data.user.role);
-      localStorage.setItem("authToken", data.token);
-      localStorage.setItem("userData", JSON.stringify(data.user));
+      setAuthSession(data.token, data.user);
 
       navigate(data.user.role === "admin" ? "/admin" : data.user.role === "staff" ? "/staff" : "/customer");
     } catch (err) {

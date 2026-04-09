@@ -6,6 +6,12 @@ const roomSchema = new mongoose.Schema(
 
     price: { type: Number, required: true },
 
+    price_unit: {
+      type: String,
+      enum: ["month", "week", "day", "hour", "minute"],
+      default: "month",
+    },
+
     status: {
       type: String,
       enum: ["available", "reserved", "rented"],
@@ -37,6 +43,22 @@ const roomSchema = new mongoose.Schema(
     tenant_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      default: null,
+    },
+
+    current_rental_start_at: {
+      type: Date,
+      default: null,
+    },
+
+    current_rental_end_at: {
+      type: Date,
+      default: null,
+    },
+
+    current_rental_payment_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Payment",
       default: null,
     },
 

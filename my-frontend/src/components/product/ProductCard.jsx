@@ -1,15 +1,17 @@
 import { Link } from "react-router-dom";
+import { getUserRole } from "../../utils/authStorage.js";
+import { formatPriceByUnit } from "../../utils/rentalFormat.js";
 
 const statusMap = {
-  available: "Còn phòng",
-  reserved: "Đã giữ chỗ",
-  rented: "Đã cho thuê",
+  available: "Con phong",
+  reserved: "Da giu cho",
+  rented: "Da cho thue",
 };
 
 function ProductCard({ product }) {
-  const userRole = localStorage.getItem("userRole");
+  const userRole = getUserRole();
   const roomId = product._id || product.id;
-  const statusLabel = statusMap[product.status] || product.status || "Đang cập nhật";
+  const statusLabel = statusMap[product.status] || product.status || "Dang cap nhat";
   const topAmenities = Array.isArray(product.amenities) ? product.amenities.slice(0, 3) : [];
 
   return (
@@ -21,7 +23,7 @@ function ProductCard({ product }) {
 
           {!userRole && (
             <div className="card-hover-overlay">
-              <p>{product.description || product.desc || "Đang cập nhật mô tả..."}</p>
+              <p>{product.description || product.desc || "Dang cap nhat mo ta..."}</p>
             </div>
           )}
         </div>
@@ -29,13 +31,11 @@ function ProductCard({ product }) {
         <div className="card-body">
           <h3>{product.name || product.title}</h3>
           <p className="location">{product.location}</p>
-          <p className="price">
-            {typeof product.price === "number" ? `${product.price.toLocaleString("vi-VN")}đ / tháng` : product.price}
-          </p>
+          <p className="price">{formatPriceByUnit(product.price, product.price_unit)}</p>
 
           <div className="room-meta">
-            <span>{product.specs?.area ? `${product.specs.area}m²` : "Chưa có diện tích"}</span>
-            <span>{product.specs?.layout || "Chưa có bố trí"}</span>
+            <span>{product.specs?.area ? `${product.specs.area}m2` : "Chua co dien tich"}</span>
+            <span>{product.specs?.layout || "Chua co bo tri"}</span>
           </div>
 
           {topAmenities.length > 0 && (
@@ -46,9 +46,7 @@ function ProductCard({ product }) {
             </div>
           )}
 
-          <p className="pet-policy">
-            {product.pet_policy || "Chưa có thông tin thú cưng"}
-          </p>
+          <p className="pet-policy">{product.pet_policy || "Chua co thong tin thu cung"}</p>
         </div>
       </Link>
     </div>

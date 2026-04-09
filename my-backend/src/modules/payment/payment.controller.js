@@ -5,6 +5,12 @@ import Room from "../room/Room.js";
 import { createPaymentService, getPaymentByIdService, updatePaymentSuccess } from "./payment.service.js";
 import { emitPaymentUpdate } from "../../sockets/payment.socket.js";
 import { sendAdminPaymentNotification } from "../../utils/mailer.js";
+import {
+  calculateRentalEndAt,
+  clearRoomRentalState,
+  normalizeRentalDurationValue,
+  releaseExpiredRentals,
+} from "../../utils/rental.js";
 
 const getMonthKey = (date) => new Date(date).toISOString().slice(0, 7);
 
@@ -43,11 +49,25 @@ export const createPayment = async (req, res) => {
       return res.status(404).json({ message: "Room not found" });
     }
 
+    if (room.status === "rented") {
+      await releaseExpiredRentals();
+      const refreshedRoom = await Room.findById(room_id);
+      if (refreshedRoom?.status === "rented") {
+        return res.status(400).json({ message: "Phong nay hien dang co nguoi thue" });
+      }
+    }
+
+    const rentalDurationValue = normalizeRentalDurationValue(req.body.rental_duration_value);
+    const pricingUnit = room.price_unit || "month";
+
     paymentPayload = {
       ...paymentPayload,
       room_id: room._id,
-      amount: room.price,
-      note: req.body.note || `Thanh toán cho phòng ${room.name}`,
+      amount: Number(room.price || 0) * rentalDurationValue,
+      pricing_unit: pricingUnit,
+      rental_duration_unit: pricingUnit,
+      rental_duration_value: rentalDurationValue,
+      note: req.body.note || `Thanh toan cho phong ${room.name}`,
     };
   }
 
@@ -86,8 +106,8 @@ export const paymentWebhook = async (req, res) => {
 
   emitPaymentUpdate(payment);
   await sendAdminPaymentNotification({
-    customerName: payment.customer_name || "Khách hàng",
-    customerEmail: payment.customer_email || "Không có email",
+    customerName: payment.customer_name || "Khach hang",
+    customerEmail: payment.customer_email || "Khong co email",
     amount: payment.amount,
   });
 
@@ -107,7 +127,7 @@ export const getPaymentById = async (req, res) => {
 export const getPayments = async (req, res) => {
   try {
     if (req.user.role !== "staff") {
-      return res.status(403).json({ message: "Chỉ chủ nhà mới được quản lý đặt cọc" });
+      return res.status(403).json({ message: "Chi chu nha moi duoc quan ly dat coc" });
     }
 
     const payments = await populateOwnedPaymentQuery();
@@ -130,12 +150,14 @@ export const getPayments = async (req, res) => {
 export const getMyRentalPayment = async (req, res) => {
   try {
     if (req.user.role !== "customer") {
-      return res.status(403).json({ message: "Chỉ khách thuê mới được xem yêu cầu hủy phòng" });
+      return res.status(403).json({ message: "Chi khach thue moi duoc xem phong dang thue" });
     }
 
     const payments = await Payment.find({
       user_id: req.user.id,
       rental_confirmed_at: { $exists: true, $ne: null },
+      rental_released_at: null,
+      rental_end_at: { $gt: new Date() },
       cancellation_status: { $ne: "approved" },
     })
       .populate({
@@ -156,7 +178,7 @@ export const getMyRentalPayment = async (req, res) => {
 export const requestRentalCancellation = async (req, res) => {
   try {
     if (req.user.role !== "customer") {
-      return res.status(403).json({ message: "Chỉ khách thuê mới được gửi yêu cầu hủy phòng" });
+      return res.status(403).json({ message: "Chi khach thue moi duoc gui yeu cau huy phong" });
     }
 
     const payment = await Payment.findById(req.params.id).populate({
@@ -164,27 +186,31 @@ export const requestRentalCancellation = async (req, res) => {
       select: "status tenant_id created_by",
     });
     if (!payment) {
-      return res.status(404).json({ message: "Không tìm thấy giao dịch thuê phòng" });
+      return res.status(404).json({ message: "Khong tim thay giao dich thue phong" });
     }
 
     if (payment.user_id?.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Bạn không có quyền gửi yêu cầu hủy cho giao dịch này" });
+      return res.status(403).json({ message: "Ban khong co quyen gui yeu cau huy cho giao dich nay" });
     }
 
     if (!payment.room_id || payment.room_id.tenant_id?.toString() !== req.user.id) {
-      return res.status(400).json({ message: "Phòng này hiện không thuộc lượt thuê của bạn" });
+      return res.status(400).json({ message: "Phong nay hien khong thuoc luot thue cua ban" });
     }
 
     if (payment.status !== "success" || !payment.rental_confirmed_at) {
-      return res.status(400).json({ message: "Chỉ phòng đã thuê thành công mới có thể gửi yêu cầu hủy" });
+      return res.status(400).json({ message: "Chi phong da thue thanh cong moi co the gui yeu cau huy" });
+    }
+
+    if (payment.rental_end_at && payment.rental_end_at <= new Date()) {
+      return res.status(400).json({ message: "Luot thue nay da het han" });
     }
 
     if (payment.cancellation_status === "pending") {
-      return res.status(400).json({ message: "Yêu cầu hủy phòng này đang chờ chủ phòng xác nhận" });
+      return res.status(400).json({ message: "Yeu cau huy phong nay dang cho chu phong xac nhan" });
     }
 
     if (payment.cancellation_status === "approved") {
-      return res.status(400).json({ message: "Phòng này đã được xác nhận hủy trước đó" });
+      return res.status(400).json({ message: "Phong nay da duoc xac nhan huy truoc do" });
     }
 
     payment.cancellation_status = "pending";
@@ -194,7 +220,7 @@ export const requestRentalCancellation = async (req, res) => {
 
     const updatedPayment = await populatePaymentById(payment._id);
     res.json({
-      message: "Đã gửi yêu cầu hủy phòng, vui lòng chờ chủ phòng xác nhận",
+      message: "Da gui yeu cau huy phong, vui long cho chu phong xac nhan",
       payment: updatedPayment,
     });
   } catch (error) {
@@ -205,7 +231,7 @@ export const requestRentalCancellation = async (req, res) => {
 export const updatePayment = async (req, res) => {
   try {
     if (req.user.role !== "staff") {
-      return res.status(403).json({ message: "Chỉ chủ nhà mới được chỉnh sửa đặt cọc" });
+      return res.status(403).json({ message: "Chi chu nha moi duoc chinh sua dat coc" });
     }
 
     const payment = await Payment.findById(req.params.id).populate({
@@ -213,12 +239,12 @@ export const updatePayment = async (req, res) => {
       select: "created_by status",
     });
     if (!payment) {
-      return res.status(404).json({ message: "Không tìm thấy giao dịch đặt cọc" });
+      return res.status(404).json({ message: "Khong tim thay giao dich dat coc" });
     }
 
     const ownerId = payment.room_id?.created_by?.toString();
     if (!payment.room_id || ownerId !== req.user.id) {
-      return res.status(403).json({ message: "Bạn không có quyền chỉnh sửa giao dịch này" });
+      return res.status(403).json({ message: "Ban khong co quyen chinh sua giao dich nay" });
     }
 
     if (
@@ -227,7 +253,7 @@ export const updatePayment = async (req, res) => {
       payment.room_id?.status === "rented" ||
       payment.cancellation_status === "pending"
     ) {
-      return res.status(400).json({ message: "Giao dịch này không thể chỉnh sửa nữa" });
+      return res.status(400).json({ message: "Giao dich nay khong the chinh sua nua" });
     }
 
     const allowedFields = ["customer_name", "customer_email", "amount", "note", "status", "payment_method"];
@@ -239,7 +265,7 @@ export const updatePayment = async (req, res) => {
     if (payment.amount !== undefined) {
       const amount = Number(payment.amount);
       if (Number.isNaN(amount) || amount < 0) {
-        return res.status(400).json({ message: "Số tiền đặt cọc không hợp lệ" });
+        return res.status(400).json({ message: "So tien dat coc khong hop le" });
       }
       payment.amount = amount;
     }
@@ -259,7 +285,7 @@ export const updatePayment = async (req, res) => {
 export const deletePayment = async (req, res) => {
   try {
     if (req.user.role !== "staff") {
-      return res.status(403).json({ message: "Chỉ chủ nhà mới được xóa đặt cọc" });
+      return res.status(403).json({ message: "Chi chu nha moi duoc xoa dat coc" });
     }
 
     const payment = await Payment.findById(req.params.id).populate({
@@ -267,12 +293,12 @@ export const deletePayment = async (req, res) => {
       select: "created_by status",
     });
     if (!payment) {
-      return res.status(404).json({ message: "Không tìm thấy giao dịch đặt cọc" });
+      return res.status(404).json({ message: "Khong tim thay giao dich dat coc" });
     }
 
     const ownerId = payment.room_id?.created_by?.toString();
     if (!payment.room_id || ownerId !== req.user.id) {
-      return res.status(403).json({ message: "Bạn không có quyền xóa giao dịch này" });
+      return res.status(403).json({ message: "Ban khong co quyen xoa giao dich nay" });
     }
 
     if (
@@ -281,7 +307,7 @@ export const deletePayment = async (req, res) => {
       payment.room_id?.status === "rented" ||
       payment.cancellation_status === "pending"
     ) {
-      return res.status(400).json({ message: "Giao dịch này không thể xóa nữa" });
+      return res.status(400).json({ message: "Giao dich nay khong the xoa nua" });
     }
 
     if (payment.room_id?.status === "reserved") {
@@ -290,7 +316,7 @@ export const deletePayment = async (req, res) => {
     }
 
     await Payment.findByIdAndDelete(payment._id);
-    res.json({ message: "Xóa giao dịch đặt cọc thành công", id: payment._id });
+    res.json({ message: "Xoa giao dich dat coc thanh cong", id: payment._id });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
@@ -299,41 +325,41 @@ export const deletePayment = async (req, res) => {
 export const confirmRentalCancellation = async (req, res) => {
   try {
     if (req.user.role !== "staff") {
-      return res.status(403).json({ message: "Chỉ chủ phòng mới được xác nhận hủy thuê" });
+      return res.status(403).json({ message: "Chi chu phong moi duoc xac nhan huy thue" });
     }
 
     const payment = await Payment.findById(req.params.id).populate({
       path: "room_id",
-      select: "created_by status tenant_id",
+      select: "created_by status tenant_id current_rental_payment_id",
     });
     if (!payment) {
-      return res.status(404).json({ message: "Không tìm thấy giao dịch thuê phòng" });
+      return res.status(404).json({ message: "Khong tim thay giao dich thue phong" });
     }
 
     if (!payment.room_id || payment.room_id.created_by?.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Bạn không có quyền xác nhận hủy giao dịch này" });
+      return res.status(403).json({ message: "Ban khong co quyen xac nhan huy giao dich nay" });
     }
 
     if (payment.cancellation_status !== "pending") {
-      return res.status(400).json({ message: "Giao dịch này chưa có yêu cầu hủy đang chờ xử lý" });
+      return res.status(400).json({ message: "Giao dich nay chua co yeu cau huy dang cho xu ly" });
     }
 
     if (payment.status !== "success" || !payment.rental_confirmed_at) {
-      return res.status(400).json({ message: "Chỉ giao dịch thuê đã xác nhận mới có thể hủy" });
+      return res.status(400).json({ message: "Chi giao dich thue da xac nhan moi co the huy" });
     }
 
     payment.cancellation_status = "approved";
     payment.cancellation_confirmed_at = new Date();
     payment.status = "cancelled";
+    payment.rental_released_at = new Date();
+    payment.rental_release_reason = "cancelled";
 
     const refundedCommission = Number(payment.admin_commission || 0);
     payment.admin_commission = 0;
     payment.landlord_payout = 0;
     await payment.save();
 
-    payment.room_id.status = "available";
-    payment.room_id.tenant_id = null;
-    await payment.room_id.save();
+    await clearRoomRentalState(payment.room_id);
 
     if (payment.contract_id) {
       await Contract.findByIdAndUpdate(payment.contract_id, { status: "cancelled" });
@@ -351,7 +377,7 @@ export const confirmRentalCancellation = async (req, res) => {
     emitPaymentUpdate(updatedPayment);
 
     res.json({
-      message: "Đã xác nhận hủy thuê phòng thành công",
+      message: "Da xac nhan huy thue phong thanh cong",
       payment: updatedPayment,
     });
   } catch (error) {
@@ -362,7 +388,7 @@ export const confirmRentalCancellation = async (req, res) => {
 export const getAdminRevenue = async (req, res) => {
   try {
     if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Chỉ admin mới được xem kế toán doanh thu" });
+      return res.status(403).json({ message: "Chi admin moi duoc xem ke toan doanh thu" });
     }
 
     const commissionPayments = await Payment.find({
@@ -398,7 +424,7 @@ export const getAdminRevenue = async (req, res) => {
 export const confirmRental = async (req, res) => {
   try {
     if (req.user.role !== "staff") {
-      return res.status(403).json({ message: "Chỉ chủ nhà mới được xác nhận thuê phòng" });
+      return res.status(403).json({ message: "Chi chu nha moi duoc xac nhan thue phong" });
     }
 
     const payment = await Payment.findById(req.params.id);
@@ -412,34 +438,54 @@ export const confirmRental = async (req, res) => {
     }
 
     if (room.created_by?.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Bạn không có quyền xác nhận giao dịch này" });
+      return res.status(403).json({ message: "Ban khong co quyen xac nhan giao dich nay" });
     }
 
-    if (payment.rental_confirmed_at || room.status === "rented") {
-      return res.status(400).json({ message: "Giao dịch này đã được xác nhận thuê phòng trước đó" });
+    if (room.status === "rented" && room.current_rental_end_at && room.current_rental_end_at <= new Date()) {
+      await releaseExpiredRentals();
+      await room.reload?.();
+    }
+
+    const refreshedRoom = await Room.findById(room._id);
+    if (payment.rental_confirmed_at || refreshedRoom?.status === "rented") {
+      return res.status(400).json({ message: "Giao dich nay da duoc xac nhan thue phong truoc do" });
     }
 
     const totalAmount = Number(payment.amount || 0);
     const adminCommission = Math.round(totalAmount * 0.05);
     const landlordPayout = Math.max(totalAmount - adminCommission, 0);
+    const rentalConfirmedAt = new Date();
+    const rentalDurationUnit = payment.rental_duration_unit || payment.pricing_unit || refreshedRoom.price_unit || "month";
+    const rentalDurationValue = normalizeRentalDurationValue(payment.rental_duration_value);
+    const rentalEndAt = calculateRentalEndAt(rentalConfirmedAt, rentalDurationUnit, rentalDurationValue);
 
     payment.status = "success";
     payment.admin_commission = adminCommission;
     payment.landlord_payout = landlordPayout;
-    payment.rental_confirmed_at = new Date();
+    payment.rental_confirmed_at = rentalConfirmedAt;
+    payment.rental_start_at = rentalConfirmedAt;
+    payment.rental_end_at = rentalEndAt;
+    payment.rental_duration_unit = rentalDurationUnit;
+    payment.rental_duration_value = rentalDurationValue;
+    payment.pricing_unit = rentalDurationUnit;
+    payment.rental_released_at = null;
+    payment.rental_release_reason = null;
     payment.cancellation_status = "none";
     payment.cancellation_requested_at = null;
     payment.cancellation_confirmed_at = null;
     await payment.save();
 
-    room.status = "rented";
+    refreshedRoom.status = "rented";
+    refreshedRoom.current_rental_start_at = rentalConfirmedAt;
+    refreshedRoom.current_rental_end_at = rentalEndAt;
+    refreshedRoom.current_rental_payment_id = payment._id;
     if (payment.user_id) {
-      room.tenant_id = payment.user_id;
+      refreshedRoom.tenant_id = payment.user_id;
     }
-    await room.save();
+    await refreshedRoom.save();
 
     await Revenue.findOneAndUpdate(
-      { month: getMonthKey(new Date()), status: "admin_commission" },
+      { month: getMonthKey(rentalConfirmedAt), status: "admin_commission" },
       { $inc: { amount: adminCommission } },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );

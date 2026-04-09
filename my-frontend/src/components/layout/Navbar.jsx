@@ -1,6 +1,7 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import logo from "../../assets/logo.png";
+import { clearAuthSession, getUserRole } from "../../utils/authStorage.js";
 
 function Navbar() {
   const [selectedCampus, setSelectedCampus] = useState(null);
@@ -15,16 +16,14 @@ function Navbar() {
   }, [searchParams]);
 
   useEffect(() => {
-    const role = localStorage.getItem('userRole');
+    const role = getUserRole();
     if (role) {
       setUserRole(role);
     }
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
+    clearAuthSession();
     setUserRole(null);
     navigate('/welcome');
     window.location.reload(); // Quick refresh to clear states

@@ -3,6 +3,8 @@ import { Link, useParams } from "react-router-dom";
 import StudentHouse3D from "../components/3d/StudentHouse3D";
 import Chatbot from "../components/chatbot/Chatbot";
 import PaymentModal from "../components/payment/PaymentModal";
+import { getAuthToken, getUserData, getUserRole } from "../utils/authStorage.js";
+import { formatPriceByUnit, formatRentalDuration } from "../utils/rentalFormat.js";
 import "../css/ProductDetail.css";
 
 const fallbackImages = [
@@ -25,14 +27,16 @@ const roomStatusClass = {
 
 function ProductDetail() {
   const { id } = useParams();
-  const authToken = localStorage.getItem("authToken");
-  const storedUser = JSON.parse(localStorage.getItem("userData") || "null");
+  const authToken = getAuthToken();
+  const storedUser = getUserData();
+  const userRole = getUserRole();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState("static");
   const [showPayment, setShowPayment] = useState(false);
   const [currentPayment, setCurrentPayment] = useState(null);
+  const [rentalDurationValue, setRentalDurationValue] = useState(1);
   const [mainImage, setMainImage] = useState(fallbackImages[0]);
   const [isSaved, setIsSaved] = useState(false);
   const [savingRoom, setSavingRoom] = useState(false);
@@ -150,7 +154,7 @@ function ProductDetail() {
         },
         body: JSON.stringify({
           room_id: id,
-          amount: product.price,
+          rental_duration_value: rentalDurationValue,
           customer_name: storedUser?.full_name || "",
           customer_email: storedUser?.email || "",
           user_id: storedUser?._id,
@@ -310,7 +314,7 @@ function ProductDetail() {
           <span className="pd-rating">⭐ {reviews.length > 0 ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1) : "Mới"} ({reviews.length} đánh giá)</span>
         </div>
         <div className="pd-price">
-          {typeof product.price === "number" ? `${product.price.toLocaleString("vi-VN")}đ / tháng` : product.price}
+          {formatPriceByUnit(product.price, product.price_unit)}
         </div>
       </div>
 
@@ -418,6 +422,17 @@ function ProductDetail() {
             >
               {product.status === "rented" ? "Phòng đã cho thuê" : "Đặt cọc giữ phòng"}
             </button>
+            <div className="booking-form" style={{ marginTop: "16px" }}>
+              <h4>Chu ky thue</h4>
+              <input
+                type="number"
+                min="1"
+                value={rentalDurationValue}
+                onChange={(e) => setRentalDurationValue(Math.max(1, Number(e.target.value) || 1))}
+              />
+              <p style={{ marginTop: "10px" }}>Chu ky da chon: <strong>{formatRentalDuration(rentalDurationValue, product.price_unit)}</strong></p>
+              <p>Tong tien tam tinh: <strong>{typeof product.price === "number" ? `${(product.price * rentalDurationValue).toLocaleString("vi-VN")}d` : "Dang cap nhat"}</strong></p>
+            </div>
             <button 
                className="book-btn" 
                style={{ background: isSaved ? "#6c757d" : "#f59e0b", marginTop: "10px" }} 
@@ -496,7 +511,7 @@ function ProductDetail() {
               <p>Chưa có đánh giá nào được duyệt cho phòng này.</p>
             )}
 
-            {localStorage.getItem("userRole") === "customer" && (
+            {userRole === "customer" && (
               <div className="add-review">
                 <h3>Thêm đánh giá của bạn</h3>
                 <form onSubmit={handleReviewSubmit}>
@@ -540,3 +555,5 @@ function ProductDetail() {
 }
 
 export default ProductDetail;
+
+

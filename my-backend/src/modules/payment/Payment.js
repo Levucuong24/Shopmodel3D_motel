@@ -24,6 +24,24 @@ const paymentSchema = new mongoose.Schema(
 
     amount: Number,
 
+    pricing_unit: {
+      type: String,
+      enum: ["month", "week", "day", "hour", "minute"],
+      default: "month",
+    },
+
+    rental_duration_unit: {
+      type: String,
+      enum: ["month", "week", "day", "hour", "minute"],
+      default: "month",
+    },
+
+    rental_duration_value: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+
     admin_commission: {
       type: Number,
       default: 0,
@@ -72,6 +90,18 @@ const paymentSchema = new mongoose.Schema(
     paid_at: Date,
 
     rental_confirmed_at: Date,
+
+    rental_start_at: Date,
+
+    rental_end_at: Date,
+
+    rental_released_at: Date,
+
+    rental_release_reason: {
+      type: String,
+      enum: ["expired", "cancelled", null],
+      default: null,
+    },
 
     cancellation_status: {
       type: String,

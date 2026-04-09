@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { clearAuthSession, getAuthToken, getUserData } from "../utils/authStorage.js";
 import "../css/AdminDashboard.css";
 
 const roomStatusLabel = {
@@ -96,7 +97,7 @@ function AdminDashboard() {
   });
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     const headers = token ? { Authorization: token } : {};
     
     fetch("/api/rooms/all", { headers })
@@ -112,7 +113,7 @@ function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     const headers = token ? { Authorization: token } : {};
 
     fetch("/api/viewings", { headers })
@@ -153,7 +154,7 @@ function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     if (!token || activeTab !== "accounting") return;
 
     const intervalId = setInterval(() => {
@@ -197,7 +198,7 @@ function AdminDashboard() {
   };
 
   const handleViewingStatusChange = async (id, newStatus) => {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
 
     if (!token) {
       alert("Bạn cần đăng nhập admin để cập nhật trạng thái");
@@ -223,7 +224,7 @@ function AdminDashboard() {
   };
 
   const handleUserRoleChange = async (id, newRole) => {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     if (!token) {
       alert("Bạn cần đăng nhập admin để thao tác");
       return;
@@ -250,7 +251,7 @@ function AdminDashboard() {
   };
 
   const handleStatusChange = async (id, newStatus) => {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
 
     if (!token) {
       alert("Bạn cần đăng nhập admin để cập nhật trạng thái phòng");
@@ -289,7 +290,7 @@ function AdminDashboard() {
   const handleConfirmRental = async (paymentId) => {
     if (!window.confirm("Bạn có chắc chắn xác nhận người này đã thuê phòng?")) return;
     
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     if (!token) return alert("Bạn cần đăng nhập admin");
 
     try {
@@ -330,7 +331,7 @@ function AdminDashboard() {
   };
 
   const handleTenantChange = async (id, newTenantId) => {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     if (!token) return alert("Bạn cần đăng nhập admin để cập nhật người thuê");
 
     const previousRooms = rooms;
@@ -370,7 +371,7 @@ function AdminDashboard() {
   };
 
   const handlePriceSave = async (id, price) => {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
 
     if (!token) {
       alert("Bạn cần đăng nhập admin để cập nhật giá phòng");
@@ -410,7 +411,7 @@ function AdminDashboard() {
 
   const handleRoomImageUpload = async (e) => {
     const file = e.target.files?.[0];
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
 
     if (!file) {
       return;
@@ -453,7 +454,7 @@ function AdminDashboard() {
 
   const handleGalleryUpload = async (e) => {
     const file = e.target.files?.[0];
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     if (!file || !token) return;
 
     setUploadingGallery(true);
@@ -491,7 +492,7 @@ function AdminDashboard() {
   const handleAddGalleryUrl = async (e) => {
     e.preventDefault();
     if (!newGalleryUrl.trim()) return;
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
 
     try {
       const addRes = await fetch("/api/gallery", {
@@ -512,7 +513,7 @@ function AdminDashboard() {
 
   const handleDeleteGalleryUrl = async (id) => {
     if (!window.confirm("Xóa ảnh này khỏi Gallery?")) return;
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
 
     try {
       const res = await fetch(`/api/gallery/${id}`, {
@@ -555,7 +556,7 @@ function AdminDashboard() {
 
   const handleDeleteRoom = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa phòng này không?")) return;
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     if (!token) return alert("Bạn cần đăng nhập admin để xóa phòng");
     try {
       const response = await fetch(`/api/rooms/${id}`, {
@@ -576,7 +577,7 @@ function AdminDashboard() {
   const handleSaveRoom = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     if (!token) {
       alert("Bạn cần đăng nhập admin để cập nhật phòng");
       return;
@@ -590,7 +591,7 @@ function AdminDashboard() {
     setCreatingRoom(true);
 
     try {
-      const storedUser = JSON.parse(localStorage.getItem("userData") || "null");
+      const storedUser = getUserData();
       
       const payload = {
         name: newRoomForm.name,
@@ -646,7 +647,7 @@ function AdminDashboard() {
   };
 
   const handleApproveRoom = async (id, status) => {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     if (!token) return alert("Bạn cần đăng nhập admin");
     if (!window.confirm(`Bạn có chắc chắn muốn ${status === "approved" ? "duyệt" : "từ chối"} phòng này?`)) return;
     
@@ -706,9 +707,7 @@ function AdminDashboard() {
             to="/welcome"
             className="logout-btn"
             onClick={() => {
-              localStorage.removeItem("userRole");
-              localStorage.removeItem("authToken");
-              localStorage.removeItem("userData");
+              clearAuthSession();
             }}
           >
             Đăng xuất

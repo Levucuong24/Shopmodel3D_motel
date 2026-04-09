@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
 import Navbar from "./components/layout/Navbar.jsx";
 import Home from "./pages/Home.jsx";
 import ProductDetail from "./pages/ProductDetail.jsx";
@@ -8,6 +9,7 @@ import AdminDashboard from "./pages/AdminDashboard.jsx";
 import CustomerDashboard from "./pages/CustomerDashboard.jsx";
 import StaffDashboard from "./pages/StaffDashboard.jsx";
 import ScrollToTop from "./components/layout/ScrollToTop.jsx";
+import { clearLegacyAuthStorage } from "./utils/authStorage.js";
 // Dashboard Wrapper to selectively render Navbar
 function DashboardLayout({ children }) {
   return <>{children}</>;
@@ -23,6 +25,10 @@ function MainLayout({ children }) {
 }
 
 function App() {
+  useEffect(() => {
+    clearLegacyAuthStorage();
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>

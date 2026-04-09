@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import GoogleAuth from "../components/auth/GoogleAuth";
+import { setAuthSession } from "../utils/authStorage.js";
 import "../css/Login.css";
 
 function Auth() {
@@ -111,9 +112,7 @@ function Auth() {
         throw new Error(data.message || "Đăng nhập thất bại");
       }
 
-      localStorage.setItem("userRole", data.user.role);
-      localStorage.setItem("authToken", data.token);
-      localStorage.setItem("userData", JSON.stringify(data.user));
+      setAuthSession(data.token, data.user);
 
       navigate(data.user.role === "admin" ? "/admin" : data.user.role === "staff" ? "/staff" : "/customer");
     } catch (error) {
@@ -159,9 +158,7 @@ function Auth() {
         throw new Error(data.message || "Đăng ký thất bại");
       }
 
-      localStorage.setItem("userRole", data.user.role);
-      localStorage.setItem("authToken", data.token);
-      localStorage.setItem("userData", JSON.stringify(data.user));
+      setAuthSession(data.token, data.user);
 
       alert("Đăng ký thành công");
       navigate("/customer");
