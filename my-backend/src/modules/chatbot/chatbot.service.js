@@ -6,32 +6,24 @@ import Room from "../room/Room.js";
 import SavedRoom from "../room/SavedRoom.js";
 import User from "../user/User.js";
 import ViewingRequest from "../viewing/ViewingRequest.js";
-import { findFaqReply } from "./chatbotFaq.js";
+
+const getGeminiApiKey = () => {
+  return process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
+};
 
 export const chatbotReply = async (text) => {
   const query = (text || "").trim();
 
   if (!query) {
     return {
-      reply:
-        "Ban hay nhap cau hoi cu the ve phong, gia, lich xem, danh gia, thanh toan, hop dong hoac cach dung website de minh ho tro.",
+      reply: "Bạn muốn hỏi gì về hệ thống? Vui lòng gửi câu hỏi chi tiết.",
       suggestions: [],
     };
   }
 
-  const rooms = await Room.find().lean();
-  const faqReply = findFaqReply({ query, rooms });
-
-  if (faqReply) {
-    return {
-      reply: faqReply.reply,
-      suggestions: faqReply.suggestions || [],
-    };
-  }
-
-  // Fallback AI/RAG for questions not covered by the fixed FAQ bank.
-  const [reviews, payments, viewings, users, contracts, savedRooms] = await Promise.all([
-    Review.find({ status: "approved" }).populate("room_id", "name location").populate("user_id", "full_name").lean(),
+  const [rooms, reviews, payments, viewings, users, contracts, savedRooms] = await Promise.all([
+    Room.find().lean(),
+    Review.find().populate("room_id", "name location").populate("user_id", "full_name").lean(),
     Payment.find().populate("room_id", "name location").lean(),
     ViewingRequest.find().populate("room_id", "name location").populate("user_id", "full_name email phone").lean(),
     User.find().select("-password").lean(),
@@ -39,75 +31,55 @@ export const chatbotReply = async (text) => {
     SavedRoom.find().lean(),
   ]);
 
-  const publicRooms = rooms.filter((room) => room.approval_status === "approved");
-  const visibleRooms = publicRooms.length > 0 ? publicRooms : rooms;
-  const availableRooms = visibleRooms.filter((room) => room.status === "available");
-  const reservedRooms = visibleRooms.filter((room) => room.status === "reserved");
-  const rentedRooms = visibleRooms.filter((room) => room.status === "rented");
-  const successPayments = payments.filter((payment) => payment.status === "success");
-  const pendingViewings = viewings.filter((item) => item.status === "pending");
-  const activeContracts = contracts.filter((contract) => contract.status === "active");
-  const customerCount = users.filter((user) => user.role === "customer").length;
-  const adminCount = users.filter((user) => user.role === "admin").length;
-  const totalRevenue = successPayments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
-  const pendingPayments = payments.length - successPayments.length;
+  const compactRooms = rooms.map(r => ({ id: r._id, name: r.name, location: r.location, price: r.price, status: r.status, amenities: r.amenities, specs: r.specs }));
+  const compactUsers = users.map(u => ({ id: u._id, name: u.full_name, email: u.email, role: u.role }));
+  const compactPayments = payments.map(p => ({ id: p._id, amount: p.amount, method: p.payment_method, status: p.status, type: p.payment_type, room: p.room_id?.name }));
+  const compactContracts = contracts.map(c => ({ id: c._id, user: c.user_id?.full_name, room: c.room_id?.name, status: c.status, startDate: c.start_date, endDate: c.end_date }));
+  const compactViewings = viewings.map(v => ({ id: v._id, user: v.user_id?.full_name, room: v.room_id?.name, date: v.date, time: v.time, status: v.status }));
+  const compactReviews = reviews.map(r => ({ id: r._id, user: r.user_id?.full_name, room: r.room_id?.name, rating: r.rating, comment: r.comment, status: r.status }));
 
-  const dataContext = `
-He thong quan ly phong hien tai co so lieu sau:
-- Tong so phong public: ${visibleRooms.length} (${availableRooms.length} trong, ${reservedRooms.length} coc, ${rentedRooms.length} dang thue)
-- So nguoi dung: ${customerCount} khach hang, ${adminCount} admin
-- Doanh thu: ${totalRevenue.toLocaleString("vi-VN")} VND tu ${successPayments.length} giao dich thanh cong
-- Giao dich dang cho xu ly: ${pendingPayments}
-- Danh gia da duyet: ${reviews.length}
-- Lich xem dang cho duyet: ${pendingViewings.length} tren tong ${viewings.length} lich xem
-- Hop dong dang hieu luc: ${activeContracts.length}
-- So luot luu phong: ${savedRooms.length}
-
-Danh sach phong trong:
-${availableRooms
-  .map(
-    (room) =>
-      `[Phong ID: ${room._id}] ${room.name} tai ${room.location || "chua cap nhat"}, gia: ${
-        room.price ? room.price.toLocaleString("vi-VN") : "lien he"
-      }d, tien ich: ${(room.amenities || []).join(", ")}`
-  )
-  .join("\n")}
-
-Danh sach review noi bat:
-${reviews
-  .slice(-5)
-  .map((review) => `- Phong ${review.room_id?.name}: ${review.rating} sao - "${review.comment}"`)
-  .join("\n")}
-  `.trim();
+  const dbJSON = JSON.stringify({
+    Rooms: compactRooms,
+    Users: compactUsers,
+    Payments: compactPayments,
+    Contracts: compactContracts,
+    Viewings: compactViewings,
+    Reviews: compactReviews
+  });
 
   const prompt = `
-Ban la AI chatbot cham soc khach hang cho website cho thue phong.
-
-Du lieu he thong:
+Bạn là AI chatbot chăm sóc khách hàng siêu năng lực cho website cho thuê phòng.
+Đây là TOÀN BỘ database hiện tại của hệ thống (dạng JSON):
 """
-${dataContext}
+${dbJSON}
 """
 
-Nguoi dung hoi: "${query}"
+Người dùng hỏi: "${query}"
 
-Yeu cau:
-1. Tra loi bang tieng Viet, ngan gon, dung du lieu co san.
-2. Neu cau hoi lien quan den phong, co the goi y toi da 3 phong tu danh sach phong trong.
-3. Phai tra ve dung JSON theo schema bat buoc.
+Yêu cầu:
+1. Căn cứ CHÍNH XÁC vào dữ liệu cung cấp, hãy tự động phân tích và đưa ra câu trả lời chi tiết, chính xác, thân thiện.
+2. Nếu câu hỏi liên quan đến tìm phòng (gợi ý phòng...), cố gắng gợi ý từ 1 đến tối đa 4 phòng phù hợp nhất. Điền ID các phòng được gợi ý vào mảng \`suggested_room_ids\`.
+3. Bạn ĐƯỢC PHÉP trả lời về các khoản thanh toán, giao dịch, thống kê doanh thu, người dùng, đánh giá, lịch xem phòng, hợp đồng nều người dùng muốn tra cứu, đây là tính năng AI đọc nguyên database.
+4. LUÔN trả về kết quả theo định dạng JSON chuẩn.
 
-Schema bat buoc:
+Schema:
 {
-  "reply": "Noi dung tra loi",
-  "suggested_room_ids": ["id1", "id2"]
+  "reply": "Câu trả lời của bạn, rõ ràng mạch lạc.",
+  "suggested_room_ids": ["id1", "id2"] // mảng string chứa ID phòng cần gợi ý, rỗng nếu không có gợi ý.
 }
-`;
+  `;
 
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is missing in environment variables.");
+    const apiKey = getGeminiApiKey();
+
+    if (!apiKey) {
+      return {
+        reply: "Mình không thể trả lời vì hệ thống thiếu cấu hình API KEY.",
+        suggestions: [],
+      };
     }
 
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
@@ -120,21 +92,18 @@ Schema bat buoc:
     let suggestions = [];
 
     if (Array.isArray(result.suggested_room_ids) && result.suggested_room_ids.length > 0) {
-      suggestions = visibleRooms.filter((room) => result.suggested_room_ids.includes(room._id.toString()));
-    } else {
-      suggestions = availableRooms.slice(0, 3);
+      suggestions = rooms.filter((room) => result.suggested_room_ids.includes(room._id.toString()));
     }
 
     return {
-      reply: result.reply || "Minh chua tong hop duoc cau tra loi luc nay.",
+      reply: result.reply || "Mình chưa có câu trả lời cho vấn đề này.",
       suggestions,
     };
   } catch (err) {
     console.error("AI Chatbot Error:", err);
     return {
-      reply:
-        "FAQ co dinh van dang chay, nhung AI fallback hien chua phan hoi duoc. Ban can kiem tra GEMINI_API_KEY hoac ket noi toi dich vu AI.",
-      suggestions: availableRooms.slice(0, 3),
+      reply: "Xin lỗi, hệ thống AI hiện đang xử lý khối lượng lớn hoặc quá tải, vui lòng thử lại sau.",
+      suggestions: [],
     };
   }
 };
