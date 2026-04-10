@@ -67,10 +67,10 @@ function Navbar() {
     `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.full_name || "User")}&background=0f172a&color=ffffff`;
 
   const customerMenuItems = [
-    { label: "Thong tin ca nhan", path: "/customer?tab=profile" },
-    { label: "Phong da luu", path: "/customer?tab=saved" },
-    { label: "Lich xem phong", path: "/customer?tab=viewings" },
-    { label: "Phong dang thue", path: "/customer?tab=rented" },
+    { label: "Thong tin ca nhan", path: "/customer?tab=profile&view=single" },
+    { label: "Phong da luu", path: "/customer?tab=saved&view=single" },
+    { label: "Lich xem phong", path: "/customer?tab=viewings&view=single" },
+    { label: "Phong dang thue", path: "/customer?tab=rented&view=single" },
   ];
 
   return (
