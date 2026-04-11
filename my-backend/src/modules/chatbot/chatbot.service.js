@@ -8,9 +8,7 @@ import User from "../user/User.js";
 import ViewingRequest from "../viewing/ViewingRequest.js";
 
 const GEMINI_API_KEYS = [
-  "AIzaSyCiUghrVH8sUlo68RIpqtrXe5tOYhRx-rI",
-  "AIzaSyDzFLgK9BT3sBmJGrYKEpQYvleHbjnsk5I",
-  "AIzaSyCzhwlyjVYGJA5VXT_Fk-Ll--ewpdMagM0"
+  "AIzaSyCuBBbO37sVkzYRCDLL_FJEfu-KJlq7AzE"
 ];
 let currentKeyIndex = 0;
 
@@ -78,7 +76,10 @@ Schema:
     let fallbackError = null;
 
     // Lặp qua các key nếu key hiện tại bị lỗi
-    for (let i = 0; i < GEMINI_API_KEYS.length; i++) {
+    let attempts = GEMINI_API_KEYS.length;
+    for (let i = 0; i < attempts; i++) {
+       if (GEMINI_API_KEYS.length === 0) break;
+
        const apiKey = GEMINI_API_KEYS[currentKeyIndex];
        try {
           const ai = new GoogleGenAI({ apiKey });
@@ -93,13 +94,23 @@ Schema:
        } catch (err) {
           console.error(`API Key ở index ${currentKeyIndex} lỗi:`, err.message);
           fallbackError = err;
-          // Chuyển sang key tiếp theo trong mảng
-          currentKeyIndex = (currentKeyIndex + 1) % GEMINI_API_KEYS.length;
+          
+          if (err.message && err.message.includes("leaked")) {
+             // Phát hiện key bị Leak (khoá vĩnh viễn), xoá luôn khỏi mảng
+             GEMINI_API_KEYS.splice(currentKeyIndex, 1);
+             // Mảng co lại nên không cần cộng currentKeyIndex, chỉ chặn lố index
+             if (currentKeyIndex >= GEMINI_API_KEYS.length) {
+                 currentKeyIndex = 0;
+             }
+          } else {
+             // Các lỗi như Quota (giới hạn ngày) thì giữ lại mai dùng, chỉ nhảy qua key khác
+             currentKeyIndex = (currentKeyIndex + 1) % GEMINI_API_KEYS.length;
+          }
        }
     }
 
     if (!response) {
-       throw fallbackError; // Ném lỗi chung nếu cả 3 key đều tạch
+       throw fallbackError || new Error("All API keys are depleted or leaked."); // Ném lỗi chung nếu tất cả tạch
     }
 
     // Bỏ cái prefix markdown nếu có

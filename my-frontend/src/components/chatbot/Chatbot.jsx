@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 import "../../css/Chatbot.css";
 
 function GeneratorUI() {
@@ -157,7 +159,10 @@ export default function Chatbot() {
         <div className="chatbot-messages">
           {messages.map((msg) => (
             <div key={msg.id} className={`message-bubble ${msg.sender}`}>
-              <div dangerouslySetInnerHTML={{ __html: msg.text.replace(/\n/g, "<br/>") }} />
+              <div 
+                className="markdown-response"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(msg.text)) }}
+              />
 
               {msg.suggestions && msg.suggestions.length > 0 && (
                 <div className="bot-suggestions">
@@ -186,7 +191,7 @@ export default function Chatbot() {
 
           {isReplying && (
             <div className="message-bubble bot">
-              <div>Đang đọc dữ liệu hệ thống để trả lời...</div>
+              <div>đợi mình vài giây nha ^^</div>
             </div>
           )}
 
