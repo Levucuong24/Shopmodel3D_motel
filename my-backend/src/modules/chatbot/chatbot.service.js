@@ -7,9 +7,12 @@ import SavedRoom from "../room/SavedRoom.js";
 import User from "../user/User.js";
 import ViewingRequest from "../viewing/ViewingRequest.js";
 
-const getGeminiApiKey = () => {
-  return process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
-};
+const GEMINI_API_KEYS = [
+  "AIzaSyCiUghrVH8sUlo68RIpqtrXe5tOYhRx-rI",
+  "AIzaSyDzFLgK9BT3sBmJGrYKEpQYvleHbjnsk5I",
+  "AIzaSyCzhwlyjVYGJA5VXT_Fk-Ll--ewpdMagM0"
+];
+let currentKeyIndex = 0;
 
 export const chatbotReply = async (text) => {
   const query = (text || "").trim();
@@ -22,7 +25,7 @@ export const chatbotReply = async (text) => {
   }
 
   const [rooms, reviews, payments, viewings, users, contracts, savedRooms] = await Promise.all([
-    Room.find().lean(),
+    Room.find().populate("created_by", "full_name role").lean(),
     Review.find().populate("room_id", "name location").populate("user_id", "full_name").lean(),
     Payment.find().populate("room_id", "name location").lean(),
     ViewingRequest.find().populate("room_id", "name location").populate("user_id", "full_name email phone").lean(),
@@ -31,8 +34,8 @@ export const chatbotReply = async (text) => {
     SavedRoom.find().lean(),
   ]);
 
-  const compactRooms = rooms.map(r => ({ id: r._id, name: r.name, location: r.location, price: r.price, status: r.status, amenities: r.amenities, specs: r.specs }));
-  const compactUsers = users.map(u => ({ id: u._id, name: u.full_name, email: u.email, role: u.role }));
+  const compactRooms = rooms.map(r => ({ id: r._id, name: r.name, location: r.location, price: r.price, status: r.status, amenities: r.amenities, specs: r.specs, owner_name: r.created_by?.full_name }));
+  const compactUsers = users.map(u => ({ id: u._id, name: u.full_name, email: u.email, role: u.role === "admin" ? "admin" : (u.role === "staff" ? "chủ phòng" : "khách hàng") }));
   const compactPayments = payments.map(p => ({ id: p._id, amount: p.amount, method: p.payment_method, status: p.status, type: p.payment_type, room: p.room_id?.name }));
   const compactContracts = contracts.map(c => ({ id: c._id, user: c.user_id?.full_name, room: c.room_id?.name, status: c.status, startDate: c.start_date, endDate: c.end_date }));
   const compactViewings = viewings.map(v => ({ id: v._id, user: v.user_id?.full_name, room: v.room_id?.name, date: v.date, time: v.time, status: v.status }));
@@ -61,6 +64,7 @@ Yêu cầu:
 2. Nếu câu hỏi liên quan đến tìm phòng (gợi ý phòng...), cố gắng gợi ý từ 1 đến tối đa 4 phòng phù hợp nhất. Điền ID các phòng được gợi ý vào mảng \`suggested_room_ids\`.
 3. Bạn ĐƯỢC PHÉP trả lời về các khoản thanh toán, giao dịch, thống kê doanh thu, người dùng, đánh giá, lịch xem phòng, hợp đồng nều người dùng muốn tra cứu, đây là tính năng AI đọc nguyên database.
 4. LUÔN trả về kết quả theo định dạng JSON chuẩn.
+5. QUAN TRỌNG: Hãy hiểu "staff" đồng nghĩa tuyệt đối với "chủ phòng" / "chủ nhà" / "người cho thuê". Khi khách hỏi về "chủ phòng" hay "top chủ phòng", bạn hãy ngầm hiểu là họ đang tìm kiếm và muốn xếp hạng những User có role là "chủ phòng" (hay staff). Dựa vào số phòng sở hữu từ danh sách Rooms (so sánh \`owner_name\`) để tìm ra ai là người nổi bật nhất. Mọi truy vấn về "chủ phòng" đều tương đương với "staff", KHÔNG ĐƯỢC từ chối trả lời.
 
 Schema:
 {
@@ -70,25 +74,37 @@ Schema:
   `;
 
   try {
-    const apiKey = getGeminiApiKey();
+    let response = null;
+    let fallbackError = null;
 
-    if (!apiKey) {
-      return {
-        reply: "Mình không thể trả lời vì hệ thống thiếu cấu hình API KEY.",
-        suggestions: [],
-      };
+    // Lặp qua các key nếu key hiện tại bị lỗi
+    for (let i = 0; i < GEMINI_API_KEYS.length; i++) {
+       const apiKey = GEMINI_API_KEYS[currentKeyIndex];
+       try {
+          const ai = new GoogleGenAI({ apiKey });
+          response = await ai.models.generateContent({
+             model: "gemini-2.5-flash",
+             contents: prompt,
+             config: {
+                responseMimeType: "application/json",
+             },
+          });
+          break; // Thành công thì thoát loop
+       } catch (err) {
+          console.error(`API Key ở index ${currentKeyIndex} lỗi:`, err.message);
+          fallbackError = err;
+          // Chuyển sang key tiếp theo trong mảng
+          currentKeyIndex = (currentKeyIndex + 1) % GEMINI_API_KEYS.length;
+       }
     }
 
-    const ai = new GoogleGenAI({ apiKey });
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-      },
-    });
+    if (!response) {
+       throw fallbackError; // Ném lỗi chung nếu cả 3 key đều tạch
+    }
 
-    const result = JSON.parse(response.text);
+    // Bỏ cái prefix markdown nếu có
+    const rawText = response.text.replace(/```json/gi, "").replace(/```/g, "").trim();
+    const result = JSON.parse(rawText);
     let suggestions = [];
 
     if (Array.isArray(result.suggested_room_ids) && result.suggested_room_ids.length > 0) {
@@ -101,8 +117,20 @@ Schema:
     };
   } catch (err) {
     console.error("AI Chatbot Error:", err);
+
+    let errorMsg = "Xin lỗi, hệ thống AI hiện đang xử lý khối lượng lớn hoặc quá tải, vui lòng thử lại sau.";
+    
+    // Kiểm tra nếu lỗi do Google trả về (ví dụ API key bị lộ, hết giới hạn)
+    if (err.message && err.message.includes("leaked")) {
+       errorMsg = "Lỗi: API Key của bạn bị Google chặn vì đã bị nộp lên hệ thống công khai (Leaked). Vui lòng tạo KEY mới!";
+    } else if (err.message && err.message.includes("Quota")) {
+       errorMsg = "Lỗi: API Key của bạn đã hết dung lượng sử dụng. Vui lòng nâng cấp gói hoặc đổi Key khác.";
+    } else if (err.status || err.code) {
+       errorMsg = `Lỗi hệ thống AI (${err.status || err.code}): ${err.message}`;
+    }
+
     return {
-      reply: "Xin lỗi, hệ thống AI hiện đang xử lý khối lượng lớn hoặc quá tải, vui lòng thử lại sau.",
+      reply: errorMsg,
       suggestions: [],
     };
   }
