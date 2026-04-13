@@ -1,6 +1,15 @@
 // src/controllers/user.controller.js
 import User from "./User.js";
 
+export const getUserCount = async (req, res) => {
+  try {
+    const count = await User.countDocuments();
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 export const getUsers = async (req, res) => {
   const users = await User.find().select("-password");
   res.json(users);

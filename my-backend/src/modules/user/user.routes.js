@@ -1,6 +1,6 @@
 import express from "express";
 import {
-  getUsers,
+  getUsers, getUserCount,
   getProfile,
   updateProfile,
   saveRoom,
@@ -13,6 +13,7 @@ import upload from "../../middlewares/upload.middleware.js";
 
 const router = express.Router();
 
+router.get("/count", getUserCount);
 router.get("/", getUsers);
 router.get("/me", auth, getProfile);
 router.put("/me", auth, updateProfile);

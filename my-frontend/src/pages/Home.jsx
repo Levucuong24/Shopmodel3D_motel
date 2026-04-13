@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/product/ProductCard";
 import Gallery from "../components/product/Gallery";
-import PlansPrices from "../components/home/PlansPrices";
 import InvestmentStages from "../components/home/InvestmentStages";
 import CallToAction from "../components/home/CallToAction";
 import Footer from "../components/layout/Footer";
@@ -13,11 +12,17 @@ function Home() {
   const [products, setProducts] = useState([]);
   const [topLandlords, setTopLandlords] = useState([]);
   const [loadingError, setLoadingError] = useState("");
+  const [userCount, setUserCount] = useState(0);
   const [selectedLandlordId, setSelectedLandlordId] = useState("");
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
 
   useEffect(() => {
+        fetch("/api/users/count")
+      .then((res) => res.json())
+      .then((data) => setUserCount(data.count || 0))
+      .catch((err) => console.error("Error fetching user count", err));
+
     fetch("/api/rooms")
       .then((res) => res.json())
       .then((data) => {
@@ -62,18 +67,18 @@ function Home() {
       <div className="hero">
         <div className="hero-stats">
           <div className="stat-item">
-            <span className="stat-number">15+</span>
+            <span className="stat-number">{products.length}</span>
             <span className="stat-label">Dự án hoàn thiện</span>
           </div>
           <div className="stat-divider"></div>
           <div className="stat-item">
-            <span className="stat-number">500+</span>
+            <span className="stat-number">{userCount}</span>
             <span className="stat-label">Khách hàng hài lòng</span>
           </div>
           <div className="stat-divider"></div>
           <div className="stat-item">
             <span className="stat-number">100%</span>
-            <span className="stat-label">Cam kết pháp lý</span>
+            <span className="stat-label">Cam kết đúng như ảnh</span>
           </div>
         </div>
 
@@ -187,7 +192,6 @@ function Home() {
       </div>
 
       <Gallery />
-      <PlansPrices />
       <InvestmentStages />
       <CallToAction />
 
