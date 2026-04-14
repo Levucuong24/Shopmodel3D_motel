@@ -563,26 +563,61 @@ function CustomerDashboard() {
                 </li>
               </ul>
 
-              {rentalPayment?.cancellation_status === "pending" ? (
+              {rentalPayment?.status === "cancelled" ? (
                 <div
                   style={{
                     marginTop: "16px",
                     padding: "14px",
                     borderRadius: "10px",
-                    background: "#fff7ed",
-                    color: "#c2410c",
+                    background: "#fee2e2",
+                    color: "#dc2626",
                     fontWeight: "600",
                   }}
                 >
-                  Yeu cau huy thue da duoc gui. He thong dang cho chu phong xac nhan.
+                  Phòng này đã được huỷ thuê thành công.
                 </div>
               ) : rentalPayment?.status === "success" ? (
-                <button
-                  type="button"
-                  onClick={handleRequestCancellation}
+                <div style={{ display: "flex", gap: "15px", alignItems: "center", marginTop: "16px", flexWrap: "wrap" }}>
+                  {!rentalPayment.rental_confirmed_at && (
+                    <span style={{ color: "#d97706", fontWeight: "600", padding: "10px", background: "#fef3c7", borderRadius: "8px" }}>
+                      ⏳ Đang chờ chủ nhà xác nhận... Bạn vẫn có thể hủy.
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const token = getAuthToken();
+                    if (!token || !rentalPayment?._id) return;
+                
+                    if (!window.confirm("Ban chac chan muon huy thue phong nay?Hanh dong nay khong the hoan tac.")) return;
+                
+                    setRequestingCancellation(true);
+                
+                    try {
+                      const response = await fetch(`/api/payments/${rentalPayment._id}/request-cancel`, {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          Authorization: token,
+                        },
+                        body: JSON.stringify({}),
+                      });
+                
+                      const data = await response.json();
+                      if (!response.ok) {
+                        throw new Error(data.message || "Khong the huy thue phong");
+                      }
+                
+                      setRentalPayment(data.payment || null);
+                      alert(data.message || "Da huy thue phong");
+                    } catch (error) {
+                      alert(error.message);
+                    } finally {
+                      setRequestingCancellation(false);
+                    }
+                  }}
                   disabled={requestingCancellation}
                   style={{
-                    marginTop: "16px",
                     padding: "10px 16px",
                     background: "#dc2626",
                     color: "#fff",
@@ -592,8 +627,9 @@ function CustomerDashboard() {
                     opacity: requestingCancellation ? 0.7 : 1,
                   }}
                 >
-                  {requestingCancellation ? "Dang gui yeu cau..." : "Yeu cau huy thue"}
+                  {requestingCancellation ? "Dang xu ly..." : "Huy thue phong"}
                 </button>
+                </div>
               ) : null}
             </div>
           ) : (

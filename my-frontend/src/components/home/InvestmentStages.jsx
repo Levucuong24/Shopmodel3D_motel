@@ -4,32 +4,32 @@ function InvestmentStages() {
   const stages = [
     {
       step: "01",
-      title: "Consultation",
-      desc: "You leave a request and our manager will contact you. Or you can call us yourself"
+      title: "Search & Select",
+      desc: "Browse our wide range of rooms and choose the perfect one that suits your needs and budget."
     },
     {
       step: "02",
-      title: "Booking Apartments",
-      desc: "You pay a deposit for the reservation of the apartment you selected"
+      title: "Booking & Confirmation",
+      desc: "Fill in your details and confirm your reservation. We will send you a confirmation email."
     },
     {
       step: "03",
-      title: "First Installment",
-      desc: "During the construction phase, you pay 20% of the cost of the apartment"
+      title: "Payment",
+      desc: "Securely pay for your booking online or choose to pay upon arrival at the property."
     },
     {
       step: "04",
-      title: "Commissioning",
-      desc: "During construction, you pay 30% in 3 installments. After commissioning, profit"
+      title: "Check-in & Enjoy",
+      desc: "Arrive at your destination, check in smoothly, and enjoy a comfortable stay with us."
     }
   ];
 
   return (
     <div className="investment-stages">
       <div className="inv-header">
-        <h3 className="inv-subtitle">INVESTMENT STAGES</h3>
-        <h2 className="inv-title">All Stages of Investment</h2>
-        <p className="inv-desc">There are many variations of passages of lorem ipsum</p>
+        <h3 className="inv-subtitle">BOOKING STAGES</h3>
+        <h2 className="inv-title">All booking stages</h2>
+        <p className="inv-desc">Follow these simple steps to easily book your perfect room and enjoy a wonderful stay.</p>
       </div>
 
       <div className="inv-grid">

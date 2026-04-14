@@ -120,6 +120,7 @@ export default function Chatbot() {
             loweredInput.includes("vẽ") ||
             loweredInput.includes("ve") ||
             loweredInput.includes("tạo"),
+          isCancelRequest: data.is_cancel_request,
         },
       ]);
     } catch (error) {
@@ -186,6 +187,24 @@ export default function Chatbot() {
               )}
 
               {msg.show3DGenerator && <GeneratorUI />}
+              {msg.isCancelRequest && (
+                <div style={{ marginTop: "10px" }}>
+                  <Link
+                    to="/customer-dashboard?tab=rented"
+                    className="ai-generate-btn"
+                    onClick={() => setIsOpen(false)}
+                    style={{
+                      display: "block",
+                      textAlign: "center",
+                      textDecoration: "none",
+                      backgroundColor: "#dc2626",
+                      color: "white",
+                    }}
+                  >
+                    Đi đến trang Quản lý phòng đang thuê (Hủy thuê)
+                  </Link>
+                </div>
+              )}
             </div>
           ))}
 

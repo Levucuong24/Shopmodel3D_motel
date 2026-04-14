@@ -63,11 +63,13 @@ Yêu cầu:
 3. Bạn ĐƯỢC PHÉP trả lời về các khoản thanh toán, giao dịch, thống kê doanh thu, người dùng, đánh giá, lịch xem phòng, hợp đồng nều người dùng muốn tra cứu, đây là tính năng AI đọc nguyên database.
 4. LUÔN trả về kết quả theo định dạng JSON chuẩn.
 5. QUAN TRỌNG: Hãy hiểu "staff" đồng nghĩa tuyệt đối với "chủ phòng" / "chủ nhà" / "người cho thuê". Khi khách hỏi về "chủ phòng" hay "top chủ phòng", bạn hãy ngầm hiểu là họ đang tìm kiếm và muốn xếp hạng những User có role là "chủ phòng" (hay staff). Dựa vào số phòng sở hữu từ danh sách Rooms (so sánh \`owner_name\`) để tìm ra ai là người nổi bật nhất. Mọi truy vấn về "chủ phòng" đều tương đương với "staff", KHÔNG ĐƯỢC từ chối trả lời.
+6. NẾU người dùng ngỏ ý muốn HỦY PHÒNG ĐANG THUÊ (ví dụ: "tôi muốn hủy phòng" hoặc "hủy phòng của tôi"), hãy đặt cờ \`is_cancel_request: true\` trong kết quả JSON, ngược lại luôn là \`false\`.
 
 Schema:
 {
   "reply": "Câu trả lời của bạn, rõ ràng mạch lạc.",
-  "suggested_room_ids": ["id1", "id2"] // mảng string chứa ID phòng cần gợi ý, rỗng nếu không có gợi ý.
+  "suggested_room_ids": ["id1", "id2"], // mảng string chứa ID phòng cần gợi ý, rỗng nếu không có gợi ý.
+  "is_cancel_request": false // true or false tuỳ thuộc vào câu hỏi
 }
   `;
 
@@ -125,6 +127,7 @@ Schema:
     return {
       reply: result.reply || "Mình chưa có câu trả lời cho vấn đề này.",
       suggestions,
+      is_cancel_request: result.is_cancel_request === true,
     };
   } catch (err) {
     console.error("AI Chatbot Error:", err);

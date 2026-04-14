@@ -155,16 +155,19 @@ export const getMyRentalPayment = async (req, res) => {
 
     const payments = await Payment.find({
       user_id: req.user.id,
-      rental_confirmed_at: { $exists: true, $ne: null },
+      status: "success",
       rental_released_at: null,
-      rental_end_at: { $gt: new Date() },
+      $or: [
+        { rental_end_at: { $gt: new Date() } },
+        { rental_end_at: null }
+      ],
       cancellation_status: { $ne: "approved" },
     })
       .populate({
         path: "room_id",
         populate: { path: "created_by", select: "full_name phone" },
       })
-      .sort({ rental_confirmed_at: -1 });
+      .sort({ created_at: -1 });
 
     const activePayment =
       payments.find((payment) => payment.room_id?.tenant_id?.toString?.() === req.user.id) || payments[0] || null;
@@ -178,49 +181,72 @@ export const getMyRentalPayment = async (req, res) => {
 export const requestRentalCancellation = async (req, res) => {
   try {
     if (req.user.role !== "customer") {
-      return res.status(403).json({ message: "Chi khach thue moi duoc gui yeu cau huy phong" });
+      return res.status(403).json({ message: "Chi khach thue moi duoc huy phong" });
     }
 
     const payment = await Payment.findById(req.params.id).populate({
       path: "room_id",
-      select: "status tenant_id created_by",
+      select: "status tenant_id created_by current_rental_payment_id",
     });
     if (!payment) {
       return res.status(404).json({ message: "Khong tim thay giao dich thue phong" });
     }
 
     if (payment.user_id?.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Ban khong co quyen gui yeu cau huy cho giao dich nay" });
+      return res.status(403).json({ message: "Ban khong co quyen dung giao dich nay" });
     }
 
-    if (!payment.room_id || payment.room_id.tenant_id?.toString() !== req.user.id) {
-      return res.status(400).json({ message: "Phong nay hien khong thuoc luot thue cua ban" });
+    if (!payment.room_id) {
+      return res.status(400).json({ message: "Giao dich nay khong gan voi phong nao" });
     }
 
-    if (payment.status !== "success" || !payment.rental_confirmed_at) {
-      return res.status(400).json({ message: "Chi phong da thue thanh cong moi co the gui yeu cau huy" });
+    if (payment.status !== "success") {
+      return res.status(400).json({ message: "Chi phong da thanh toan moi co the huy" });
     }
 
     if (payment.rental_end_at && payment.rental_end_at <= new Date()) {
       return res.status(400).json({ message: "Luot thue nay da het han" });
     }
 
-    if (payment.cancellation_status === "pending") {
-      return res.status(400).json({ message: "Yeu cau huy phong nay dang cho chu phong xac nhan" });
-    }
-
     if (payment.cancellation_status === "approved") {
-      return res.status(400).json({ message: "Phong nay da duoc xac nhan huy truoc do" });
+      return res.status(400).json({ message: "Phong nay hoac da duoc huy roi" });
     }
 
-    payment.cancellation_status = "pending";
+    // Cancel instantly
+    payment.cancellation_status = "approved";
     payment.cancellation_requested_at = new Date();
-    payment.cancellation_note = req.body?.note || "";
+    payment.cancellation_confirmed_at = new Date();
+    payment.status = "cancelled";
+    payment.rental_released_at = new Date();
+    payment.rental_release_reason = "cancelled_by_user";
+    
+    // We optionally keep or reset commission dependending on business logic
+    // We'll revert commission similarly to how landlord cancels:
+    const refundedCommission = Number(payment.admin_commission || 0);
+    payment.admin_commission = 0;
+    payment.landlord_payout = 0;
+    
     await payment.save();
 
+    await clearRoomRentalState(payment.room_id);
+
+    if (payment.contract_id) {
+      await Contract.findByIdAndUpdate(payment.contract_id, { status: "cancelled" });
+    }
+    
+    if (refundedCommission > 0 && payment.rental_confirmed_at) {
+      await Revenue.findOneAndUpdate(
+        { month: getMonthKey(payment.rental_confirmed_at), status: "admin_commission" },
+        { $inc: { amount: -refundedCommission } },
+        { new: true }
+      );
+    }
+
     const updatedPayment = await populatePaymentById(payment._id);
+    emitPaymentUpdate(updatedPayment);
+
     res.json({
-      message: "Da gui yeu cau huy phong, vui long cho chu phong xac nhan",
+      message: "Da huy phong thanh cong",
       payment: updatedPayment,
     });
   } catch (error) {
