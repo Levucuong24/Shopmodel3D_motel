@@ -124,6 +124,9 @@ function Navbar() {
         <Link to="/blog" className="nav-link">
           Blog
         </Link>
+        <Link to="/map" className="nav-link">
+          Map
+        </Link>
       </div>
 
       <div className="navbar-center">
