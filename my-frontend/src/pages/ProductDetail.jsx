@@ -393,6 +393,64 @@ function ProductDetail() {
               {product.description || "Phòng trọ được thiết kế hiện đại, tối ưu không gian sống với nhiều ánh sáng tự nhiên."}
             </p>
           </div>
+
+          <div className="reviews-section">
+            <h2>Đánh giá từ người thuê</h2>
+
+            {reviewsLoading ? (
+              <p>Đang tải đánh giá...</p>
+            ) : reviews.length > 0 ? (
+              <div className="review-list">
+                {reviews.map((comment) => (
+                  <div className="review-item" key={comment._id}>
+                    <img
+                      src={comment.user_id?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user_id?.full_name || "User")}&background=random`}
+                      alt={comment.user_id?.full_name || "Người dùng"}
+                      className="review-avatar"
+                    />
+                    <div className="review-content">
+                      <div className="review-header">
+                        <h4>{comment.user_id?.full_name || "Người dùng"}</h4>
+                        <span className="stars">{"★".repeat(comment.rating)}{"☆".repeat(5 - comment.rating)}</span>
+                      </div>
+                      <span className="review-date">{new Date(comment.createdAt).toLocaleDateString("vi-VN")}</span>
+                      <p className="review-text">{comment.content}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>Chưa có đánh giá nào được duyệt cho phòng này.</p>
+            )}
+
+            {userRole === "customer" && (
+              <div className="add-review">
+                <h3>Thêm đánh giá của bạn</h3>
+                <form onSubmit={handleReviewSubmit}>
+                  <div className="rating-select">
+                    <span>Chấm điểm: </span>
+                    <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+                      <option value={5}>5 Sao - Tuyệt vời</option>
+                      <option value={4}>4 Sao - Tốt</option>
+                      <option value={3}>3 Sao - Tạm được</option>
+                      <option value={2}>2 Sao - Kém</option>
+                      <option value={1}>1 Sao - Rất tệ</option>
+                    </select>
+                  </div>
+                  <textarea
+                    placeholder="Chia sẻ trải nghiệm của bạn về phòng trọ này..."
+                    value={newReview}
+                    onChange={(e) => setNewReview(e.target.value)}
+                    rows={4}
+                    required
+                  />
+                  <button type="submit" className="submit-review-btn" disabled={reviewSubmitting}>
+                    {reviewSubmitting ? "Đang gửi..." : "Gửi đánh giá"}
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="pd-right">
@@ -478,64 +536,6 @@ function ProductDetail() {
             ) : (
               <div className="booking-form" style={{ textAlign: "center", color: "#dc2626", fontWeight: "bold", marginTop: "20px" }}>
                 Phòng này đã có người thuê. Các chức năng đặt lịch và cọc phòng đã bị khóa.
-              </div>
-            )}
-          </div>
-
-          <div className="reviews-section">
-            <h2>Đánh giá từ người thuê</h2>
-
-            {reviewsLoading ? (
-              <p>Đang tải đánh giá...</p>
-            ) : reviews.length > 0 ? (
-              <div className="review-list">
-                {reviews.map((comment) => (
-                  <div className="review-item" key={comment._id}>
-                    <img
-                      src={comment.user_id?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user_id?.full_name || "User")}&background=random`}
-                      alt={comment.user_id?.full_name || "Người dùng"}
-                      className="review-avatar"
-                    />
-                    <div className="review-content">
-                      <div className="review-header">
-                        <h4>{comment.user_id?.full_name || "Người dùng"}</h4>
-                        <span className="stars">{"★".repeat(comment.rating)}{"☆".repeat(5 - comment.rating)}</span>
-                      </div>
-                      <span className="review-date">{new Date(comment.createdAt).toLocaleDateString("vi-VN")}</span>
-                      <p className="review-text">{comment.content}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p>Chưa có đánh giá nào được duyệt cho phòng này.</p>
-            )}
-
-            {userRole === "customer" && (
-              <div className="add-review">
-                <h3>Thêm đánh giá của bạn</h3>
-                <form onSubmit={handleReviewSubmit}>
-                  <div className="rating-select">
-                    <span>Chấm điểm: </span>
-                    <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
-                      <option value={5}>5 Sao - Tuyệt vời</option>
-                      <option value={4}>4 Sao - Tốt</option>
-                      <option value={3}>3 Sao - Tạm được</option>
-                      <option value={2}>2 Sao - Kém</option>
-                      <option value={1}>1 Sao - Rất tệ</option>
-                    </select>
-                  </div>
-                  <textarea
-                    placeholder="Chia sẻ trải nghiệm của bạn về phòng trọ này..."
-                    value={newReview}
-                    onChange={(e) => setNewReview(e.target.value)}
-                    rows={4}
-                    required
-                  />
-                  <button type="submit" className="submit-review-btn" disabled={reviewSubmitting}>
-                    {reviewSubmitting ? "Đang gửi..." : "Gửi đánh giá"}
-                  </button>
-                </form>
               </div>
             )}
           </div>
