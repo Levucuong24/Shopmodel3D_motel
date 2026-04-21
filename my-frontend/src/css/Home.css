@@ -19,7 +19,7 @@
   font-size: 28px;
   font-weight: 700;
   margin-bottom: 25px;
-  color: #0f172a;
+  color: var(--heading-color);
   position: relative;
   padding-bottom: 10px;
 }
@@ -83,7 +83,7 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   border-radius: 12px;
   overflow: hidden;
-  background: #ffffff;
+  background: var(--card-bg);
 }
 
 .modern-grid > div:hover {
@@ -93,7 +93,7 @@
 
 /* Top Landlords Section */
 .top-landlords-section {
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  background: var(--section-bg);
   border-radius: 16px;
   padding: 25px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
@@ -114,7 +114,7 @@
   align-items: center;
   width: 100%;
   padding: 15px;
-  background: #ffffff;
+  background: var(--card-bg);
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
@@ -140,17 +140,14 @@
 
 .landlord-card:nth-child(1) {
   border: 2px solid #fef08a;
-  background: linear-gradient(to right, #fefce8, #ffffff);
 }
 
 .landlord-card:nth-child(2) {
   border: 2px solid #e2e8f0;
-  background: linear-gradient(to right, #f8fafc, #ffffff);
 }
 
 .landlord-card:nth-child(3) {
   border: 2px solid #fed7aa;
-  background: linear-gradient(to right, #fff7ed, #ffffff);
 }
 
 .landlord-rank {
@@ -185,7 +182,7 @@
   margin: 0;
   font-size: 16px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--heading-color);
 }
 
 .landlord-stats {

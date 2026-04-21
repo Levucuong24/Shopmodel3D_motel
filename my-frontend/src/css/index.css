@@ -1,14 +1,42 @@
+:root {
+  --bg-color: #f8fafc;
+  --text-color: #0f172a;
+  --heading-color: #0f172a;
+  --navbar-bg: black;
+  --navbar-text: white;
+  --card-border: #e2e8f0;
+  --card-bg: #ffffff;
+  --section-bg: #ffffff;
+  --muted-text: #64748b;
+}
+
+[data-theme='dark'] {
+  --bg-color: #0f172a;
+  --text-color: #cbd5e1;
+  --heading-color: #f8fafc;
+  --navbar-bg: #1e293b;
+  --navbar-text: #f8fafc;
+  --card-border: #334155;
+  --card-bg: #1e293b;
+  --section-bg: #1e293b;
+  --muted-text: #94a3b8;
+}
+
 body {
   margin: 0;
   font-family: Arial;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .navbar {
   display: flex;
   justify-content: space-between;
   padding: 15px;
-  background: black;
-  color: white;
+  background: var(--navbar-bg);
+  color: var(--navbar-text);
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .container {
@@ -22,9 +50,10 @@ body {
 }
 
 .card {
-  border: 1px solid #ddd;
+  border: 1px solid var(--card-border);
   padding: 10px;
   text-align: center;
+  transition: border-color 0.3s;
 }
 
 .card img {

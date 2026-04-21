@@ -2,8 +2,10 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useEffect, useMemo, useState } from "react";
 import logo from "../../assets/logo.png";
 import { clearAuthSession, getUserData, getUserId, getUserRole, getWelcomePath } from "../../utils/authStorage.js";
+import { useTheme } from "../../context/ThemeContext.jsx";
 
 function Navbar() {
+  const { isDarkMode, toggleTheme } = useTheme();
   const [selectedCampus, setSelectedCampus] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [userData, setUserData] = useState(null);
@@ -192,6 +194,13 @@ function Navbar() {
             <Link to="/signup" className="nav-link">Sign Up</Link>
           </>
         )}
+        <button 
+          onClick={toggleTheme} 
+          style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', marginLeft: '10px' }}
+          title="Toggle Dark Mode"
+        >
+          {isDarkMode ? "☀️" : "🌙"}
+        </button>
       </div>
     </nav>
   );
