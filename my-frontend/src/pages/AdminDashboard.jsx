@@ -721,7 +721,14 @@ function AdminDashboard() {
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("logs"); }}>Nhật ký hệ thống</a>
           </li>
         </ul>
-        <div className="sidebar-footer">
+        <div className="sidebar-footer" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <Link
+            to="/"
+            className="logout-btn"
+            style={{ background: "#3b82f6" }}
+          >
+            Quay lại Website
+          </Link>
           <Link
             to="/welcome"
             className="logout-btn"
