@@ -40,6 +40,8 @@ function AdminDashboard() {
   const [viewingsLoading, setViewingsLoading] = useState(true);
   const [revenueLoading, setRevenueLoading] = useState(true);
   const [galleryImages, setGalleryImages] = useState([]);
+  const [logs, setLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
   const [newGalleryUrl, setNewGalleryUrl] = useState("");
   const [tenantUpdatingId, setTenantUpdatingId] = useState(null);
@@ -169,6 +171,20 @@ function AdminDashboard() {
     }, 3000);
 
     return () => clearInterval(intervalId);
+  }, [activeTab]);
+
+  useEffect(() => {
+    const token = getAuthToken();
+    if (!token || activeTab !== "logs") return;
+
+    setLogsLoading(true);
+    fetch("/api/logs", { headers: { Authorization: token } })
+      .then((res) => res.json())
+      .then((data) => {
+        setLogs(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => console.error("Error fetching logs:", err))
+      .finally(() => setLogsLoading(false));
   }, [activeTab]);
 
   const roomStats = useMemo(() => {
@@ -701,6 +717,9 @@ function AdminDashboard() {
           <li className={activeTab === "breakeven" ? "active" : ""}>
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("breakeven"); }}>Điểm hòa vốn</a>
           </li>
+          <li className={activeTab === "logs" ? "active" : ""}>
+            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("logs"); }}>Nhật ký hệ thống</a>
+          </li>
         </ul>
         <div className="sidebar-footer">
           <Link
@@ -781,6 +800,86 @@ function AdminDashboard() {
                 </table>
               </div>
             </>
+          )}
+
+          {activeTab === "logs" && (
+            <div className="recent-activity">
+              <div className="section-header-with-action">
+                <h3>Nhật ký hoạt động hệ thống</h3>
+                <button className="clear-landlord-filter" onClick={() => {
+                  setLogsLoading(true);
+                  fetch("/api/logs", { headers: { Authorization: getAuthToken() } })
+                    .then(res => res.json())
+                    .then(data => setLogs(Array.isArray(data) ? data : []))
+                    .catch(err => alert("Lỗi làm mới: " + err.message))
+                    .finally(() => setLogsLoading(false));
+                }}>
+                  Làm mới
+                </button>
+              </div>
+
+              {logsLoading ? (
+                <p>Đang tải nhật ký...</p>
+              ) : (
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Thời gian</th>
+                      <th>Người thực hiện</th>
+                      <th>Thao tác</th>
+                      <th>Dữ liệu / Tài nguyên</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {logs.length > 0 ? logs.map((log) => (
+                      <tr key={log._id}>
+                        <td>{new Date(log.createdAt).toLocaleString("vi-VN")}</td>
+                        <td>
+                          {log.user_id ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <img 
+                                src={log.user_id.avatar || `https://ui-avatars.com/api/?name=${log.user_id.full_name}`} 
+                                style={{ width: '30px', height: '30px', borderRadius: '50%' }} 
+                                alt="avatar" 
+                              />
+                              <div>
+                                <strong>{log.user_id.full_name}</strong><br/>
+                                <small style={{ color: '#64748b' }}>{log.user_id.role}</small>
+                              </div>
+                            </div>
+                          ) : (
+                            <span style={{ color: '#94a3b8' }}>Hệ thống / Vô danh</span>
+                          )}
+                        </td>
+                        <td>
+                          <span className="status-badge" style={{ 
+                            background: log.action === 'POST' ? '#10b981' : log.action === 'PUT' ? '#f59e0b' : log.action === 'DELETE' ? '#ef4444' : '#64748b',
+                            color: '#fff' 
+                          }}>
+                            {log.action === 'POST' ? 'TẠO MỚI' : log.action === 'PUT' ? 'CẬP NHẬT' : log.action === 'DELETE' ? 'XÓA' : log.action}
+                          </span>
+                        </td>
+                        <td>
+                          <div style={{ marginBottom: '4px', fontSize: '13px', background: 'var(--section-bg)', padding: '4px 8px', borderRadius: '4px', wordBreak: 'break-all' }}>
+                            <code>{log.resource}</code>
+                          </div>
+                          <details style={{ fontSize: '12px', color: 'var(--muted-text)', cursor: 'pointer' }}>
+                            <summary>Xem chi tiết (Payload)</summary>
+                            <pre style={{ background: '#f1f5f9', color: '#0f172a', padding: '8px', borderRadius: '4px', marginTop: '4px', overflowX: 'auto' }}>
+                              {JSON.stringify(log.details, null, 2)}
+                            </pre>
+                          </details>
+                        </td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan="4" style={{ textAlign: "center", color: "#64748b" }}>Chưa có nhật ký hoạt động nào.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              )}
+            </div>
           )}
 
           {activeTab === "properties" && (
