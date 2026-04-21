@@ -114,7 +114,7 @@ body {
 
 /* TOPBAR */
 .topbar {
-  background: white;
+  background: var(--card-bg);
   padding: 20px 40px;
   display: flex;
   justify-content: space-between;
@@ -156,7 +156,7 @@ body {
   padding: 10px 16px;
   border: 1px solid #cbd5e1;
   border-radius: 999px;
-  background: white;
+  background: var(--card-bg);
   color: #0f172a;
   font: inherit;
   font-weight: 600;
@@ -231,7 +231,7 @@ body {
 
 /* CARD MATCHING HOME (.card) */
 .saved-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
@@ -273,7 +273,7 @@ body {
 .view-detail-btn {
   margin-top: auto;
   padding: 12px;
-  background: #f8fafc;
+  background: var(--section-bg);
   color: #333;
   border-radius: 6px;
   font-weight: 600;
@@ -289,7 +289,7 @@ body {
 
 /* Rented Rooms Styling matching aesthetics */
 .rented-rooms-container .view-detail-btn {
-  background: white;
+  background: var(--card-bg);
   color: #7cc242;
   border: 1px solid #7cc242;
 }
@@ -300,7 +300,7 @@ body {
 }
 
 .profile-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.05);

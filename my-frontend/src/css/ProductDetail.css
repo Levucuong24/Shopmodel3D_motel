@@ -67,7 +67,7 @@
 
 /* --- Left Column: Media --- */
 .media-section {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.05);
@@ -83,7 +83,7 @@
 .media-toggle button {
   padding: 10px 20px;
   border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  background: var(--section-bg);
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
@@ -134,7 +134,7 @@
 
 .model-container {
   height: 450px;
-  background: #f8fafc;
+  background: var(--section-bg);
   border-radius: 8px;
 }
 
@@ -148,7 +148,7 @@
 
 /* --- Left Column: Specs --- */
 .specs-section {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 30px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.05);
@@ -172,7 +172,7 @@
   align-items: center;
   gap: 15px;
   padding: 15px;
-  background: #f8fafc;
+  background: var(--section-bg);
   border-radius: 8px;
 }
 
@@ -199,7 +199,7 @@
 
 /* --- Right Column: Action Box & Reviews --- */
 .action-box {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 30px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.05);
@@ -261,7 +261,7 @@
 }
 
 .call-btn {
-  background: white;
+  background: var(--card-bg);
   color: #0ea5e9;
   border: 2px solid #0ea5e9;
 }
@@ -296,7 +296,7 @@
 
 /* Reviews */
 .reviews-section {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 25px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.05);
@@ -360,7 +360,7 @@
 
 .add-review {
   margin-top: 30px;
-  background: #f8fafc;
+  background: var(--section-bg);
   padding: 20px;
   border-radius: 10px;
 }

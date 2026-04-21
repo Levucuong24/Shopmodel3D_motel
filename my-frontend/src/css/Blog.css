@@ -1,6 +1,6 @@
 .blog-page-container {
   font-family: 'Inter', sans-serif;
-  background-color: #f8fafc;
+  background-color: var(--section-bg);
   min-height: 100vh;
 }
 
@@ -29,7 +29,7 @@
 .blog-content-wrapper {
   max-width: 900px;
   margin: -40px auto 60px;
-  background: white;
+  background: var(--card-bg);
   padding: 50px;
   border-radius: 16px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.05);

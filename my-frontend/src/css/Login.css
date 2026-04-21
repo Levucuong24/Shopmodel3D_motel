@@ -82,7 +82,7 @@
 }
 
 .auth-page .auth-form {
-  background-color: #ffffff;
+  background-color: var(--card-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -104,13 +104,13 @@
 }
 
 .auth-page input:focus {
-  background-color: #fff;
+  background-color: var(--card-bg);
   box-shadow: 0 0 0 2px #ff4b2b;
   outline: none;
 }
 
 .container {
-  background-color: #fff;
+  background-color: var(--card-bg);
   border-radius: 10px;
   box-shadow: 0 14px 28px rgba(0,0,0,0.25), 
       0 10px 10px rgba(0,0,0,0.22);

@@ -114,7 +114,7 @@ body {
 
 /* TOPBAR */
 .topbar {
-  background: white;
+  background: var(--card-bg);
   padding: 20px 40px;
   display: flex;
   justify-content: space-between;
@@ -150,7 +150,7 @@ body {
 }
 
 .stat-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 25px;
   display: flex;
@@ -208,7 +208,7 @@ body {
 
 /* ADMIN TABLES */
 .recent-activity {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 25px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.05);
@@ -246,7 +246,7 @@ body {
 }
 
 .admin-table tbody tr:hover {
-  background: #f8fafc;
+  background: var(--section-bg);
 }
 
 /* REVENUE DASHBOARD */
@@ -258,7 +258,7 @@ body {
 }
 
 .revenue-card {
-  background: #f8fafc;
+  background: var(--section-bg);
   border-radius: 12px;
   padding: 25px;
   border-left: 4px solid #000;
@@ -324,7 +324,7 @@ body {
   font-weight: 600;
   padding: 8px 12px;
   border-radius: 6px;
-  background: white;
+  background: var(--card-bg);
   width: max-content;
 }
 
@@ -458,7 +458,7 @@ select, .status-badge {
   border-radius: 8px;
   padding: 12px 14px;
   font: inherit;
-  background: white;
+  background: var(--card-bg);
 }
 
 .room-upload-field {
@@ -468,7 +468,7 @@ select, .status-badge {
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   padding: 12px 14px;
-  background: white;
+  background: var(--card-bg);
   color: #0f172a;
 }
 
@@ -496,7 +496,7 @@ select, .status-badge {
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  background: var(--section-bg);
 }
 
 .room-image-preview img {

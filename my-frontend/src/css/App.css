@@ -84,7 +84,7 @@
   flex-direction: column;
   gap: 4px;
   padding: 14px 16px;
-  background: #f8fafc;
+  background: var(--section-bg);
   border-bottom: 1px solid #e2e8f0;
 }
 
@@ -108,7 +108,7 @@
 }
 
 .user-menu-item:hover {
-  background: #f8fafc;
+  background: var(--section-bg);
 }
 
 .user-menu-item.logout {
@@ -330,7 +330,7 @@
 }
 
 .room-meta span {
-  background: #f5f7fa;
+  background: var(--section-bg);
   border: 1px solid #e3e8ef;
   border-radius: 999px;
   padding: 5px 10px;
