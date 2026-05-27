@@ -686,7 +686,7 @@ function AdminDashboard() {
     <div className="dashboard-container">
       <aside className="sidebar admin-theme">
         <div className="sidebar-header">
-          <h2>MyHousing</h2>
+          <h2>Homie</h2>
           <span className="role-badge admin">Admin</span>
         </div>
         <ul className="nav-links">

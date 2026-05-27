@@ -148,7 +148,7 @@ export default function Chatbot() {
           <div className="bot-info">
             <span className="bot-avatar">🤖</span>
             <div>
-              <h4>MyHousing AI</h4>
+              <h4>Homie AI</h4>
               <p>Đọc dữ liệu từ hệ thống</p>
             </div>
           </div>

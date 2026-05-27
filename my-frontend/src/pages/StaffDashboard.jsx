@@ -427,7 +427,7 @@ function StaffDashboard() {
     <div className="dashboard-container">
       <aside className="sidebar admin-theme" style={{ backgroundColor: "#4f46e5" }}>
         <div className="sidebar-header">
-          <h2>MyHousing</h2>
+          <h2>Homie</h2>
           <span className="role-badge" style={{ backgroundColor: "#818cf8" }}>Staff</span>
         </div>
         <ul className="nav-links">
