@@ -903,12 +903,12 @@ const Room = () => {
 // ==========================================
 // 9. MAIN CONTAINER & CANVAS ENVIRONMENT
 // ==========================================
-const StudentHouse3D = () => {
+const RoomScene = () => {
   return (
     <div
       style={{
-        width: '100%',
-        height: '100%',
+        width: '100vw',
+        height: '100vh',
         background: '#f5f6f8', // Clean solid light background to match screenshots
         margin: 0,
         padding: 0,
@@ -974,4 +974,4 @@ const StudentHouse3D = () => {
   );
 };
 
-export default StudentHouse3D;
+export default RoomScene;
