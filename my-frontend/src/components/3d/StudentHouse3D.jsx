@@ -1,7 +1,7 @@
 import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, Html } from '@react-three/drei';
 
 // ==========================================
 // 1. PROCEDURAL WOOD TEXTURE GENERATOR
@@ -881,7 +881,150 @@ const Bed = () => {
 };
 
 // ==========================================
-// 8. COMBINED ROOM ASSEMBLY
+// 8. PROCEDURAL CHARACTER WITH HTML LABEL
+// ==========================================
+const Character = ({ position }) => {
+  return (
+    <group position={position}>
+      {/* Floating text label "Tùng" */}
+      <Html position={[0, 1.8, 0]} center>
+        <div style={{
+          background: 'rgba(15, 23, 42, 0.85)',
+          color: 'white',
+          padding: '4px 10px',
+          borderRadius: '12px',
+          fontSize: '12px',
+          fontWeight: '600',
+          whiteSpace: 'nowrap',
+          pointerEvents: 'none',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          fontFamily: 'sans-serif'
+        }}>
+          Tùng
+        </div>
+      </Html>
+
+      {/* Head */}
+      <mesh position={[0, 1.4, 0]} castShadow>
+        <sphereGeometry args={[0.15, 16, 16]} />
+        <meshStandardMaterial color="#fcd34d" roughness={0.6} />
+      </mesh>
+
+      {/* Torso / Shirt */}
+      <mesh position={[0, 0.9, 0]} castShadow>
+        <cylinderGeometry args={[0.2, 0.16, 0.7, 16]} />
+        <meshStandardMaterial color="#3b82f6" roughness={0.5} />
+      </mesh>
+
+      {/* Legs (Quần) */}
+      <mesh position={[-0.08, 0.3, 0]} castShadow>
+        <cylinderGeometry args={[0.06, 0.05, 0.6, 8]} />
+        <meshStandardMaterial color="#1e293b" roughness={0.7} />
+      </mesh>
+      <mesh position={[0.08, 0.3, 0]} castShadow>
+        <cylinderGeometry args={[0.06, 0.05, 0.6, 8]} />
+        <meshStandardMaterial color="#1e293b" roughness={0.7} />
+      </mesh>
+
+      {/* Arms (Tay) */}
+      <mesh position={[-0.24, 0.9, 0]} rotation={[0, 0, 0.15]} castShadow>
+        <cylinderGeometry args={[0.05, 0.04, 0.5, 8]} />
+        <meshStandardMaterial color="#3b82f6" roughness={0.5} />
+      </mesh>
+      <mesh position={[0.24, 0.9, 0]} rotation={[0, 0, -0.15]} castShadow>
+        <cylinderGeometry args={[0.05, 0.04, 0.5, 8]} />
+        <meshStandardMaterial color="#3b82f6" roughness={0.5} />
+      </mesh>
+    </group>
+  );
+};
+
+// ==========================================
+// 9. BLUEPRINT-STYLE DIMENSION LINES
+// ==========================================
+const DimensionLines = () => {
+  return (
+    <group>
+      {/* Length (6.25m) Line parallel to FrontWall at z = 4.0 */}
+      <group position={[0, 0.02, 4.0]}>
+        {/* Main horizontal line */}
+        <mesh castShadow>
+          <boxGeometry args={[10, 0.02, 0.02]} />
+          <meshStandardMaterial color="#94a3b8" roughness={0.5} />
+        </mesh>
+        {/* Left end tick */}
+        <mesh position={[-5, 0, 0]} castShadow>
+          <boxGeometry args={[0.02, 0.02, 0.3]} />
+          <meshStandardMaterial color="#94a3b8" roughness={0.5} />
+        </mesh>
+        {/* Right end tick */}
+        <mesh position={[5, 0, 0]} castShadow>
+          <boxGeometry args={[0.02, 0.02, 0.3]} />
+          <meshStandardMaterial color="#94a3b8" roughness={0.5} />
+        </mesh>
+        {/* Dimension text overlay */}
+        <Html position={[0, 0.15, 0]} center>
+          <div style={{
+            background: '#1e293b',
+            color: '#f8fafc',
+            padding: '2px 8px',
+            borderRadius: '6px',
+            fontSize: '11px',
+            fontWeight: 'bold',
+            border: '1px solid #475569',
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            userSelect: 'none',
+            fontFamily: 'sans-serif'
+          }}>
+            Chiều dài: 6.25m
+          </div>
+        </Html>
+      </group>
+
+      {/* Width (4.0m) Line parallel to LeftWall at x = -5.6 */}
+      <group position={[-5.6, 0.02, 0]}>
+        {/* Main vertical line */}
+        <mesh castShadow>
+          <boxGeometry args={[0.02, 0.02, 7]} />
+          <meshStandardMaterial color="#94a3b8" roughness={0.5} />
+        </mesh>
+        {/* Front end tick */}
+        <mesh position={[0, 0, 3.5]} castShadow>
+          <boxGeometry args={[0.3, 0.02, 0.02]} />
+          <meshStandardMaterial color="#94a3b8" roughness={0.5} />
+        </mesh>
+        {/* Back end tick */}
+        <mesh position={[0, 0, -3.5]} castShadow>
+          <boxGeometry args={[0.3, 0.02, 0.02]} />
+          <meshStandardMaterial color="#94a3b8" roughness={0.5} />
+        </mesh>
+        {/* Dimension text overlay */}
+        <Html position={[0, 0.15, 0]} center>
+          <div style={{
+            background: '#1e293b',
+            color: '#f8fafc',
+            padding: '2px 8px',
+            borderRadius: '6px',
+            fontSize: '11px',
+            fontWeight: 'bold',
+            border: '1px solid #475569',
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            userSelect: 'none',
+            fontFamily: 'sans-serif'
+          }}>
+            Chiều rộng: 4.0m
+          </div>
+        </Html>
+      </group>
+    </group>
+  );
+};
+
+// ==========================================
+// 10. COMBINED ROOM ASSEMBLY
 // ==========================================
 const Room = () => {
   return (
@@ -896,12 +1039,16 @@ const Room = () => {
       <Desk />
       <Chair />
       <Bed />
+      {/* Stand the character "Tùng" in the middle of the room */}
+      <Character position={[0, 0, 0]} />
+      {/* Add length & width dimensions to the model */}
+      <DimensionLines />
     </group>
   );
 };
 
 // ==========================================
-// 9. MAIN CONTAINER & CANVAS ENVIRONMENT
+// 11. MAIN CONTAINER & CANVAS ENVIRONMENT
 // ==========================================
 const StudentHouse3D = () => {
   return (
