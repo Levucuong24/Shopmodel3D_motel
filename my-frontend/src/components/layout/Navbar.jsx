@@ -129,6 +129,9 @@ function Navbar() {
         <Link to="/map" className="nav-link">
           Map
         </Link>
+        <Link to="/new" className="nav-link">
+          New
+        </Link>
       </div>
 
       <div className="navbar-center">

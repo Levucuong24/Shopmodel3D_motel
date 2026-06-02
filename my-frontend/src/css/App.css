@@ -41,6 +41,21 @@
   color: #00bfff;
 }
 
+.badge-new {
+  background-color: #ff3b30;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 5px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  line-height: 1;
+}
+
 .user-menu-wrapper {
   position: relative;
 }

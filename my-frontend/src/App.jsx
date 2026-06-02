@@ -10,6 +10,7 @@ import CustomerDashboard from "./pages/CustomerDashboard.jsx";
 import StaffDashboard from "./pages/StaffDashboard.jsx";
 import Blog from "./pages/Blog.jsx";
 import MapPage from "./pages/MapPage.jsx";
+import NewPage from "./pages/NewPage.jsx";
 import ScrollToTop from "./components/layout/ScrollToTop.jsx";
 import { clearLegacyAuthStorage } from "./utils/authStorage.js";
 // Dashboard Wrapper to selectively render Navbar
@@ -40,6 +41,7 @@ function App() {
         <Route path="/product/:id" element={<MainLayout><ProductDetail /></MainLayout>} />
         <Route path="/blog" element={<MainLayout><Blog /></MainLayout>} />
         <Route path="/map" element={<MainLayout><MapPage /></MainLayout>} />
+        <Route path="/new" element={<MainLayout><NewPage /></MainLayout>} />
         <Route path="/" element={<Navigate to="/welcome" />} />
         
         {/* Auth Routes without Navbar (optional depends on app design, currently Navbar holds just logo so we can omit it) */}
