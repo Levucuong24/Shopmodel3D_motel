@@ -11,6 +11,8 @@ const ChatSession = require("./chatbot/ChatSession.js");
 const Message = require("./chatbot/Message.js");
 const AIGeneration = require("./ai/AIGeneration.js");
 const Gallery = require("./gallery/Gallery.js");
+const RoommatePost = require("./roommate/RoommatePost.js");
+const RoommateMessage = require("./roommate/RoommateMessage.js");
 
 module.exports = {
   User,
@@ -23,5 +25,7 @@ module.exports = {
   ChatSession,
   Message,
   AIGeneration,
-  Gallery
+  Gallery,
+  RoommatePost,
+  RoommateMessage
 };
