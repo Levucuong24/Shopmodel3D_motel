@@ -58,7 +58,7 @@ function StaffDashboard() {
     amenities: "",
     pet_policy: "",
     description: "",
-    image: "",
+    images: [],
     model_3d_url: "",
     status: "available",
   });
@@ -138,33 +138,48 @@ function StaffDashboard() {
   };
 
   const handleRoomImageUpload = async (e) => {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files || []);
     const token = getAuthToken();
 
-    if (!file || !token) return;
+    if (files.length === 0 || !token) return;
 
     setUploadingRoomImage(true);
 
     try {
-      const formData = new FormData();
-      formData.append("image", file);
+      const uploadPromises = files.map(async (file) => {
+        const formData = new FormData();
+        formData.append("image", file);
 
-      const response = await fetch("/api/rooms/upload-image", {
-        method: "POST",
-        headers: { Authorization: token },
-        body: formData,
+        const response = await fetch("/api/rooms/upload-image", {
+          method: "POST",
+          headers: { Authorization: token },
+          body: formData,
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Lỗi tải ảnh");
+        return data.imageUrl;
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Lỗi tải ảnh");
+      const uploadedUrls = await Promise.all(uploadPromises);
 
-      setNewRoomForm((prev) => ({ ...prev, image: data.imageUrl }));
+      setNewRoomForm((prev) => ({
+        ...prev,
+        images: [...(prev.images || []), ...uploadedUrls],
+      }));
     } catch (error) {
       alert(error.message);
     } finally {
       setUploadingRoomImage(false);
       e.target.value = "";
     }
+  };
+
+  const handleRemoveImage = (indexToRemove) => {
+    setNewRoomForm((prev) => ({
+      ...prev,
+      images: (prev.images || []).filter((_, idx) => idx !== indexToRemove),
+    }));
   };
 
   const handleCancelEdit = () => {
@@ -179,7 +194,7 @@ function StaffDashboard() {
       amenities: "",
       pet_policy: "",
       description: "",
-      image: "",
+      images: [],
       model_3d_url: "",
       status: "available",
     });
@@ -209,7 +224,7 @@ function StaffDashboard() {
       amenities: room.amenities ? room.amenities.join(", ") : "",
       pet_policy: room.pet_policy || "",
       description: room.description || "",
-      image: room.images && room.images.length > 0 ? room.images[0] : "",
+      images: room.images || [],
       model_3d_url: room.model_3d_url || "",
       status: room.status || "available",
     });
@@ -383,7 +398,7 @@ function StaffDashboard() {
         amenities: newRoomForm.amenities.split(",").map((item) => item.trim()).filter(Boolean),
         pet_policy: newRoomForm.pet_policy,
         description: newRoomForm.description,
-        images: newRoomForm.image ? [newRoomForm.image] : [],
+        images: newRoomForm.images || [],
         model_3d_url: newRoomForm.model_3d_url,
       };
 
@@ -497,14 +512,46 @@ function StaffDashboard() {
                   <input type="text" placeholder="Tiện nghi, ngăn cách dấu phẩy" value={newRoomForm.amenities} onChange={(e) => handleNewRoomChange("amenities", e.target.value)} />
                   <input type="text" placeholder="Chính sách thú cưng" value={newRoomForm.pet_policy} onChange={(e) => handleNewRoomChange("pet_policy", e.target.value)} />
                   <label className="room-upload-field">
-                    <span>Ảnh đại diện phòng</span>
-                    <input type="file" accept="image/*" onChange={handleRoomImageUpload} disabled={uploadingRoomImage} />
-                    <small>{uploadingRoomImage ? "Đang tải ảnh lên..." : newRoomForm.image ? "Ảnh đã tải lên" : "Chọn ảnh từ máy tính"}</small>
+                    <span>Ảnh đại diện phòng (chọn nhiều ảnh)</span>
+                    <input type="file" accept="image/*" multiple onChange={handleRoomImageUpload} disabled={uploadingRoomImage} />
+                    <small>{uploadingRoomImage ? "Đang tải ảnh lên..." : "Chọn một hoặc nhiều ảnh từ máy tính"}</small>
                   </label>
                   <input type="text" placeholder="Link model 3D" value={newRoomForm.model_3d_url} onChange={(e) => handleNewRoomChange("model_3d_url", e.target.value)} />
                 </div>
                 <textarea className="room-description-input" rows={4} placeholder="Mô tả chi tiết phòng" value={newRoomForm.description} onChange={(e) => handleNewRoomChange("description", e.target.value)} />
-                {newRoomForm.image && <div className="room-image-preview"><img src={newRoomForm.image} alt="Xem trước" /></div>}
+                {newRoomForm.images && newRoomForm.images.length > 0 && (
+                  <div className="room-images-preview-list" style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "10px", marginBottom: "15px" }}>
+                    {newRoomForm.images.map((imgUrl, index) => (
+                      <div key={index} className="preview-image-item" style={{ position: "relative", width: "120px", height: "90px", border: "1px solid #ddd", borderRadius: "8px", overflow: "visible" }}>
+                        <img src={imgUrl} alt={`Xem trước ${index}`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "8px" }} />
+                        <button 
+                          type="button" 
+                          onClick={() => handleRemoveImage(index)} 
+                          style={{ 
+                            position: "absolute", 
+                            top: "-8px", 
+                            right: "-8px", 
+                            background: "#dc2626", 
+                            color: "white", 
+                            border: "none", 
+                            borderRadius: "50%", 
+                            width: "22px", 
+                            height: "22px", 
+                            cursor: "pointer", 
+                            display: "flex", 
+                            alignItems: "center", 
+                            justifyContent: "center",
+                            fontWeight: "bold",
+                            fontSize: "14px",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                          }}
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className="form-actions" style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
                   <button type="submit" className="create-room-btn" disabled={creatingRoom} style={{ flex: 1, backgroundColor: "#4f46e5" }}>

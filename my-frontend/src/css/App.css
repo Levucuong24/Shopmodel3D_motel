@@ -703,9 +703,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #ff6a00; /* Primary orange */
+  background-color: #f6eedb; /* Warm beige */
   padding: 60px 40px;
-  color: white;
+  color: #0f172a;
 }
 
 .cta-content {
@@ -716,12 +716,13 @@
   font-size: 36px;
   margin: 0 0 10px 0;
   font-weight: 700;
+  color: #0f172a;
 }
 
 .cta-desc {
   font-size: 16px;
   margin-bottom: 25px;
-  opacity: 0.9;
+  color: #475569;
 }
 
 .cta-action {
@@ -732,7 +733,7 @@
 .cta-input {
   padding: 15px 25px;
   width: 300px;
-  border: none;
+  border: 1px solid #cbd5e1;
   border-radius: 30px;
   font-size: 16px;
   outline: none;
@@ -757,7 +758,7 @@
 .cta-contact {
   text-align: right;
   padding-left: 40px;
-  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  border-left: 1px solid rgba(15, 23, 42, 0.15);
 }
 
 .cta-status {
@@ -768,6 +769,7 @@
   font-size: 16px;
   margin-bottom: 10px;
   font-weight: 600;
+  color: #0f172a;
 }
 
 .cta-status .dot {
@@ -783,6 +785,7 @@
   font-size: 42px;
   font-weight: 700;
   letter-spacing: 1px;
+  color: #000000;
 }
 
 /* FOOTER */

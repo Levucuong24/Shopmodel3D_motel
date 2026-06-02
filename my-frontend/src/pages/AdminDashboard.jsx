@@ -59,7 +59,7 @@ function AdminDashboard() {
     amenities: "",
     pet_policy: "",
     description: "",
-    image: "",
+    images: [],
     model_3d_url: "",
     status: "available",
   });
@@ -426,10 +426,10 @@ function AdminDashboard() {
   };
 
   const handleRoomImageUpload = async (e) => {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files || []);
     const token = getAuthToken();
 
-    if (!file) {
+    if (files.length === 0) {
       return;
     }
 
@@ -442,30 +442,45 @@ function AdminDashboard() {
     setUploadingRoomImage(true);
 
     try {
-      const formData = new FormData();
-      formData.append("image", file);
+      const uploadPromises = files.map(async (file) => {
+        const formData = new FormData();
+        formData.append("image", file);
 
-      const response = await fetch("/api/rooms/upload-image", {
-        method: "POST",
-        headers: {
-          Authorization: token,
-        },
-        body: formData,
+        const response = await fetch("/api/rooms/upload-image", {
+          method: "POST",
+          headers: {
+            Authorization: token,
+          },
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Không thể tải ảnh phòng lên");
+        }
+        return data.imageUrl;
       });
 
-      const data = await response.json();
+      const uploadedUrls = await Promise.all(uploadPromises);
 
-      if (!response.ok) {
-        throw new Error(data.message || "Không thể tải ảnh phòng lên");
-      }
-
-      setNewRoomForm((prev) => ({ ...prev, image: data.imageUrl }));
+      setNewRoomForm((prev) => ({
+        ...prev,
+        images: [...(prev.images || []), ...uploadedUrls],
+      }));
     } catch (error) {
       alert(error.message);
     } finally {
       setUploadingRoomImage(false);
       e.target.value = "";
     }
+  };
+
+  const handleRemoveImage = (indexToRemove) => {
+    setNewRoomForm((prev) => ({
+      ...prev,
+      images: (prev.images || []).filter((_, idx) => idx !== indexToRemove),
+    }));
   };
 
   const handleGalleryUpload = async (e) => {
@@ -548,7 +563,7 @@ function AdminDashboard() {
     setEditingRoomId(null);
     setNewRoomForm({
       name: "", price: "", location: "", area: "", layout: "", amenities: "",
-      pet_policy: "", description: "", image: "", model_3d_url: "", status: "available",
+      pet_policy: "", description: "", images: [], model_3d_url: "", status: "available",
     });
   };
 
@@ -563,7 +578,7 @@ function AdminDashboard() {
       amenities: room.amenities ? room.amenities.join(", ") : "",
       pet_policy: room.pet_policy || "",
       description: room.description || "",
-      image: room.images && room.images.length > 0 ? room.images[0] : "",
+      images: room.images || [],
       model_3d_url: room.model_3d_url || "",
       status: room.status || "available",
     });
@@ -621,7 +636,7 @@ function AdminDashboard() {
         amenities: newRoomForm.amenities.split(",").map((item) => item.trim()).filter(Boolean),
         pet_policy: newRoomForm.pet_policy,
         description: newRoomForm.description,
-        images: newRoomForm.image ? [newRoomForm.image] : [],
+        images: newRoomForm.images || [],
         model_3d_url: newRoomForm.model_3d_url,
       };
 
@@ -945,19 +960,18 @@ function AdminDashboard() {
                     onChange={(e) => handleNewRoomChange("pet_policy", e.target.value)}
                   />
                   <label className="room-upload-field">
-                    <span>Ảnh đại diện phòng</span>
+                    <span>Ảnh đại diện phòng (chọn nhiều ảnh)</span>
                     <input
                       type="file"
                       accept="image/*"
+                      multiple
                       onChange={handleRoomImageUpload}
                       disabled={uploadingRoomImage}
                     />
                     <small>
                       {uploadingRoomImage
                         ? "Đang tải ảnh lên..."
-                        : newRoomForm.image
-                          ? "Ảnh đã tải lên thành công"
-                          : "Chọn ảnh từ máy tính của bạn"}
+                        : "Chọn một hoặc nhiều ảnh từ máy tính"}
                     </small>
                   </label>
                   <input
@@ -974,9 +988,37 @@ function AdminDashboard() {
                   value={newRoomForm.description}
                   onChange={(e) => handleNewRoomChange("description", e.target.value)}
                 />
-                {newRoomForm.image && (
-                  <div className="room-image-preview">
-                    <img src={newRoomForm.image} alt="Ảnh phòng xem trước" />
+                {newRoomForm.images && newRoomForm.images.length > 0 && (
+                  <div className="room-images-preview-list" style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "10px", marginBottom: "15px" }}>
+                    {newRoomForm.images.map((imgUrl, index) => (
+                      <div key={index} className="preview-image-item" style={{ position: "relative", width: "120px", height: "90px", border: "1px solid #ddd", borderRadius: "8px", overflow: "visible" }}>
+                        <img src={imgUrl} alt={`Xem trước ${index}`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "8px" }} />
+                        <button 
+                          type="button" 
+                          onClick={() => handleRemoveImage(index)} 
+                          style={{ 
+                            position: "absolute", 
+                            top: "-8px", 
+                            right: "-8px", 
+                            background: "#dc2626", 
+                            color: "white", 
+                            border: "none", 
+                            borderRadius: "50%", 
+                            width: "22px", 
+                            height: "22px", 
+                            cursor: "pointer", 
+                            display: "flex", 
+                            alignItems: "center", 
+                            justifyContent: "center",
+                            fontWeight: "bold",
+                            fontSize: "14px",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                          }}
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
                 <div className="form-actions" style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
