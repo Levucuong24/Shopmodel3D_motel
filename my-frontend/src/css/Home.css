@@ -5,23 +5,25 @@
   gap: 40px;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 60px 20px;
+  padding: 40px 20px 80px 20px;
   font-family: 'Outfit', sans-serif;
 }
 
 @media (max-width: 900px) {
   .home-content-wrapper {
     flex-direction: column;
+    gap: 30px;
   }
 }
 
 .section-title {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 800;
   margin-bottom: 25px;
   color: var(--heading-color);
   position: relative;
-  padding-bottom: 10px;
+  padding-bottom: 12px;
+  letter-spacing: -0.02em;
 }
 
 .section-title::after {
@@ -29,10 +31,10 @@
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 60px;
+  width: 50px;
   height: 4px;
-  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
-  border-radius: 4px;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  border-radius: 2px;
 }
 
 .section-header-with-action {
@@ -41,32 +43,36 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+  margin-bottom: 5px;
 }
 
 .clear-landlord-filter {
   border: none;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
   color: #ffffff;
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.18);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+  transition: var(--transition-fast);
 }
 
 .clear-landlord-filter:hover {
   transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
 }
 
 .empty-products-message {
   margin-top: 18px;
-  padding: 18px;
-  border-radius: 14px;
-  background: var(--section-bg);
-  color: #475569;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--card-bg);
+  color: var(--muted-text);
   text-align: center;
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed var(--card-border);
+  font-weight: 500;
 }
 
 /* Modern Grid overrides */
@@ -78,29 +84,30 @@
 
 /* Make Project Cards more modern if they are not already */
 .modern-grid > div {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: none;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  border-radius: 12px;
+  transition: var(--transition-normal);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-sm);
+  border-radius: 16px;
   overflow: hidden;
   background: var(--card-bg);
 }
 
 .modern-grid > div:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(79, 70, 229, 0.15);
 }
 
 /* Top Landlords Section */
 .top-landlords-section {
-  background: var(--section-bg);
-  border-radius: 16px;
-  padding: 25px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  border: 1px solid #f1f5f9;
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 30px 24px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--card-border);
   height: fit-content;
   position: sticky;
-  top: 20px;
+  top: 100px;
 }
 
 .top-landlords-list {
@@ -113,49 +120,57 @@
   display: flex;
   align-items: center;
   width: 100%;
-  padding: 15px;
-  background: var(--card-bg);
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s ease;
+  padding: 16px;
+  background: var(--bg-color);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-normal);
   position: relative;
   overflow: hidden;
-  border: 1px solid transparent;
+  border: 1px solid var(--card-border);
   cursor: pointer;
   text-align: left;
   appearance: none;
 }
 
 .landlord-card:hover {
-  border-color: #bae6fd;
-  transform: translateX(5px);
-  box-shadow: 0 5px 15px rgba(14, 165, 233, 0.1);
+  border-color: rgba(79, 70, 229, 0.3);
+  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
 }
 
 .landlord-card.active {
-  border-color: #0ea5e9;
-  box-shadow: 0 12px 25px rgba(14, 165, 233, 0.18);
-  transform: translateX(5px);
+  border-color: var(--primary-color);
+  background: rgba(79, 70, 229, 0.04);
+  box-shadow: var(--shadow-md);
+  transform: translateX(4px);
 }
 
-.landlord-card:nth-child(1) {
-  border: 2px solid #fef08a;
+[data-theme='dark'] .landlord-card.active {
+  background: rgba(99, 102, 241, 0.08);
 }
 
-.landlord-card:nth-child(2) {
-  border: 2px solid #e2e8f0;
+.landlord-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: transparent;
+  transition: var(--transition-fast);
 }
 
-.landlord-card:nth-child(3) {
-  border: 2px solid #fed7aa;
-}
+.landlord-card:nth-child(1)::before { background: #eab308; }
+.landlord-card:nth-child(2)::before { background: #94a3b8; }
+.landlord-card:nth-child(3)::before { background: #f97316; }
 
 .landlord-rank {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
-  color: #cbd5e1;
-  margin-right: 15px;
-  width: 30px;
+  color: var(--muted-text);
+  margin-right: 12px;
+  width: 28px;
   text-align: center;
 }
 
@@ -164,12 +179,12 @@
 .landlord-card:nth-child(3) .landlord-rank { color: #f97316; }
 
 .landlord-avatar {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
-  margin-right: 15px;
-  border: 2px solid #e2e8f0;
+  margin-right: 14px;
+  border: 2px solid var(--card-border);
 }
 
 .landlord-info {
@@ -180,7 +195,7 @@
 
 .landlord-name {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--heading-color);
 }
@@ -188,9 +203,9 @@
 .landlord-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  font-size: 13px;
-  color: #64748b;
+  gap: 8px 12px;
+  font-size: 12px;
+  color: var(--muted-text);
   font-weight: 500;
 }
 
@@ -200,12 +215,12 @@
 }
 
 .landlord-reviews {
-  color: #6366f1;
+  color: var(--primary-color);
   font-weight: 600;
 }
 
 .landlord-rooms {
-  color: #0f766e;
+  color: var(--accent-color);
   font-weight: 600;
 }
 
@@ -218,3 +233,4 @@
     width: 100%;
   }
 }
+
