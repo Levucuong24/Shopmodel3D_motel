@@ -17,13 +17,13 @@
 }
 
 .section-title {
-  font-size: 26px;
-  font-weight: 800;
+  font-size: 28px;
+  font-weight: 900;
   margin-bottom: 25px;
   color: var(--heading-color);
   position: relative;
   padding-bottom: 12px;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 .section-title::after {
@@ -31,9 +31,9 @@
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 50px;
-  height: 4px;
-  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  width: 60px;
+  height: 3px;
+  background: var(--secondary-color);
   border-radius: 2px;
 }
 
@@ -48,31 +48,32 @@
 
 .clear-landlord-filter {
   border: none;
-  border-radius: 20px;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  border-radius: 24px;
+  background: var(--primary-color);
   color: #ffffff;
-  padding: 8px 18px;
+  padding: 8px 20px;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 4px 12px rgba(46, 37, 32, 0.12);
   transition: var(--transition-fast);
 }
 
 .clear-landlord-filter:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 6px 16px rgba(46, 37, 32, 0.22);
+  background: var(--primary-hover);
 }
 
 .empty-products-message {
   margin-top: 18px;
-  padding: 24px;
+  padding: 30px;
   border-radius: 16px;
   background: var(--card-bg);
   color: var(--muted-text);
   text-align: center;
   border: 1px dashed var(--card-border);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* Modern Grid overrides */
@@ -87,15 +88,15 @@
   transition: var(--transition-normal);
   border: 1px solid var(--card-border);
   box-shadow: var(--shadow-sm);
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
   background: var(--card-bg);
 }
 
 .modern-grid > div:hover {
-  transform: translateY(-6px);
+  transform: translateY(-8px);
   box-shadow: var(--shadow-lg);
-  border-color: rgba(79, 70, 229, 0.15);
+  border-color: var(--secondary-color);
 }
 
 /* Top Landlords Section */
@@ -103,7 +104,7 @@
   background: var(--card-bg);
   border-radius: 20px;
   padding: 30px 24px;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
   border: 1px solid var(--card-border);
   height: fit-content;
   position: sticky;
@@ -122,7 +123,7 @@
   width: 100%;
   padding: 16px;
   background: var(--bg-color);
-  border-radius: 14px;
+  border-radius: 16px;
   box-shadow: var(--shadow-sm);
   transition: var(--transition-normal);
   position: relative;
@@ -134,20 +135,16 @@
 }
 
 .landlord-card:hover {
-  border-color: rgba(79, 70, 229, 0.3);
-  transform: translateX(4px);
+  border-color: var(--secondary-color);
+  transform: translateY(-2px) translateX(2px);
   box-shadow: var(--shadow-md);
 }
 
 .landlord-card.active {
   border-color: var(--primary-color);
-  background: rgba(79, 70, 229, 0.04);
-  box-shadow: var(--shadow-md);
-  transform: translateX(4px);
-}
-
-[data-theme='dark'] .landlord-card.active {
-  background: rgba(99, 102, 241, 0.08);
+  background: var(--card-bg);
+  box-shadow: var(--neon-glow);
+  transform: translateY(-2px) translateX(4px);
 }
 
 .landlord-card::before {
@@ -161,26 +158,26 @@
   transition: var(--transition-fast);
 }
 
-.landlord-card:nth-child(1)::before { background: #eab308; }
-.landlord-card:nth-child(2)::before { background: #94a3b8; }
-.landlord-card:nth-child(3)::before { background: #f97316; }
+.landlord-card:nth-child(1)::before { background: linear-gradient(180deg, #f59e0b, #d97706); }
+.landlord-card:nth-child(2)::before { background: linear-gradient(180deg, #94a3b8, #64748b); }
+.landlord-card:nth-child(3)::before { background: linear-gradient(180deg, #ea580c, #c2410c); }
 
 .landlord-rank {
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 900;
   color: var(--muted-text);
   margin-right: 12px;
   width: 28px;
   text-align: center;
 }
 
-.landlord-card:nth-child(1) .landlord-rank { color: #eab308; }
-.landlord-card:nth-child(2) .landlord-rank { color: #94a3b8; }
-.landlord-card:nth-child(3) .landlord-rank { color: #f97316; }
+.landlord-card:nth-child(1) .landlord-rank { color: #d97706; }
+.landlord-card:nth-child(2) .landlord-rank { color: #64748b; }
+.landlord-card:nth-child(3) .landlord-rank { color: #c2410c; }
 
 .landlord-avatar {
-  width: 48px;
-  height: 48px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   object-fit: cover;
   margin-right: 14px;
@@ -210,18 +207,18 @@
 }
 
 .landlord-rating {
-  color: #f59e0b;
+  color: #d97706;
   font-weight: 700;
 }
 
 .landlord-reviews {
   color: var(--primary-color);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .landlord-rooms {
   color: var(--accent-color);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 @media (max-width: 640px) {
@@ -233,4 +230,5 @@
     width: 100%;
   }
 }
+
 

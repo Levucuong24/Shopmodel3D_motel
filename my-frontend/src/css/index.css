@@ -1,64 +1,79 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  --bg-color: #f8fafc;
-  --text-color: #1e293b;
-  --heading-color: #0f172a;
-  --navbar-bg: rgba(255, 255, 255, 0.85);
-  --navbar-text: #0f172a;
-  --card-border: #e2e8f0;
+  --bg-color: #fdfaf3;          /* Warm Cream / Sunlight Cream */
+  --text-color: #362a24;        /* Rich Espresso Dark Brown */
+  --heading-color: #261b15;     /* Deep Coffee Charcoal */
+  
+  /* Navbar */
+  --navbar-bg: rgba(253, 250, 243, 0.85);
+  --navbar-text: #261b15;
+  
+  /* Cards */
+  --card-border: #ebdcd0;       /* Cozy Warm Sand Border */
   --card-bg: #ffffff;
-  --section-bg: #ffffff;
-  --muted-text: #64748b;
+  --section-bg: #faf5eb;        /* Soft Linen Sand */
+  --muted-text: #8c7b72;
   
-  /* Brand colors */
-  --primary-color: #4f46e5;      /* Premium Indigo */
-  --primary-hover: #4338ca;
-  --accent-color: #10b981;       /* Emerald Green */
-  --price-color: #f97316;        /* Orange sunset */
-  --danger-color: #ef4444;
+  /* Luxury Cozy Palette */
+  --primary-color: #b25e36;      /* Terracotta Rust */
+  --primary-hover: #9c4c26;
+  --primary-btn-text: #ffffff;   /* Contrast button text */
+  --secondary-color: #d9a75d;    /* Amber Gold / Champagne */
+  --secondary-hover: #c4924b;
+  --accent-color: #8c7355;       /* Muted Copper Bronze */
+  --price-color: #b25e36;        /* Terracotta for price! */
+  --danger-color: #a23b3b;       /* Crimson Red */
   
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
-  --shadow-xl: 0 20px 25px -5px rgba(79, 70, 229, 0.1), 0 10px 10px -5px rgba(79, 70, 229, 0.04);
+  /* Cozy Shadows */
+  --shadow-sm: 0 2px 8px rgba(46, 37, 32, 0.03);
+  --shadow-md: 0 10px 30px rgba(46, 37, 32, 0.05);
+  --shadow-lg: 0 20px 50px rgba(46, 37, 32, 0.08);
+  --shadow-xl: 0 35px 70px rgba(46, 37, 32, 0.12);
+  --neon-glow: 0 0 0 4px rgba(217, 167, 93, 0.18);
   
   /* Transitions */
-  --transition-fast: all 0.15s ease;
-  --transition-normal: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: all 0.65s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 [data-theme='dark'] {
-  --bg-color: #090d16;           /* Mystery Obsidian slate */
-  --text-color: #cbd5e1;
-  --heading-color: #f8fafc;
-  --navbar-bg: rgba(15, 23, 42, 0.85);
-  --navbar-text: #f8fafc;
-  --card-border: rgba(255, 255, 255, 0.06);
-  --card-bg: #111827;
-  --section-bg: #0f172a;
-  --muted-text: #94a3b8;
+  --bg-color: #1a1310;           /* Cozy Cabin Deep Brown */
+  --text-color: #ebdcd0;         /* Warm Sand */
+  --heading-color: #ffffff;
   
-  /* Brand colors in dark mode */
-  --primary-color: #6366f1;
-  --primary-hover: #4f46e5;
-  --accent-color: #34d399;
+  /* Navbar */
+  --navbar-bg: rgba(26, 19, 16, 0.8);
+  --navbar-text: #f5ece5;
   
-  /* Shadows dark mode */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+  /* Cards */
+  --card-border: #2f231d;
+  --card-bg: #251d19;            /* Charcoal Cedar */
+  --section-bg: #140d0a;
+  --muted-text: #9f8c82;
+  
+  /* Cozy Dark Palette */
+  --primary-color: #e28a5e;      /* Soft Terracotta Sunset */
+  --primary-hover: #f09f75;
+  --primary-btn-text: #1a1310;   /* Deep contrast text */
+  --secondary-color: #bda07e;    /* Muted Amber */
+  --accent-color: #d9a75d;
+  
+  /* Glows for Dark mode */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 35px 70px rgba(0, 0, 0, 0.6);
+  --neon-glow: 0 0 0 4px rgba(226, 138, 94, 0.25);
 }
 
 body {
   margin: 0;
-  font-family: 'Outfit', 'Montserrat', sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
   background-color: var(--bg-color);
   color: var(--text-color);
-  transition: background-color 0.3s, color 0.3s;
+  transition: background-color 0.5s, color 0.5s;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -74,14 +89,14 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(178, 94, 54, 0.15);
   border-radius: 4px;
 }
 
 [data-theme='dark'] ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: rgba(226, 138, 94, 0.15);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-text);
+  background: var(--primary-color);
 }
