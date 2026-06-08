@@ -7,6 +7,10 @@
     {
       "source": "/uploads/:path*",
       "destination": "https://shopmodel3d-motel.onrender.com/uploads/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
