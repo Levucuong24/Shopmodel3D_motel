@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { clearAuthSession, getAuthToken, getUserData, getUserRole } from "../utils/authStorage.js";
+import { clearAuthSession, getAuthToken, getUserData, getUserRole, setUserData } from "../utils/authStorage.js";
 import { formatDateTime, formatPriceByUnit, formatRentalDuration, getRentalUnitLabel } from "../utils/rentalFormat.js";
 import "../css/AdminDashboard.css";
 
@@ -48,6 +48,15 @@ function StaffDashboard() {
   const [viewingRoomReviews, setViewingRoomReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
 
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    avatar: "",
+  });
+
   const [newRoomForm, setNewRoomForm] = useState({
     name: "",
     price: "",
@@ -83,8 +92,38 @@ function StaffDashboard() {
 
     const userData = getUserData() || {};
     setUser(userData);
+    setProfileForm({
+      full_name: userData.full_name || "",
+      email: userData.email || "",
+      phone: userData.phone || "",
+      avatar: userData.avatar || "",
+    });
+
     fetchRooms(token);
     fetchPayments(token);
+
+    // Fetch fresh profile data
+    fetch("/api/users/me", {
+      headers: {
+        Authorization: token,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?._id) {
+          setUser(data);
+          setProfileForm({
+            full_name: data.full_name || "",
+            email: data.email || "",
+            phone: data.phone || "",
+            avatar: data.avatar || "",
+          });
+          setUserData(data);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching profile:", err);
+      });
   }, [navigate]);
 
   const fetchRooms = (token) => {
@@ -434,9 +473,108 @@ function StaffDashboard() {
     }
   };
 
+  const handleProfileChange = (field, value) => {
+    setProfileForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleProfileSave = async (e) => {
+    e.preventDefault();
+
+    const token = getAuthToken();
+    if (!token) {
+      alert("Bạn cần đăng nhập lại để cập nhật thông tin");
+      return;
+    }
+
+    setSavingProfile(true);
+
+    try {
+      const response = await fetch("/api/users/me", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+        body: JSON.stringify(profileForm),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Không thể cập nhật thông tin");
+      }
+
+      setUser(data);
+      setProfileForm({
+        full_name: data.full_name || "",
+        email: data.email || "",
+        phone: data.phone || "",
+        avatar: data.avatar || "",
+      });
+      setUserData(data);
+      alert("Cập nhật thông tin thành công");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleAvatarUpload = async (event) => {
+    const file = event.target.files?.[0];
+    const token = getAuthToken();
+
+    if (!file) return;
+
+    if (!token) {
+      alert("Bạn cần đăng nhập lại để tải ảnh");
+      return;
+    }
+
+    setUploadingAvatar(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      const response = await fetch("/api/users/me/avatar", {
+        method: "POST",
+        headers: {
+          Authorization: token,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Không thể tải ảnh đại diện");
+      }
+
+      setUser(data);
+      setProfileForm({
+        full_name: data.full_name || "",
+        email: data.email || "",
+        phone: data.phone || "",
+        avatar: data.avatar || "",
+      });
+      setUserData(data);
+      alert("Tải ảnh đại diện thành công");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setUploadingAvatar(false);
+      event.target.value = "";
+    }
+  };
+
   if (!user) {
     return <div style={{ padding: "20px", textAlign: "center" }}>Đang tải dữ liệu...</div>;
   }
+
+  const staffAvatar =
+    profileForm.avatar ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      user.full_name || "Staff"
+    )}&background=4f46e5&color=fff`;
 
   return (
     <div className="dashboard-container">
@@ -454,6 +592,9 @@ function StaffDashboard() {
           </li>
           <li className={activeTab === "payments" ? "active" : ""}>
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("payments"); }}>Quản lý đặt cọc</a>
+          </li>
+          <li className={activeTab === "profile" ? "active" : ""}>
+            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("profile"); }}>Thông tin cá nhân</a>
           </li>
         </ul>
         <div className="sidebar-footer">
@@ -474,7 +615,7 @@ function StaffDashboard() {
           <h1>Bảng Điều Khiển Chủ nhà</h1>
           <div className="user-profile">
             <span style={{ marginRight: "10px", fontWeight: "bold" }}>{user.full_name}</span>
-            <img src="https://ui-avatars.com/api/?name=Staff&background=4f46e5&color=fff" alt="Staff Avatar" />
+            <img src={staffAvatar} alt="Staff Avatar" />
           </div>
         </header>
 
@@ -791,6 +932,66 @@ function StaffDashboard() {
                   </tbody>
                 </table>
               )}
+            </div>
+          )}
+
+          {activeTab === "profile" && (
+            <div className="profile-card">
+              <div className="profile-card-header">
+                <h3 className="section-title" style={{ borderLeftColor: "#4f46e5" }}>Thông tin cá nhân</h3>
+                <img src={staffAvatar} alt={user.full_name} className="profile-preview-avatar" />
+              </div>
+
+              <form className="profile-form" onSubmit={handleProfileSave}>
+                <div className="avatar-upload-box">
+                  <label className="avatar-upload-label" style={{ backgroundColor: "#4f46e5" }}>
+                    <span>{uploadingAvatar ? "Đang tải ảnh..." : "Tải ảnh đại diện từ máy tính"}</span>
+                    <input type="file" accept="image/*" onChange={handleAvatarUpload} hidden />
+                  </label>
+                </div>
+
+                <div className="profile-grid">
+                  <label>
+                    Họ và tên
+                    <input
+                      type="text"
+                      value={profileForm.full_name}
+                      onChange={(e) => handleProfileChange("full_name", e.target.value)}
+                    />
+                  </label>
+
+                  <label>
+                    Email
+                    <input
+                      type="email"
+                      value={profileForm.email}
+                      onChange={(e) => handleProfileChange("email", e.target.value)}
+                    />
+                  </label>
+
+                  <label>
+                    Số điện thoại
+                    <input
+                      type="text"
+                      value={profileForm.phone}
+                      onChange={(e) => handleProfileChange("phone", e.target.value)}
+                    />
+                  </label>
+
+                  <label>
+                    Đường dẫn ảnh đại diện (URL)
+                    <input
+                      type="text"
+                      value={profileForm.avatar}
+                      onChange={(e) => handleProfileChange("avatar", e.target.value)}
+                    />
+                  </label>
+                </div>
+
+                <button type="submit" className="profile-save-btn" disabled={savingProfile}>
+                  {savingProfile ? "Đang lưu..." : "Lưu thay đổi"}
+                </button>
+              </form>
             </div>
           )}
         </section>
