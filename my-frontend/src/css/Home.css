@@ -76,27 +76,135 @@
   font-weight: 600;
 }
 
-/* Modern Grid overrides */
+/* Modern Bento Grid Layout */
 .modern-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fill, minmax(285px, 1fr));
+  gap: 28px;
 }
 
-/* Make Project Cards more modern if they are not already */
-.modern-grid > div {
+.modern-grid > .card {
   transition: var(--transition-normal);
   border: 1px solid var(--card-border);
   box-shadow: var(--shadow-sm);
-  border-radius: 20px;
+  border-radius: 24px;
   overflow: hidden;
   background: var(--card-bg);
+  height: 100%;
 }
 
-.modern-grid > div:hover {
-  transform: translateY(-8px);
+.modern-grid > .card:hover {
+  transform: translateY(-6px);
   box-shadow: var(--shadow-lg);
-  border-color: var(--secondary-color);
+  border-color: var(--primary-color);
+}
+
+@media (min-width: 1024px) {
+  /* Make every 4th card take 2 grid columns */
+  .modern-grid > .card:nth-child(4n + 1) {
+    grid-column: span 2;
+  }
+
+  /* Make the 4n + 1 card render as a horizontal layout */
+  .modern-grid > .card:nth-child(4n + 1) > a {
+    display: flex !important;
+    flex-direction: row !important;
+    height: 100% !important;
+    align-items: stretch;
+  }
+
+  .modern-grid > .card:nth-child(4n + 1) .img-container {
+    width: 48%;
+    height: 100%;
+    min-height: 300px;
+    border-radius: 0;
+  }
+
+  .modern-grid > .card:nth-child(4n + 1) .img-container img {
+    height: 100%;
+    border-radius: 0;
+  }
+
+  .modern-grid > .card:nth-child(4n + 1) .card-body {
+    width: 52%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 30px;
+  }
+}
+
+/* Category Search Sections */
+.category-section-modern {
+  max-width: 1200px;
+  margin: 40px auto 20px auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.style-title-modern {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: var(--muted-text);
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+
+.category-box-modern {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .category-box-modern {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .category-box-modern {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cat-item-modern {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--text-color);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-normal);
+}
+
+.cat-item-modern:hover {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+}
+
+.cat-icon-modern {
+  width: 30px;
+  height: 30px;
+  color: var(--muted-text);
+  transition: var(--transition-fast);
+}
+
+.cat-item-modern:hover .cat-icon-modern {
+  color: var(--primary-color);
 }
 
 /* Top Landlords Section */

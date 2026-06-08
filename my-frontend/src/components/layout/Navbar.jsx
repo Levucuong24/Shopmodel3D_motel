@@ -115,7 +115,6 @@ function Navbar() {
                     navigate(`${welcomePath}?search=${encodeURIComponent(area)}`);
                     setSearchTerm(area);
                   }}
-                  style={{ cursor: "pointer" }}
                 >
                   {area}
                 </div>
@@ -135,7 +134,7 @@ function Navbar() {
       </div>
 
       <div className="navbar-center">
-        <form onSubmit={handleSearch} style={{ width: "100%", margin: 0, display: "flex" }}>
+        <form onSubmit={handleSearch} className="navbar-search-form">
           <input
             type="text"
             placeholder="Search for accommodation..."
@@ -199,7 +198,7 @@ function Navbar() {
         )}
         <button 
           onClick={toggleTheme} 
-          style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', marginLeft: '10px' }}
+          className="theme-toggle-btn"
           title="Toggle Dark Mode"
         >
           {isDarkMode ? "☀️" : "🌙"}

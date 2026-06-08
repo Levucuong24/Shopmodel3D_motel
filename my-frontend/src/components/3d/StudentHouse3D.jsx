@@ -1056,7 +1056,7 @@ const StudentHouse3D = () => {
       style={{
         width: '100%',
         height: '100%',
-        background: '#f5f6f8', // Clean solid light background to match screenshots
+        background: 'transparent',
         margin: 0,
         padding: 0,
         overflow: 'hidden',
@@ -1068,8 +1068,6 @@ const StudentHouse3D = () => {
         gl={{ antialias: true, alpha: true }}
         camera={{ position: [-8.5, 7.0, 9.0], fov: 40 }}
       >
-        {/* Background Color of the 3D Scene */}
-        <color attach="background" args={["#f5f6f8"]} />
 
         {/* Soft Ambient Light for overall brightness */}
         <ambientLight intensity={0.7} color="#fffcf5" />

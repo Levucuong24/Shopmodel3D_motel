@@ -1,36 +1,36 @@
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  --bg-color: #fdfaf3;          /* Warm Cream / Sunlight Cream */
-  --text-color: #362a24;        /* Rich Espresso Dark Brown */
-  --heading-color: #261b15;     /* Deep Coffee Charcoal */
+  --bg-color: #f8fafc;          /* Slate 50 - clean off-white */
+  --text-color: #334155;        /* Slate 700 - rich text */
+  --heading-color: #0f172a;     /* Slate 900 - dark headings */
   
   /* Navbar */
-  --navbar-bg: rgba(253, 250, 243, 0.85);
-  --navbar-text: #261b15;
+  --navbar-bg: rgba(248, 250, 252, 0.85);
+  --navbar-text: #0f172a;
   
   /* Cards */
-  --card-border: #ebdcd0;       /* Cozy Warm Sand Border */
+  --card-border: #e2e8f0;       /* Slate 200 - subtle borders */
   --card-bg: #ffffff;
-  --section-bg: #faf5eb;        /* Soft Linen Sand */
-  --muted-text: #8c7b72;
+  --section-bg: #f1f5f9;        /* Slate 100 - clean section breaks */
+  --muted-text: #64748b;        /* Slate 500 - secondary text */
   
-  /* Luxury Cozy Palette */
-  --primary-color: #b25e36;      /* Terracotta Rust */
-  --primary-hover: #9c4c26;
-  --primary-btn-text: #ffffff;   /* Contrast button text */
-  --secondary-color: #d9a75d;    /* Amber Gold / Champagne */
-  --secondary-hover: #c4924b;
-  --accent-color: #8c7355;       /* Muted Copper Bronze */
-  --price-color: #b25e36;        /* Terracotta for price! */
-  --danger-color: #a23b3b;       /* Crimson Red */
+  /* Sleek Tech Palette */
+  --primary-color: #4f46e5;      /* Indigo 600 - tech primary */
+  --primary-hover: #4338ca;      /* Indigo 700 */
+  --primary-btn-text: #ffffff;   
+  --secondary-color: #06b6d4;    /* Cyan 500 - accent highlight */
+  --secondary-hover: #0891b2;    /* Cyan 600 */
+  --accent-color: #0f766e;       /* Teal 700 - secondary action */
+  --price-color: #4f46e5;        
+  --danger-color: #ef4444;       
   
-  /* Cozy Shadows */
-  --shadow-sm: 0 2px 8px rgba(46, 37, 32, 0.03);
-  --shadow-md: 0 10px 30px rgba(46, 37, 32, 0.05);
-  --shadow-lg: 0 20px 50px rgba(46, 37, 32, 0.08);
-  --shadow-xl: 0 35px 70px rgba(46, 37, 32, 0.12);
-  --neon-glow: 0 0 0 4px rgba(217, 167, 93, 0.18);
+  /* Premium Shadows */
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.08);
+  --shadow-xl: 0 35px 70px rgba(15, 23, 42, 0.12);
+  --neon-glow: 0 0 0 4px rgba(79, 70, 229, 0.15);
   
   /* Transitions */
   --transition-fast: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -39,33 +39,34 @@
 }
 
 [data-theme='dark'] {
-  --bg-color: #1a1310;           /* Cozy Cabin Deep Brown */
-  --text-color: #ebdcd0;         /* Warm Sand */
-  --heading-color: #ffffff;
+  --bg-color: #0b0f19;           /* Obsidian - deep space background */
+  --text-color: #cbd5e1;         /* Slate 300 - readable light gray */
+  --heading-color: #f8fafc;      /* Slate 50 - clean white */
   
   /* Navbar */
-  --navbar-bg: rgba(26, 19, 16, 0.8);
-  --navbar-text: #f5ece5;
+  --navbar-bg: rgba(11, 15, 25, 0.85);
+  --navbar-text: #f8fafc;
   
   /* Cards */
-  --card-border: #2f231d;
-  --card-bg: #251d19;            /* Charcoal Cedar */
-  --section-bg: #140d0a;
-  --muted-text: #9f8c82;
+  --card-border: #1e293b;        /* Slate 800 */
+  --card-bg: #131b2e;            /* Slate 900-ish dark surface */
+  --section-bg: #0f172a;         /* Deep slate section bg */
+  --muted-text: #64748b;         
   
-  /* Cozy Dark Palette */
-  --primary-color: #e28a5e;      /* Soft Terracotta Sunset */
-  --primary-hover: #f09f75;
-  --primary-btn-text: #1a1310;   /* Deep contrast text */
-  --secondary-color: #bda07e;    /* Muted Amber */
-  --accent-color: #d9a75d;
+  /* Tech Dark Palette */
+  --primary-color: #6366f1;      /* Indigo 500 */
+  --primary-hover: #4f46e5;      
+  --primary-btn-text: #ffffff;   
+  --secondary-color: #22d3ee;    /* Cyan 400 */
+  --accent-color: #14b8a6;       /* Teal 500 */
+  --price-color: #6366f1;
   
   /* Glows for Dark mode */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 35px 70px rgba(0, 0, 0, 0.6);
-  --neon-glow: 0 0 0 4px rgba(226, 138, 94, 0.25);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 35px 70px rgba(0, 0, 0, 0.7);
+  --neon-glow: 0 0 0 4px rgba(99, 102, 241, 0.25);
 }
 
 body {
@@ -89,12 +90,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(178, 94, 54, 0.15);
+  background: rgba(79, 70, 229, 0.15);
   border-radius: 4px;
 }
 
 [data-theme='dark'] ::-webkit-scrollbar-thumb {
-  background: rgba(226, 138, 94, 0.15);
+  background: rgba(99, 102, 241, 0.15);
 }
 
 ::-webkit-scrollbar-thumb:hover {

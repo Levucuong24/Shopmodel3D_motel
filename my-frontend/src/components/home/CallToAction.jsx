@@ -15,26 +15,26 @@ function CallToAction() {
   return (
     <div className="cta-container">
       <div className="cta-content">
-        <h2 className="cta-title">Have a Question?</h2>
-        <p className="cta-desc">Call to us or leave your phone number, and we call you back</p>
+        <h2 className="cta-title">Bạn Có Câu Hỏi?</h2>
+        <p className="cta-desc">Để lại số điện thoại của bạn, chúng tôi sẽ liên hệ tư vấn trực tiếp ngay lập tức.</p>
         
         <div className="cta-action">
           <input 
             type="text" 
-            placeholder="Your phone number" 
+            placeholder="Số điện thoại của bạn" 
             className="cta-input" 
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
           />
-          <button className="cta-btn" onClick={handleCallMeBack}>Call me back</button>
+          <button className="cta-btn" onClick={handleCallMeBack}>Liên hệ ngay</button>
         </div>
       </div>
       
       <div className="cta-contact">
         <div className="cta-status">
-          <span className="dot"></span> We online 24/7
+          <span className="cta-status-badge">Đang hoạt động</span> hỗ trợ 24/7
         </div>
-        <div className="cta-phone">0352824919</div>
+        <div className="cta-phone">035 282 4919</div>
       </div>
     </div>
   );

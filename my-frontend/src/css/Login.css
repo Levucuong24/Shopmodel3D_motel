@@ -81,8 +81,9 @@
   transform: scale(0.97);
 }
 
-.auth-page button.action-btn:focus {
+.auth-page button.action-btn:focus-visible {
   outline: none;
+  box-shadow: 0 0 0 3px var(--card-bg), 0 0 0 6px var(--primary-color);
 }
 
 .auth-page button.ghost {
@@ -95,6 +96,11 @@
   background-color: rgba(255, 255, 255, 0.1);
   box-shadow: none;
   transform: translateY(-1px);
+}
+
+.auth-page button.ghost:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-color), 0 0 0 6px #ffffff;
 }
 
 .auth-page .auth-form {
@@ -237,6 +243,10 @@
   font-size: 30px;
   line-height: 1.4;
   margin-bottom: 15px;
+}
+
+.overlay-panel p {
+  color: #ffffff !important;
 }
 
 .overlay-left {

@@ -140,23 +140,34 @@ export default function Chatbot() {
   return (
     <>
       <button className={`chatbot-fab ${isOpen ? "hidden" : ""}`} onClick={() => setIsOpen(true)}>
-        <span className="fab-icon">💬</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="fab-svg">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
       </button>
-
+ 
       <div className={`chatbot-window ${isOpen ? "open" : ""}`}>
         <div className="chatbot-header">
           <div className="bot-info">
-            <span className="bot-avatar">🤖</span>
+            <span className="bot-avatar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="bot-svg">
+                <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                <circle cx="12" cy="5" r="2"></circle>
+                <path d="M12 7v4M8 16h.01M16 16h.01"></path>
+              </svg>
+            </span>
             <div>
               <h4>Homie AI</h4>
               <p>Đọc dữ liệu từ hệ thống</p>
             </div>
           </div>
           <button className="close-btn" onClick={() => setIsOpen(false)}>
-            ×
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="close-svg">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
           </button>
         </div>
-
+ 
         <div className="chatbot-messages">
           {messages.map((msg) => (
             <div key={msg.id} className={`message-bubble ${msg.sender}`}>
@@ -164,7 +175,7 @@ export default function Chatbot() {
                 className="markdown-response"
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(msg.text)) }}
               />
-
+ 
               {msg.suggestions && msg.suggestions.length > 0 && (
                 <div className="bot-suggestions">
                   {msg.suggestions.map((room) => (
@@ -185,21 +196,14 @@ export default function Chatbot() {
                   ))}
                 </div>
               )}
-
+ 
               {msg.show3DGenerator && <GeneratorUI />}
               {msg.isCancelRequest && (
                 <div style={{ marginTop: "10px" }}>
                   <Link
                     to="/customer-dashboard?tab=rented"
-                    className="ai-generate-btn"
+                    className="ai-cancel-btn"
                     onClick={() => setIsOpen(false)}
-                    style={{
-                      display: "block",
-                      textAlign: "center",
-                      textDecoration: "none",
-                      backgroundColor: "#dc2626",
-                      color: "white",
-                    }}
                   >
                     Đi đến trang Quản lý phòng đang thuê (Hủy thuê)
                   </Link>
@@ -207,16 +211,20 @@ export default function Chatbot() {
               )}
             </div>
           ))}
-
+ 
           {isReplying && (
-            <div className="message-bubble bot">
-              <div>đợi mình vài giây nha ^^</div>
+            <div className="message-bubble bot typing-bubble">
+              <div className="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
             </div>
           )}
-
+ 
           <div ref={messagesEndRef} />
         </div>
-
+ 
         <form className="chatbot-input" onSubmit={handleSend}>
           <input
             type="text"
@@ -225,7 +233,10 @@ export default function Chatbot() {
             onChange={(e) => setInputValue(e.target.value)}
           />
           <button type="submit" disabled={!inputValue.trim() || isReplying}>
-            ➤
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="send-svg">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
           </button>
         </form>
       </div>

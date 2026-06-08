@@ -1,11 +1,25 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense, lazy } from "react";
 import { Link, useParams } from "react-router-dom";
-import StudentHouse3D from "../components/3d/StudentHouse3D";
 import Chatbot from "../components/chatbot/Chatbot";
 import PaymentModal from "../components/payment/PaymentModal";
 import { getAuthToken, getUserData, getUserRole } from "../utils/authStorage.js";
 import { formatPriceByUnit, formatRentalDuration } from "../utils/rentalFormat.js";
 import "../css/ProductDetail.css";
+
+const StudentHouse3D = lazy(() => import("../components/3d/StudentHouse3D"));
+
+const ThreeDLoader = () => (
+  <div className="threed-loader-container">
+    <div className="threed-loader-spinner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="threed-spinner-icon">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+      </svg>
+    </div>
+    <span className="threed-loader-text">Đang tải mô hình 3D...</span>
+  </div>
+);
 
 const fallbackImages = [
   "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop",
@@ -310,8 +324,19 @@ function ProductDetail() {
       <div className="pd-header">
         <h1>{product.name}</h1>
         <div className="pd-header-meta">
-          <span className="pd-location">📍 {product.location}</span>
-          <span className="pd-rating">⭐ {reviews.length > 0 ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1) : "Mới"} ({reviews.length} đánh giá)</span>
+          <span className="pd-location">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="meta-icon" style={{ width: "15px", height: "15px", display: "inline-block", verticalAlign: "middle", marginRight: "5px", position: "relative", top: "-1px" }}>
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            {product.location}
+          </span>
+          <span className="pd-rating">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="meta-icon star-icon" style={{ width: "15px", height: "15px", display: "inline-block", verticalAlign: "middle", marginRight: "5px", position: "relative", top: "-1.5px", color: "var(--secondary-color)" }}>
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            {reviews.length > 0 ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1) : "Mới"} ({reviews.length} đánh giá)
+          </span>
         </div>
         <div className="pd-price">
           {formatPriceByUnit(product.price, product.price_unit)}
@@ -323,10 +348,19 @@ function ProductDetail() {
           <div className="media-section">
             <div className="media-toggle">
               <button className={viewMode === "static" ? "active" : ""} onClick={() => setViewMode("static")}>
-                📷 Ảnh thực tế
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="toggle-btn-icon" style={{ width: "14px", height: "14px", marginRight: "6px", display: "inline-block", verticalAlign: "middle", position: "relative", top: "-1px" }}>
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                Ảnh thực tế
               </button>
               <button className={viewMode === "3d" ? "active" : ""} onClick={() => setViewMode("3d")}>
-                🧊 Trải nghiệm 3D
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="toggle-btn-icon" style={{ width: "14px", height: "14px", marginRight: "6px", display: "inline-block", verticalAlign: "middle", position: "relative", top: "-1px" }}>
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                  <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                Trải nghiệm 3D
               </button>
             </div>
 
@@ -348,8 +382,17 @@ function ProductDetail() {
                 </div>
               ) : (
                 <div className="model-container">
-                  <StudentHouse3D />
-                  <p className="model-instruction">* Chuột trái xoay, chuột phải di chuyển, lăn chuột để zoom.</p>
+                  <Suspense fallback={<ThreeDLoader />}>
+                    <StudentHouse3D />
+                  </Suspense>
+                  <p className="model-instruction">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: "13px", height: "13px", display: "inline-block", verticalAlign: "middle", position: "relative", top: "-1px", color: "var(--primary-color)" }}>
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    Chuột trái xoay, chuột phải di chuyển, cuộn để phóng to/thu nhỏ.
+                  </p>
                 </div>
               )}
             </div>
@@ -359,28 +402,39 @@ function ProductDetail() {
             <h2>Thông tin phòng</h2>
             <div className="specs-grid">
               <div className="spec-item">
-                <span className="icon">📏</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="spec-icon">
+                  <path d="M4 19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14z"></path>
+                  <line x1="8" y1="7" x2="16" y2="7"></line>
+                  <line x1="8" y1="11" x2="16" y2="11"></line>
+                  <line x1="8" y1="15" x2="16" y2="15"></line>
+                </svg>
                 <div>
                   <strong>Diện tích</strong>
                   <p>{product.specs?.area ? `${product.specs.area}m²` : "Đang cập nhật"}</p>
                 </div>
               </div>
               <div className="spec-item">
-                <span className="icon">🛏️</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="spec-icon">
+                  <path d="M2 22V14a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8M2 19h20M2 8V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4M22 8V4a2 2 0 0 1-2-2h-4a2 2 0 0 1-2 2v4"></path>
+                </svg>
                 <div>
                   <strong>Bố trí</strong>
                   <p>{product.specs?.layout || "Đang cập nhật"}</p>
                 </div>
               </div>
               <div className="spec-item">
-                <span className="icon">❄️</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="spec-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
                 <div>
                   <strong>Tiện nghi</strong>
                   <p>{product.amenities?.length ? product.amenities.join(", ") : "Đang cập nhật"}</p>
                 </div>
               </div>
               <div className="spec-item">
-                <span className="icon">🐶</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="spec-icon">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
                 <div>
                   <strong>Thú cưng</strong>
                   <p>{product.pet_policy || "Đang cập nhật"}</p>
@@ -492,8 +546,7 @@ function ProductDetail() {
               <p>Tong tien tam tinh: <strong>{typeof product.price === "number" ? `${(product.price * rentalDurationValue).toLocaleString("vi-VN")}d` : "Dang cap nhat"}</strong></p>
             </div>
             <button 
-               className="book-btn" 
-               style={{ background: isSaved ? "#6c757d" : "#f59e0b", marginTop: "10px" }} 
+               className={`save-btn ${isSaved ? "saved" : ""}`} 
                onClick={handleToggleSave}
                disabled={savingRoom}
             >
