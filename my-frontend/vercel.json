@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://shopmodel3d-motel.onrender.com/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://shopmodel3d-motel.onrender.com/uploads/:path*"
+    }
+  ]
+}
