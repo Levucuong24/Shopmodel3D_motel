@@ -563,7 +563,7 @@ function ProductDetail() {
             >
               {isSaved ? "❤️ Đã lưu (Hủy)" : "🤍 Lưu phòng"}
             </button>
-            <button className="call-btn">📞 Gọi chủ nhà: 0352824919</button>
+            <button className="call-btn">📞 Gọi chủ nhà: 0123456789</button>
 
             {product.status !== "rented" ? (
               showBookingForm && (
