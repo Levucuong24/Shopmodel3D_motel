@@ -160,58 +160,70 @@
 .category-box-modern {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 20px;
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-.cat-item-modern {
-  flex: 1;
-  min-width: 200px;
-  max-width: 260px;
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 24px;
+  gap: 20px;
   background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 20px;
-  font-weight: 700;
-  font-size: 14.5px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 24px 40px;
+  margin: 0 auto;
+  z-index: 10;
+  width: 90%;
+  max-width: 900px;
   color: var(--text-color);
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition-normal);
-  text-align: center;
 }
 
-[data-theme='dark'] .cat-item-modern {
+[data-theme='dark'] .category-box-modern {
   background: rgba(19, 27, 46, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+@media (max-width: 768px) {
+  .category-box-modern {
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    width: 90%;
+  }
+}
+
+.cat-item-modern {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  padding: 10px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  flex: 1;
+  min-width: unset !important;
+  max-width: 160px;
+  text-align: center;
+}
+
 .cat-item-modern:hover {
-  color: var(--primary-color);
-  border-color: var(--primary-color);
-  box-shadow: var(--shadow-md);
+  color: var(--primary-color) !important;
   transform: translateY(-4px);
 }
 
 .cat-icon-modern {
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   color: var(--muted-text);
   transition: var(--transition-fast);
 }
 
 .cat-item-modern:hover .cat-icon-modern {
-  color: var(--primary-color);
+  color: var(--primary-color) !important;
 }
 
 /* Top Landlords Section */
