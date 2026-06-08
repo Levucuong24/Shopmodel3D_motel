@@ -40,6 +40,12 @@ function Home() {
       .catch((err) => console.error("Error fetching landlords", err));
   }, []);
 
+  const [visibleCount, setVisibleCount] = useState(6);
+
+  useEffect(() => {
+    setVisibleCount(6);
+  }, [selectedLandlordId, searchQuery]);
+
   const selectedLandlord = topLandlords.find((item) => item._id === selectedLandlordId);
 
   const filteredProducts = products.filter((product) => {
@@ -57,6 +63,8 @@ function Home() {
     const name = (product.name || product.title) ? (product.name || product.title).toLowerCase() : "";
     return loc.includes(q) || name.includes(q);
   });
+
+  const productsToShow = filteredProducts.slice(0, visibleCount);
 
   const handleLandlordClick = (landlordId) => {
     setSelectedLandlordId((currentId) => (currentId === landlordId ? "" : landlordId));
@@ -175,10 +183,22 @@ function Home() {
           )}
 
           <div className="product-grid modern-grid">
-            {filteredProducts.map((product) => (
+            {productsToShow.map((product) => (
               <ProductCard key={product._id || product.id} product={product} />
             ))}
           </div>
+
+          {visibleCount < filteredProducts.length && (
+            <div className="load-more-container">
+              <button
+                type="button"
+                className="load-more-btn"
+                onClick={() => setVisibleCount((prev) => prev + 6)}
+              >
+                Xem thêm phòng trọ ({filteredProducts.length - visibleCount} phòng còn lại)
+              </button>
+            </div>
+          )}
 
           {!loadingError && filteredProducts.length === 0 && (
             <p className="empty-products-message">

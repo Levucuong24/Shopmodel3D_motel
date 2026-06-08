@@ -28,7 +28,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
   z-index: 1000;
   border-radius: 40px;
   width: 90%;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 15px auto;
   box-shadow: var(--shadow-md);
   transition: var(--transition-normal);
@@ -355,8 +355,8 @@ h1, h2, h3, h4, h5, h6, .section-title {
 /* PRODUCT GRID */
 
 .product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 30px;
 }
 
@@ -370,6 +370,12 @@ h1, h2, h3, h4, h5, h6, .section-title {
   border: 1px solid var(--card-border);
   transition: var(--transition-normal);
   position: relative;
+}
+
+.card-link {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .card:hover {
@@ -430,14 +436,16 @@ h1, h2, h3, h4, h5, h6, .section-title {
 }
 
 .card-body h3 {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   margin: 0;
   color: var(--heading-color);
   line-height: 1.4;
-  white-space: nowrap;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .location {
@@ -990,7 +998,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 30px;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -1076,7 +1084,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
   color: var(--text-color);
   border: 1px solid var(--card-border);
   border-radius: 24px;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 40px auto;
   box-shadow: var(--shadow-lg);
 }
@@ -1204,7 +1212,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
   grid-template-columns: repeat(3, 1fr);
   gap: 50px;
   margin-bottom: 50px;
-  max-width: 1200px;
+  max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -1306,7 +1314,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
   position: relative;
   overflow: hidden;
   border-radius: 32px;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 30px auto;
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--card-border);
@@ -1559,6 +1567,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
   color: #000000;
   margin-top: 35px;
   text-transform: uppercase;
+  text-align: center;
 }
 
 .category-box-modern {

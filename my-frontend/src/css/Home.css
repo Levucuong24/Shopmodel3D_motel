@@ -3,7 +3,7 @@
 .home-content-wrapper {
   display: flex;
   gap: 40px;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 40px 20px 80px 20px;
   font-family: 'Outfit', sans-serif;
@@ -78,8 +78,8 @@
 
 /* Modern Bento Grid Layout */
 .modern-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(285px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 28px;
 }
 
@@ -90,7 +90,7 @@
   border-radius: 24px;
   overflow: hidden;
   background: var(--card-bg);
-  height: 100%;
+  width: 100%;
 }
 
 .modern-grid > .card:hover {
@@ -99,34 +99,31 @@
   border-color: var(--primary-color);
 }
 
-@media (min-width: 1024px) {
-  /* Make every 4th card take 2 grid columns */
-  .modern-grid > .card:nth-child(4n + 1) {
-    grid-column: span 2;
-  }
-
-  /* Make the 4n + 1 card render as a horizontal layout */
-  .modern-grid > .card:nth-child(4n + 1) > a {
-    display: flex !important;
-    flex-direction: row !important;
-    height: 100% !important;
+@media (min-width: 768px) {
+  .modern-grid > .card .card-link {
+    display: flex;
+    flex-direction: row;
     align-items: stretch;
+    height: 100%;
   }
 
-  .modern-grid > .card:nth-child(4n + 1) .img-container {
-    width: 48%;
+  .modern-grid > .card .img-container {
+    width: 33%;
+    min-height: 280px;
     height: 100%;
-    min-height: 300px;
+    border-radius: 0;
+    flex-shrink: 0;
+  }
+
+  .modern-grid > .card .img-container img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
     border-radius: 0;
   }
 
-  .modern-grid > .card:nth-child(4n + 1) .img-container img {
-    height: 100%;
-    border-radius: 0;
-  }
-
-  .modern-grid > .card:nth-child(4n + 1) .card-body {
-    width: 52%;
+  .modern-grid > .card .card-body {
+    width: 67%;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -157,29 +154,23 @@
   color: #000000;
   margin-bottom: 20px;
   text-transform: uppercase;
+  text-align: center;
 }
 
 .category-box-modern {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 20px;
   width: 100%;
-}
-
-@media (max-width: 900px) {
-  .category-box-modern {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-  }
-}
-
-@media (max-width: 480px) {
-  .category-box-modern {
-    grid-template-columns: 1fr;
-  }
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 .cat-item-modern {
+  flex: 1;
+  min-width: 200px;
+  max-width: 260px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -197,6 +188,7 @@
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   transition: var(--transition-normal);
+  text-align: center;
 }
 
 [data-theme='dark'] .cat-item-modern {
@@ -352,6 +344,37 @@
   .clear-landlord-filter {
     width: 100%;
   }
+}
+
+/* Load More Section */
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+
+.load-more-btn {
+  background: linear-gradient(135deg, var(--primary-color, #4f46e5), #6366f1);
+  color: white;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 14px 32px;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+  transition: all 0.3s ease;
+}
+
+.load-more-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+  background: linear-gradient(135deg, #4338ca, #4f46e5);
+}
+
+.load-more-btn:active {
+  transform: translateY(-1px);
 }
 
 

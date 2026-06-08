@@ -16,7 +16,7 @@ function ProductCard({ product }) {
 
   return (
     <div className="card">
-      <Link to={`/product/${roomId}`} style={{ textDecoration: "none", color: "inherit", display: "block", position: "relative" }}>
+      <Link to={`/product/${roomId}`} className="card-link" style={{ textDecoration: "none", color: "inherit", position: "relative" }}>
         <div className="img-container">
           <img src={product.images?.[0] || product.image} alt={product.name || product.title} />
           <span className={`room-status-badge status-${product.status || "unknown"}`}>{statusLabel}</span>

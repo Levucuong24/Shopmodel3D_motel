@@ -1,4 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
 import Contract from "../contract/Contract.js";
 import Payment from "../payment/Payment.js";
 import Review from "../review/Review.js";
@@ -7,9 +6,9 @@ import SavedRoom from "../room/SavedRoom.js";
 import User from "../user/User.js";
 import ViewingRequest from "../viewing/ViewingRequest.js";
 
-const GEMINI_API_KEYS = [
-  "AIzaSyCuBBbO37sVkzYRCDLL_FJEfu-KJlq7AzE"
-];
+const GROQ_API_KEYS = [
+  process.env.GROQ_API_KEY
+].filter(Boolean);
 let currentKeyIndex = 0;
 
 export const chatbotReply = async (text) => {
@@ -74,52 +73,68 @@ Schema:
   `;
 
   try {
-    let response = null;
+    let result = null;
     let fallbackError = null;
+    let attempts = GROQ_API_KEYS.length;
 
-    // Lặp qua các key nếu key hiện tại bị lỗi
-    let attempts = GEMINI_API_KEYS.length;
     for (let i = 0; i < attempts; i++) {
-       if (GEMINI_API_KEYS.length === 0) break;
+      if (GROQ_API_KEYS.length === 0) break;
+      const apiKey = GROQ_API_KEYS[currentKeyIndex];
 
-       const apiKey = GEMINI_API_KEYS[currentKeyIndex];
-       try {
-          const ai = new GoogleGenAI({ apiKey });
-          response = await ai.models.generateContent({
-             model: "gemini-2.5-flash",
-             contents: prompt,
-             config: {
-                responseMimeType: "application/json",
-             },
-          });
-          break; // Thành công thì thoát loop
-       } catch (err) {
-          console.error(`API Key ở index ${currentKeyIndex} lỗi:`, err.message);
-          fallbackError = err;
-          
-          if (err.message && err.message.includes("leaked")) {
-             // Phát hiện key bị Leak (khoá vĩnh viễn), xoá luôn khỏi mảng
-             GEMINI_API_KEYS.splice(currentKeyIndex, 1);
-             // Mảng co lại nên không cần cộng currentKeyIndex, chỉ chặn lố index
-             if (currentKeyIndex >= GEMINI_API_KEYS.length) {
-                 currentKeyIndex = 0;
-             }
-          } else {
-             // Các lỗi như Quota (giới hạn ngày) thì giữ lại mai dùng, chỉ nhảy qua key khác
-             currentKeyIndex = (currentKeyIndex + 1) % GEMINI_API_KEYS.length;
+      try {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "llama-3.3-70b-versatile",
+            messages: [
+              {
+                role: "system",
+                content: "You are a helpful assistant. Always output JSON matching the requested schema exactly."
+              },
+              {
+                role: "user",
+                content: prompt
+              }
+            ],
+            response_format: { type: "json_object" }
+          })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const rawText = data.choices?.[0]?.message?.content;
+        if (!rawText) throw new Error("No response content received from Groq");
+        
+        result = JSON.parse(rawText.trim());
+        break; // Success, break loop
+      } catch (err) {
+        console.error(`Groq API Key ở index ${currentKeyIndex} lỗi:`, err.message);
+        fallbackError = err;
+
+        if (err.message && (err.message.includes("leaked") || err.message.includes("revoked") || err.message.includes("invalid") || err.message.includes("API key"))) {
+          GROQ_API_KEYS.splice(currentKeyIndex, 1);
+          if (currentKeyIndex >= GROQ_API_KEYS.length) {
+            currentKeyIndex = 0;
           }
-       }
+        } else {
+          currentKeyIndex = (currentKeyIndex + 1) % GROQ_API_KEYS.length;
+        }
+      }
     }
 
-    if (!response) {
-       throw fallbackError || new Error("All API keys are depleted or leaked."); // Ném lỗi chung nếu tất cả tạch
+    if (!result) {
+      throw fallbackError || new Error("All Groq API keys are depleted.");
     }
 
-    // Bỏ cái prefix markdown nếu có
-    const rawText = response.text.replace(/```json/gi, "").replace(/```/g, "").trim();
-    const result = JSON.parse(rawText);
     let suggestions = [];
-
     if (Array.isArray(result.suggested_room_ids) && result.suggested_room_ids.length > 0) {
       suggestions = rooms.filter((room) => result.suggested_room_ids.includes(room._id.toString()));
     }
@@ -131,18 +146,12 @@ Schema:
     };
   } catch (err) {
     console.error("AI Chatbot Error:", err);
-
     let errorMsg = "Xin lỗi, hệ thống AI hiện đang xử lý khối lượng lớn hoặc quá tải, vui lòng thử lại sau.";
-    
-    // Kiểm tra nếu lỗi do Google trả về (ví dụ API key bị lộ, hết giới hạn)
-    if (err.message && err.message.includes("leaked")) {
-       errorMsg = "Lỗi: API Key của bạn bị Google chặn vì đã bị nộp lên hệ thống công khai (Leaked). Vui lòng tạo KEY mới!";
-    } else if (err.message && err.message.includes("Quota")) {
-       errorMsg = "Lỗi: API Key của bạn đã hết dung lượng sử dụng. Vui lòng nâng cấp gói hoặc đổi Key khác.";
-    } else if (err.status || err.code) {
-       errorMsg = `Lỗi hệ thống AI (${err.status || err.code}): ${err.message}`;
+    if (err.message && err.message.includes("limit")) {
+      errorMsg = "Lỗi: API Key của bạn đã vượt quá giới hạn sử dụng (Rate limit). Vui lòng thử lại sau ít phút hoặc đổi Key khác.";
+    } else if (err.message) {
+      errorMsg = `Lỗi hệ thống AI: ${err.message}`;
     }
-
     return {
       reply: errorMsg,
       suggestions: [],

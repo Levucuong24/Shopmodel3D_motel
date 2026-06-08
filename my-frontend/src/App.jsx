@@ -11,6 +11,7 @@ import StaffDashboard from "./pages/StaffDashboard.jsx";
 import Blog from "./pages/Blog.jsx";
 import MapPage from "./pages/MapPage.jsx";
 import NewPage from "./pages/NewPage.jsx";
+import NotFound from "./pages/NotFound.jsx";
 import ScrollToTop from "./components/layout/ScrollToTop.jsx";
 import { clearLegacyAuthStorage } from "./utils/authStorage.js";
 // Dashboard Wrapper to selectively render Navbar
@@ -53,6 +54,9 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/customer" element={<CustomerDashboard />} />
         <Route path="/staff" element={<StaffDashboard />} />
+
+        {/* Catch-all Route for 404 */}
+        <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
       </Routes>
       <ScrollToTop />
     </BrowserRouter>

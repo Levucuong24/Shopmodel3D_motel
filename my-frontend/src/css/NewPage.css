@@ -113,7 +113,7 @@
 
 /* WRAPPER */
 .new-content-wrapper {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 60px 40px;
   width: 100%;
@@ -326,7 +326,7 @@
 /* DETAIL & CHAT LAYOUT */
 .chat-detail-view-container {
   padding: 40px;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
@@ -669,7 +669,7 @@
 
 /* INBOX PAGE */
 .inbox-page-wrapper {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 60px 40px;
   width: 100%;

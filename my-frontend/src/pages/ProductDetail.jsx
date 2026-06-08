@@ -1,6 +1,7 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import { Link, useParams } from "react-router-dom";
 import Chatbot from "../components/chatbot/Chatbot";
+import NotFound from "./NotFound.jsx";
 import PaymentModal from "../components/payment/PaymentModal";
 import { getAuthToken, getUserData, getUserRole } from "../utils/authStorage.js";
 import { formatPriceByUnit, formatRentalDuration } from "../utils/rentalFormat.js";
@@ -76,13 +77,23 @@ function ProductDetail() {
     fetch(`/api/rooms/${id}`, {
       headers: authToken ? { Authorization: authToken } : {}
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Không thể tìm thấy phòng");
+        }
+        return res.json();
+      })
       .then((data) => {
-        setProduct(data);
+        if (data && (data.message || data.error || !data._id)) {
+          setProduct(null);
+        } else {
+          setProduct(data);
+        }
         setLoading(false);
       })
       .catch((err) => {
         console.error(err);
+        setProduct(null);
         setLoading(false);
       });
   }, [id]);
@@ -311,8 +322,8 @@ function ProductDetail() {
     return <div className="pd-container" style={{ padding: "50px", textAlign: "center" }}>Đang tải dữ liệu phòng...</div>;
   }
 
-  if (!product || product.message === "Room not found") {
-    return <div className="not-found">Không tìm thấy phòng trọ.</div>;
+  if (!product) {
+    return <NotFound />;
   }
 
   return (
