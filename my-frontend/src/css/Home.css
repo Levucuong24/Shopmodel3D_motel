@@ -136,17 +136,25 @@
 
 /* Category Search Sections */
 .category-section-modern {
-  max-width: 1200px;
-  margin: 40px auto 20px auto;
-  padding: 0 20px;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: 0 40px 40px 40px;
   box-sizing: border-box;
+  margin: 0;
+}
+
+@media (max-width: 992px) {
+  .category-section-modern {
+    padding: 0 24px 40px 24px;
+  }
 }
 
 .style-title-modern {
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.15em;
-  color: var(--muted-text);
+  color: #000000;
   margin-bottom: 20px;
   text-transform: uppercase;
 }
@@ -178,8 +186,10 @@
   justify-content: center;
   gap: 12px;
   padding: 24px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 20px;
   font-weight: 700;
   font-size: 14.5px;
@@ -187,6 +197,11 @@
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   transition: var(--transition-normal);
+}
+
+[data-theme='dark'] .cat-item-modern {
+  background: rgba(19, 27, 46, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .cat-item-modern:hover {
