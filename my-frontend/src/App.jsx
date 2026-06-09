@@ -56,7 +56,7 @@ function App() {
         <Route path="/staff" element={<StaffDashboard />} />
 
         {/* Catch-all Route for 404 */}
-        <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <ScrollToTop />
     </BrowserRouter>
