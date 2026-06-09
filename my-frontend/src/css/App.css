@@ -1547,7 +1547,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
 .stat-label-modern {
   font-size: 13px;
   font-weight: 700;
-  color: var(--muted-text);
+  color: #000000;
   margin-top: 6px;
   text-align: center;
   text-transform: uppercase;
