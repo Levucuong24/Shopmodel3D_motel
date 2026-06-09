@@ -11,8 +11,8 @@ function Footer() {
         
         <div className="footer-col">
           <h3>Contact With us</h3>
-          <p>xuxinh@gmail.com</p>
-          <p>0123456789</p>
+          <p>levucuong0319@gmail.com</p>
+          <p>0352824919</p>
         </div>
         
         <div className="footer-col">

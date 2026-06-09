@@ -7,7 +7,7 @@ function CallToAction() {
     const phoneRegex = /^(0|\+84)(3|5|7|8|9)\d{8}$/;
     if (phoneRegex.test(phone)) {
       alert("Cảm ơn bạn! Chúng tôi đã nhận được yêu cầu. Đang kết nối tới hotline Zalo hỗ trợ...");
-      window.open("https://zalo.me/0123456789", "_blank");
+      window.open("https://zalo.me/0352824919", "_blank");
     } else {
       alert("Vui lòng nhập số điện thoại hợp lệ (10 chữ số).");
     }
@@ -35,7 +35,7 @@ function CallToAction() {
         <div className="cta-status">
           <span className="cta-status-badge">Đang hoạt động</span> hỗ trợ 24/7
         </div>
-        <div className="cta-phone">0123 456 789</div>
+        <div className="cta-phone">0352 824 919</div>
       </div>
     </div>
   );
