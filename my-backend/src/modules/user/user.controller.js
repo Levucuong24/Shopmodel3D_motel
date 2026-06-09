@@ -1,5 +1,6 @@
 // src/controllers/user.controller.js
 import User from "./User.js";
+import { uploadToCloudinary } from "../../config/cloudinary.js";
 
 export const getUserCount = async (req, res) => {
   try {
@@ -73,15 +74,20 @@ export const uploadAvatar = async (req, res) => {
     return res.status(400).json({ message: "Chưa chọn file ảnh" });
   }
 
-  const avatarPath = `/uploads/${req.file.filename}`;
+  try {
+    const avatarUrl = await uploadToCloudinary(req.file.buffer, "avatars");
 
-  const user = await User.findByIdAndUpdate(
-    req.user.id,
-    { avatar: avatarPath },
-    { new: true, runValidators: true }
-  ).select("-password");
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { avatar: avatarUrl },
+      { new: true, runValidators: true }
+    ).select("-password");
 
-  res.json(user);
+    res.json(user);
+  } catch (error) {
+    console.error("Upload avatar error:", error);
+    res.status(500).json({ message: "Không thể upload avatar lên Cloudinary" });
+  }
 };
 
 export const updateUserRole = async (req, res) => {

@@ -1,5 +1,6 @@
 import Room from "./Room.js";
 import { getAllRooms, createRoom, getRoomById as getRoomByIdService, updateRoomById, deleteRoomById as deleteRoomByIdService } from "./room.service.js";
+import { uploadToCloudinary } from "../../config/cloudinary.js";
 
 export const getRooms = async (req, res) => {
   const data = await getAllRooms({ approval_status: "approved" });
@@ -117,10 +118,16 @@ export const uploadRoomImage = async (req, res) => {
     return res.status(400).json({ message: "Vui lòng chọn ảnh phòng để tải lên" });
   }
 
-  return res.json({
-    message: "Tải ảnh phòng thành công",
-    imageUrl: `/uploads/${req.file.filename}`,
-  });
+  try {
+    const imageUrl = await uploadToCloudinary(req.file.buffer, "rooms");
+    return res.json({
+      message: "Tải ảnh phòng thành công",
+      imageUrl,
+    });
+  } catch (error) {
+    console.error("Upload room image error:", error);
+    return res.status(500).json({ message: "Không thể upload ảnh lên Cloudinary" });
+  }
 };
 
 export const updateRoom = async (req, res) => {

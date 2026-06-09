@@ -1,4 +1,5 @@
 import Gallery from "./Gallery.js";
+import { uploadToCloudinary } from "../../config/cloudinary.js";
 
 export const getGalleryImages = async (req, res) => {
   try {
@@ -66,11 +67,10 @@ export const uploadGalleryImage = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ message: "Please upload an image" });
     }
-    // Assumes upload middleware binds filePath or path, similar to cloudinary setup
-    // let's just return the URL provided by the middleware
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const imageUrl = await uploadToCloudinary(req.file.buffer, "gallery");
     res.json({ imageUrl });
   } catch (error) {
+    console.error("Upload gallery image error:", error);
     res.status(500).json({ message: "Error uploading image", error: error.message });
   }
 };
