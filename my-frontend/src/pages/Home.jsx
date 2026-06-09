@@ -118,7 +118,6 @@ function Home() {
         </div>
 
         <div className="category-section-modern">
-          <div className="style-title-modern">KIỂU DÁNG TÌM KIẾM</div>
           <div className="category-box-modern">
             <div className="cat-item-modern">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="cat-icon-modern">
