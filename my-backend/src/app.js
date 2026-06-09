@@ -4,6 +4,7 @@ import path from "path";
 import routes from "./modules/index.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
 import { auditLogger } from "./middlewares/audit.middleware.js";
+import { apiLimiter } from "./middlewares/rateLimit.middleware.js";
 
 const app = express();
 
@@ -14,7 +15,7 @@ app.use("/uploads", express.static(path.resolve("uploads")));
 // Attach the audit logger
 app.use(auditLogger);
 
-app.use("/api", routes);
+app.use("/api", apiLimiter, routes);
 
 app.use(errorMiddleware);
 
