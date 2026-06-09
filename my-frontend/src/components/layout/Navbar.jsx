@@ -9,6 +9,7 @@ function Navbar() {
   const [userRole, setUserRole] = useState(null);
   const [userData, setUserData] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const navigate = useNavigate();
   const { userId: routeUserId } = useParams();
   const [searchParams] = useSearchParams();
@@ -197,6 +198,43 @@ function Navbar() {
         )}
 
       </div>
+
+      {/* Hamburger button — mobile only */}
+      <button
+        className="nav-hamburger"
+        onClick={() => setNavOpen(o => !o)}
+        aria-label="Toggle menu"
+      >
+        {navOpen ? '✕' : '☰'}
+      </button>
+
+      {/* Mobile nav overlay */}
+      {navOpen && (
+        <div className="mobile-nav-overlay" onClick={() => setNavOpen(false)}>
+          <div className="mobile-nav-menu" onClick={e => e.stopPropagation()}>
+            <Link to={welcomePath} className="mobile-nav-link" onClick={() => setNavOpen(false)}>Trang chủ</Link>
+            <Link to="/blog" className="mobile-nav-link" onClick={() => setNavOpen(false)}>Blog</Link>
+            <Link to="/map" className="mobile-nav-link" onClick={() => setNavOpen(false)}>Map</Link>
+            <Link to="/new" className="mobile-nav-link" onClick={() => setNavOpen(false)}>New</Link>
+            <div className="mobile-nav-divider" />
+            {userRole ? (
+              <>
+                <button type="button" className="mobile-nav-link" onClick={() => { handleGoTo(`/${userRole}`); setNavOpen(false); }}>
+                  Dashboard
+                </button>
+                <button type="button" className="mobile-nav-link mobile-nav-logout" onClick={() => { handleLogout(); setNavOpen(false); }}>
+                  Đăng xuất
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="mobile-nav-link" onClick={() => setNavOpen(false)}>Đăng nhập</Link>
+                <Link to="/signup" className="mobile-nav-link mobile-nav-cta" onClick={() => setNavOpen(false)}>Đăng ký</Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
