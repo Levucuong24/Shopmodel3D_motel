@@ -355,9 +355,15 @@ h1, h2, h3, h4, h5, h6, .section-title {
 /* PRODUCT GRID */
 
 .product-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* PRODUCT CARD */
@@ -370,12 +376,17 @@ h1, h2, h3, h4, h5, h6, .section-title {
   border: 1px solid var(--card-border);
   transition: var(--transition-normal);
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .card-link {
-  display: block;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
+  flex: 1;
 }
 
 .card:hover {
@@ -387,8 +398,9 @@ h1, h2, h3, h4, h5, h6, .section-title {
 .img-container {
   position: relative;
   width: 100%;
-  height: 220px;
+  height: 200px;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .img-container img {
@@ -429,10 +441,11 @@ h1, h2, h3, h4, h5, h6, .section-title {
 }
 
 .card-body {
-  padding: 20px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  flex: 1;
 }
 
 .card-body h3 {
