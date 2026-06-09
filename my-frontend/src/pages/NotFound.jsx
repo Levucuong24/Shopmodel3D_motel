@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { Music2, Facebook, Twitter, Youtube, Instagram } from "lucide-react";
+import { Music2, Share2, X, Tv, Rss } from "lucide-react";
 import "../css/NotFound.css";
 
 function NotFound() {
@@ -112,7 +112,7 @@ function NotFound() {
             <div className="flex items-center gap-3">
               <span className="text-[10px] uppercase tracking-widest opacity-50">Join the Journey:</span>
               <div className="flex items-center gap-3">
-                {[Music2, Facebook, Twitter, Youtube, Instagram].map((Icon, i) => (
+                {[Music2, Share2, X, Tv, Rss].map((Icon, i) => (
                   <a key={i} href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white text-white">
                     <Icon size={16} />
                   </a>
