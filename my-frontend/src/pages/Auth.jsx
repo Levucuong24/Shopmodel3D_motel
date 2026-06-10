@@ -20,7 +20,9 @@ function Auth() {
 
   // Forgot Password States
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [fpFullName, setFpFullName] = useState("");
+  const [fpStep, setFpStep] = useState(1);
+  const [fpEmail, setFpEmail] = useState("");
+  const [fpOTP, setFpOTP] = useState("");
   const [fpNewPassword, setFpNewPassword] = useState("");
   const [fpConfirmPassword, setFpConfirmPassword] = useState("");
   const [fpSubmitting, setFpSubmitting] = useState(false);
@@ -40,8 +42,38 @@ function Auth() {
     }
   }, [isSignUp]);
 
+  const handleRequestOTP = async (e) => {
+    e.preventDefault();
+    if (!fpEmail) {
+      alert("Vui lòng nhập Email!");
+      return;
+    }
+    setFpSubmitting(true);
+    try {
+      const response = await fetch("/api/auth/request-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: fpEmail }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Yêu cầu OTP thất bại");
+      }
+      alert("Mã OTP đã được gửi về Gmail của bạn!");
+      setFpStep(2);
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setFpSubmitting(false);
+    }
+  };
+
   const handleResetPassword = async (e) => {
     e.preventDefault();
+    if (!fpOTP) {
+      alert("Vui lòng nhập mã OTP!");
+      return;
+    }
     if (fpNewPassword !== fpConfirmPassword) {
       alert("Mật khẩu xác nhận không khớp!");
       return;
@@ -51,7 +83,7 @@ function Auth() {
       const response = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ full_name: fpFullName, new_password: fpNewPassword }),
+        body: JSON.stringify({ email: fpEmail, otp: fpOTP, new_password: fpNewPassword }),
       });
       const data = await response.json();
       if (!response.ok) {
@@ -59,6 +91,11 @@ function Auth() {
       }
       alert("Khôi phục mật khẩu thành công!");
       setShowForgotPassword(false);
+      setFpStep(1);
+      setFpEmail("");
+      setFpOTP("");
+      setFpNewPassword("");
+      setFpConfirmPassword("");
     } catch (error) {
       alert(error.message);
     } finally {
@@ -192,18 +229,69 @@ function Auth() {
         {/* Sign In / Forgot Password Content */}
         <div className="form-container sign-in-container">
           {showForgotPassword ? (
-            <form className="auth-form" onSubmit={handleResetPassword}>
+            <form className="auth-form" onSubmit={fpStep === 1 ? handleRequestOTP : handleResetPassword}>
               <h1>Khôi phục mật khẩu</h1>
-              <span className="subtitle">Nhập thông tin xác thực để đổi mật khẩu cá nhân</span>
-              <input type="text" placeholder="Họ và tên" required value={fpFullName} onChange={(e) => setFpFullName(e.target.value)} />
-              <input type="password" placeholder="Mật khẩu mới" required value={fpNewPassword} onChange={(e) => setFpNewPassword(e.target.value)} />
-              <input type="password" placeholder="Xác nhận mật khẩu" required value={fpConfirmPassword} onChange={(e) => setFpConfirmPassword(e.target.value)} />
+              <span className="subtitle" style={{ marginBottom: "15px", display: "block" }}>
+                {fpStep === 1 
+                  ? "Nhập Email liên kết để nhận mã xác nhận OTP" 
+                  : "Nhập mã OTP từ Gmail và mật khẩu mới"
+                }
+              </span>
               
-              <button className="action-btn" type="submit" disabled={fpSubmitting} style={{ marginTop: '10px' }}>
-                {fpSubmitting ? "Đang xử lý..." : "Xác nhận đổi"}
-              </button>
+              {fpStep === 1 ? (
+                <>
+                  <input 
+                    type="email" 
+                    placeholder="Nhập Email của bạn" 
+                    required 
+                    value={fpEmail} 
+                    onChange={(e) => setFpEmail(e.target.value)} 
+                  />
+                  <button className="action-btn" type="submit" disabled={fpSubmitting} style={{ marginTop: '10px' }}>
+                    {fpSubmitting ? "Đang gửi..." : "Gửi mã OTP"}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <input 
+                    type="text" 
+                    placeholder="Nhập mã OTP (6 số)" 
+                    required 
+                    value={fpOTP} 
+                    onChange={(e) => setFpOTP(e.target.value)} 
+                  />
+                  <input 
+                    type="password" 
+                    placeholder="Mật khẩu mới" 
+                    required 
+                    value={fpNewPassword} 
+                    onChange={(e) => setFpNewPassword(e.target.value)} 
+                  />
+                  <input 
+                    type="password" 
+                    placeholder="Xác nhận mật khẩu mới" 
+                    required 
+                    value={fpConfirmPassword} 
+                    onChange={(e) => setFpConfirmPassword(e.target.value)} 
+                  />
+                  <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '10px' }}>
+                    <button 
+                      className="action-btn" 
+                      type="button" 
+                      onClick={() => setFpStep(1)} 
+                      style={{ background: '#71717a', flex: 1 }}
+                    >
+                      Quay lại
+                    </button>
+                    <button className="action-btn" type="submit" disabled={fpSubmitting} style={{ flex: 1 }}>
+                      {fpSubmitting ? "Đang đổi..." : "Xác nhận đổi"}
+                    </button>
+                  </div>
+                </>
+              )}
+              
               <div className="back-link-wrapper" style={{marginTop: "20px"}}>
-                 <span className="back-home" onClick={() => setShowForgotPassword(false)} style={{cursor: "pointer", color: "#333", fontSize: "14px", transition: "color 0.3s"}} onMouseOver={(e)=>e.target.style.color="#ff4b2b"} onMouseOut={(e)=>e.target.style.color="#333"}>&larr; Quay lại Đăng nhập</span>
+                 <span className="back-home" onClick={() => { setShowForgotPassword(false); setFpStep(1); }} style={{cursor: "pointer", color: "#333", fontSize: "14px", transition: "color 0.3s"}} onMouseOver={(e)=>e.target.style.color="#ff4b2b"} onMouseOut={(e)=>e.target.style.color="#333"}>&larr; Quay lại Đăng nhập</span>
               </div>
             </form>
           ) : (
