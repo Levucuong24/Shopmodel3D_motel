@@ -54,62 +54,72 @@ export const register = async (req, res) => {
   res.status(201).json(buildAuthResponse(user));
 };
 
-export const requestOTP = async (req, res) => {
-  const { email } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ message: "Vui lòng nhập Email" });
-  }
-
-  const user = await User.findOne({ email });
-  if (!user) {
-    return res.status(404).json({ message: "Không tìm thấy tài khoản với Email này" });
-  }
-
-  // Generate a random 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes expiration
-
-  await OTP.deleteMany({ email });
-  await OTP.create({ email, otp, expiresAt });
-
+export const requestOTP = async (req, res, next) => {
   try {
-    await sendOTPEmail({ email, otp });
-    res.json({ message: "Mã OTP đã được gửi về Gmail của bạn" });
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Vui lòng nhập Email" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "Không tìm thấy tài khoản với Email này" });
+    }
+
+    // Generate a random 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes expiration
+
+    await OTP.deleteMany({ email });
+    await OTP.create({ email, otp, expiresAt });
+
+    try {
+      await sendOTPEmail({ email, otp });
+      return res.json({ message: "Mã OTP đã được gửi về Gmail của bạn" });
+    } catch (error) {
+      console.error("OTP email sending error:", error);
+      return res.status(500).json({ message: "Không thể gửi email OTP, vui lòng thử lại sau" });
+    }
   } catch (error) {
-    console.error("OTP email sending error:", error);
-    res.status(500).json({ message: "Không thể gửi email OTP, vui lòng thử lại sau" });
+    console.error("requestOTP error:", error);
+    return res.status(500).json({ message: "Đã xảy ra lỗi trên hệ thống, vui lòng thử lại sau" });
   }
 };
 
-export const resetPassword = async (req, res) => {
-  const { email, otp, new_password } = req.body;
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { email, otp, new_password } = req.body;
 
-  if (!email || !otp || !new_password) {
-    return res.status(400).json({ message: "Thiếu thông tin khôi phục mật khẩu" });
-  }
+    if (!email || !otp || !new_password) {
+      return res.status(400).json({ message: "Thiếu thông tin khôi phục mật khẩu" });
+    }
 
-  const otpRecord = await OTP.findOne({ email, otp });
-  if (!otpRecord) {
-    return res.status(400).json({ message: "Mã OTP không chính xác hoặc đã hết hạn" });
-  }
+    const otpRecord = await OTP.findOne({ email, otp });
+    if (!otpRecord) {
+      return res.status(400).json({ message: "Mã OTP không chính xác hoặc đã hết hạn" });
+    }
 
-  if (new Date() > otpRecord.expiresAt) {
+    if (new Date() > otpRecord.expiresAt) {
+      await OTP.deleteOne({ _id: otpRecord._id });
+      return res.status(400).json({ message: "Mã OTP đã hết hạn" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "Không tìm thấy tài khoản với Email này" });
+    }
+
+    user.password = new_password;
+    await user.save();
+
     await OTP.deleteOne({ _id: otpRecord._id });
-    return res.status(400).json({ message: "Mã OTP đã hết hạn" });
+
+    return res.json({ message: "Đổi mật khẩu thành công" });
+  } catch (error) {
+    console.error("resetPassword error:", error);
+    return res.status(500).json({ message: "Đã xảy ra lỗi trên hệ thống, vui lòng thử lại sau" });
   }
-
-  const user = await User.findOne({ email });
-  if (!user) {
-    return res.status(404).json({ message: "Không tìm thấy tài khoản với Email này" });
-  }
-
-  user.password = new_password;
-  await user.save();
-
-  await OTP.deleteOne({ _id: otpRecord._id });
-
-  res.json({ message: "Đổi mật khẩu thành công" });
 };
 
 export const googleLogin = async (req, res) => {
