@@ -254,14 +254,14 @@ function Auth() {
         <div className="overlay-container">
           <div className="overlay">
             <div className="overlay-panel overlay-left">
-              <h1 style={{ transform: "translateX(-20px)" }}>Trọ FPT mừng bạn về nhà</h1>
+              <h1 style={{ transform: "translateX(-20px)" }}>HOMIE mừng bạn về nhà</h1>
               <p style={{ transform: "translateX(-20px)" }}>Để duy trì kết nối với chúng tôi, vui lòng đăng nhập bằng thông tin cá nhân của bạn</p>
               <button className="ghost action-btn" id="signIn" onClick={() => setIsSignUp(false)} style={{ transform: "translateX(-20px)" }}>
                 Đăng nhập
               </button>
             </div>
             <div className="overlay-panel overlay-right">
-              <h1 style={{ transform: "translateX(20px)" }}>Trọ FPT kính chào quý khách!</h1>
+              <h1 style={{ transform: "translateX(20px)" }}>HOMIE kính chào quý khách!</h1>
               <p style={{ transform: "translateX(20px)" }}>Nhập thông tin cá nhân của bạn và bắt đầu hành trình với chúng tôi</p>
               <button className="ghost action-btn" id="signUp" onClick={() => setIsSignUp(true)} style={{ transform: "translateX(20px)" }}>
                 Đăng ký
