@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { clearAuthSession, getAuthToken, getUserData, getUserRole, setUserData } from "../utils/authStorage.js";
 import { formatDateTime, formatPriceByUnit, formatRentalDuration, getRentalUnitLabel } from "../utils/rentalFormat.js";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import "../css/StaffDashboard.css";
 
 const roomStatusLabel = {
@@ -588,6 +589,32 @@ function StaffDashboard() {
   const totalRevenue = completedPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
   const totalDepositsCount = payments.length;
 
+  // Get revenue grouped by month for the current year
+  const getMonthlyRevenueData = () => {
+    const months = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"];
+    const currentYear = new Date().getFullYear();
+    
+    const monthlyStats = months.map((name) => ({
+      name,
+      "Doanh thu": 0,
+      "Số giao dịch": 0
+    }));
+    
+    completedPayments.forEach((payment) => {
+      const pDate = new Date(payment.created_at || payment.createdAt);
+      if (pDate.getFullYear() === currentYear) {
+        const m = pDate.getMonth();
+        if (m >= 0 && m < 12) {
+          monthlyStats[m]["Doanh thu"] += (payment.amount || 0);
+          monthlyStats[m]["Số giao dịch"] += 1;
+        }
+      }
+    });
+    return monthlyStats;
+  };
+
+  const revenueData = getMonthlyRevenueData();
+
   return (
     <div className="dashboard-container">
       <aside className="sidebar">
@@ -715,6 +742,57 @@ function StaffDashboard() {
                     <p className="stat-number">{pendingRoomsCount} yêu cầu</p>
                     <div className="stat-trend">Đang chờ Quản trị viên duyệt</div>
                   </div>
+                </div>
+              </div>
+
+              <div className="recent-activity" style={{ marginTop: "24px", marginBottom: "24px" }}>
+                <h3>Phân tích doanh thu đặt cọc năm {new Date().getFullYear()}</h3>
+                <div style={{ width: "100%", height: 320, marginTop: "16px" }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={revenueData}
+                      margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                      <XAxis 
+                        dataKey="name" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: "#64748b", fontSize: 12 }} 
+                      />
+                      <YAxis 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: "#64748b", fontSize: 12 }}
+                        tickFormatter={(val) => val === 0 ? "0" : `${(val / 1000000).toFixed(1)}M`}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: "#09090b", 
+                          border: "none", 
+                          borderRadius: "8px", 
+                          color: "#fff",
+                          fontSize: "13px"
+                        }}
+                        formatter={(value) => [`${value.toLocaleString("vi-VN")}đ`, "Doanh thu"]}
+                        labelFormatter={(label) => `Tháng: ${label}`}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="Doanh thu" 
+                        stroke="var(--primary)" 
+                        strokeWidth={2}
+                        fillOpacity={1} 
+                        fill="url(#colorRevenue)" 
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 
