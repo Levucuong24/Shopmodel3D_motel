@@ -44,6 +44,57 @@ export const sendAdminPaymentNotification = async ({ customerName, customerEmail
 };
 
 export const sendOTPEmail = async ({ email, otp }) => {
+  const scriptUrl = process.env.GOOGLE_APP_SCRIPT_URL;
+
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e4e4e7; border-radius: 8px;">
+      <h2 style="color: #ff6a00; text-align: center;">Mã xác nhận OTP</h2>
+      <p>Xin chào,</p>
+      <p>Bạn đã yêu cầu khôi phục mật khẩu trên hệ thống <strong>HOMIE</strong>. Vui lòng sử dụng mã OTP dưới đây để hoàn tất quá trình đổi mật khẩu:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #09090b; background-color: #f4f4f5; padding: 10px 20px; border-radius: 4px; border: 1px solid #e4e4e7;">
+          ${otp}
+        </span>
+      </div>
+      <p style="color: #ef4444; font-size: 13px;">Lưu ý: Mã OTP này có hiệu lực trong vòng 5 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>
+      <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 20px 0;" />
+      <p style="font-size: 12px; color: #71717a; text-align: center;">Đây là email tự động từ hệ thống HOMIE, vui lòng không trả lời email này.</p>
+    </div>
+  `;
+
+  if (scriptUrl) {
+    try {
+      const response = await fetch(scriptUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: email,
+          subject: "[HOMIE] Ma xac nhan (OTP) khoi phuc mat khau",
+          html: htmlContent,
+          secret: process.env.SMTP_PASS || "ybnp meqq mjyu gipk",
+        }),
+      });
+
+      const contentType = response.headers.get("content-type");
+      let data = {};
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        throw new Error(text || `HTTP error ${response.status}`);
+      }
+
+      if (!response.ok || data.error) {
+        throw new Error(data.error || `Yêu cầu thất bại với mã lỗi ${response.status}`);
+      }
+      return { success: true };
+    } catch (fetchError) {
+      console.error("Failed to send OTP email via Google Apps Script:", fetchError);
+      throw new Error(`Google Apps Script API failed: ${fetchError.message}`);
+    }
+  }
+
+  // Fallback to Nodemailer SMTP
   const transporter = createTransporter();
 
   if (!transporter) {
@@ -55,21 +106,7 @@ export const sendOTPEmail = async ({ email, otp }) => {
     from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to: email,
     subject: "[HOMIE] Ma xac nhan (OTP) khoi phuc mat khau",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e4e4e7; border-radius: 8px;">
-        <h2 style="color: #ff6a00; text-align: center;">Mã xác nhận OTP</h2>
-        <p>Xin chào,</p>
-        <p>Bạn đã yêu cầu khôi phục mật khẩu trên hệ thống <strong>HOMIE</strong>. Vui lòng sử dụng mã OTP dưới đây để hoàn tất quá trình đổi mật khẩu:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #09090b; background-color: #f4f4f5; padding: 10px 20px; border-radius: 4px; border: 1px solid #e4e4e7;">
-            ${otp}
-          </span>
-        </div>
-        <p style="color: #ef4444; font-size: 13px;">Lưu ý: Mã OTP này có hiệu lực trong vòng 5 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>
-        <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 20px 0;" />
-        <p style="font-size: 12px; color: #71717a; text-align: center;">Đây là email tự động từ hệ thống HOMIE, vui lòng không trả lời email này.</p>
-      </div>
-    `,
+    html: htmlContent,
   });
 
   return { skipped: false };
