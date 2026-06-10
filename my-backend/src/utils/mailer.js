@@ -9,14 +9,19 @@ const createTransporter = () => {
     return null;
   }
 
+  const isSecure = SMTP_SECURE === "true" || (SMTP_PORT === "465" && SMTP_SECURE !== "false");
+
   return nodemailer.createTransport({
     host: SMTP_HOST,
     port: Number(SMTP_PORT),
-    secure: SMTP_SECURE === "true",
+    secure: isSecure,
     auth: {
       user: SMTP_USER,
       pass: SMTP_PASS,
     },
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 5000,
   });
 };
 
