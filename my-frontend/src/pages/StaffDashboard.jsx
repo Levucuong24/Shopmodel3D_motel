@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { clearAuthSession, getAuthToken, getUserData, getUserRole, setUserData } from "../utils/authStorage.js";
 import { formatDateTime, formatPriceByUnit, formatRentalDuration, getRentalUnitLabel } from "../utils/rentalFormat.js";
-import "../css/AdminDashboard.css";
+import "../css/StaffDashboard.css";
 
 const roomStatusLabel = {
   available: "Còn phòng",
@@ -576,12 +576,24 @@ function StaffDashboard() {
       user.full_name || "Staff"
     )}&background=4f46e5&color=fff`;
 
+  // Compute Landlord stats
+  const totalRoomsCount = rooms.length;
+  const approvedRoomsCount = rooms.filter(r => r.approval_status === "approved").length;
+  const pendingRoomsCount = rooms.filter(r => r.approval_status === "pending").length;
+  
+  // Completed payments/reservations
+  const completedPayments = payments.filter(
+    (p) => p.status === "success" || p.room_id?.status === "rented" || p.rental_confirmed_at
+  );
+  const totalRevenue = completedPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+  const totalDepositsCount = payments.length;
+
   return (
     <div className="dashboard-container">
-      <aside className="sidebar admin-theme" style={{ backgroundColor: "#4f46e5" }}>
+      <aside className="sidebar">
         <div className="sidebar-header">
           <h2>Homie</h2>
-          <span className="role-badge" style={{ backgroundColor: "#818cf8" }}>Staff</span>
+          <span className="role-badge">Chủ nhà</span>
         </div>
         <ul className="nav-links">
           <li className={activeTab === "overview" ? "active" : ""}>
@@ -610,22 +622,72 @@ function StaffDashboard() {
         </div>
       </aside>
 
-      <main className="main-content bg-light">
+      <main className="main-content">
         <header className="topbar">
           <h1>Bảng Điều Khiển Chủ nhà</h1>
           <div className="user-profile">
-            <span style={{ marginRight: "10px", fontWeight: "bold" }}>{user.full_name}</span>
+            <span>{user.full_name}</span>
             <img src={staffAvatar} alt="Staff Avatar" />
           </div>
         </header>
 
         <section className="dashboard-content">
           {activeTab === "overview" && (
-            <div style={{ backgroundColor: "#fff", padding: "20px", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
-              <h2>Bảng tổng quan chủ nhà</h2>
-              <p>Chào mừng <strong>{user.full_name}</strong>. Bạn đang đăng nhập với tư cách Chủ nhà.</p>
-              <p>Bạn có thể quản lý phòng và cập nhật giá/phòng của chính mình tại đây.</p>
-            </div>
+            <>
+              <div className="welcome-hero">
+                <h2>Xin chào, {user.full_name}! 👋</h2>
+                <p>Chào mừng bạn trở lại trang quản lý chủ nhà. Dưới đây là tóm tắt số liệu hiệu quả hoạt động và quản lý các phòng trọ của bạn trong ngày hôm nay.</p>
+              </div>
+
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <div className="stat-icon icon-revenue">💰</div>
+                  <div className="stat-details">
+                    <h3>Tổng doanh thu đã cọc</h3>
+                    <p className="stat-number">{totalRevenue.toLocaleString("vi-VN")}đ</p>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="stat-icon icon-rooms">🏠</div>
+                  <div className="stat-details">
+                    <h3>Tổng số phòng trọ</h3>
+                    <p className="stat-number">{totalRoomsCount} phòng</p>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="stat-icon icon-approved">✅</div>
+                  <div className="stat-details">
+                    <h3>Phòng đã phê duyệt</h3>
+                    <p className="stat-number">{approvedRoomsCount} phòng</p>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="stat-icon icon-pending">⏳</div>
+                  <div className="stat-details">
+                    <h3>Yêu cầu chờ duyệt</h3>
+                    <p className="stat-number">{pendingRoomsCount} yêu cầu</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="recent-activity" style={{ marginTop: "20px" }}>
+                <h3>Lối tắt quản trị chủ nhà</h3>
+                <div style={{ display: "flex", gap: "15px", flexWrap: "wrap", marginTop: "15px" }}>
+                  <button className="btn btn-primary" onClick={() => setActiveTab("properties")}>
+                    + Đăng phòng trọ mới
+                  </button>
+                  <button className="btn btn-secondary" onClick={() => setActiveTab("payments")}>
+                    💼 Xem các lượt đặt cọc ({totalDepositsCount})
+                  </button>
+                  <button className="btn btn-secondary" onClick={() => setActiveTab("profile")}>
+                    ⚙️ Chỉnh sửa hồ sơ cá nhân
+                  </button>
+                </div>
+              </div>
+            </>
           )}
 
           {activeTab === "properties" && (
@@ -695,11 +757,11 @@ function StaffDashboard() {
                 )}
 
                 <div className="form-actions" style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
-                  <button type="submit" className="create-room-btn" disabled={creatingRoom} style={{ flex: 1, backgroundColor: "#4f46e5" }}>
+                  <button type="submit" className="btn btn-primary" disabled={creatingRoom} style={{ flex: 1 }}>
                     {creatingRoom ? "Đang xử lý..." : editingRoomId ? "Lưu thay đổi" : "Đăng phòng"}
                   </button>
                   {editingRoomId && (
-                    <button type="button" onClick={handleCancelEdit} style={{ flex: 1, padding: "10px", backgroundColor: "#6b7280", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer" }}>
+                    <button type="button" onClick={handleCancelEdit} className="btn btn-secondary" style={{ flex: 1 }}>
                       Hủy
                     </button>
                   )}
@@ -730,34 +792,32 @@ function StaffDashboard() {
                         <td>{formatPriceByUnit(room.price, room.price_unit)}</td>
                         <td>{room.location}</td>
                         <td>
-                          <span style={{ padding: "4px 8px", borderRadius: "12px", color: "#fff", fontSize: "12px", background: roomStatusColor[room.status] || "#64748b" }}>
+                          <span className={`status-badge ${room.status}`}>
                             {roomStatusLabel[room.status] || room.status}
                           </span>
                         </td>
                         <td>
-                          <span style={{ padding: "4px 8px", borderRadius: "12px", color: "#fff", fontSize: "12px", fontWeight: "bold", background: approvalStatusColor[room.approval_status] || "#64748b" }}>
+                          <span className={`status-badge ${room.approval_status}`}>
                             {approvalStatusLabel[room.approval_status] || room.approval_status}
                           </span>
                         </td>
                         <td>
-                          <div style={{ display: "flex", gap: "5px" }}>
-                            <button onClick={() => handleViewRoomClick(room)} style={{ padding: "5px 10px", background: "#3b82f6", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Xem</button>
+                          <div style={{ display: "flex", gap: "8px" }}>
+                            <button onClick={() => handleViewRoomClick(room)} className="btn btn-secondary" style={{ padding: "6px 12px", fontSize: "12px" }}>Xem</button>
                             <button
                               onClick={() => handleEditRoomClick(room)}
                               disabled={room.status === "rented"}
+                              className="btn btn-primary"
                               style={{
-                                padding: "5px 10px",
-                                background: room.status === "rented" ? "#9ca3af" : "#f59e0b",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "4px",
+                                padding: "6px 12px",
+                                fontSize: "12px",
+                                backgroundColor: room.status === "rented" ? "#9ca3af" : undefined,
                                 cursor: room.status === "rented" ? "not-allowed" : "pointer",
-                                opacity: room.status === "rented" ? 0.7 : 1,
                               }}
                             >
                               Sửa
                             </button>
-                            <button onClick={() => handleDeleteRoom(room._id)} style={{ padding: "5px 10px", background: "#ef4444", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Xóa</button>
+                            <button onClick={() => handleDeleteRoom(room._id)} className="btn btn-danger" style={{ padding: "6px 12px", fontSize: "12px" }}>Xóa</button>
                           </div>
                         </td>
                       </tr>
@@ -793,10 +853,10 @@ function StaffDashboard() {
                   </div>
 
                   <div className="form-actions" style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
-                    <button type="submit" className="create-room-btn" disabled={savingPayment} style={{ flex: 1, backgroundColor: "#4f46e5" }}>
+                    <button type="submit" className="btn btn-primary" disabled={savingPayment} style={{ flex: 1 }}>
                       {savingPayment ? "Đang lưu..." : "Lưu chỉnh sửa"}
                     </button>
-                    <button type="button" onClick={handleCancelPaymentEdit} style={{ flex: 1, padding: "10px", backgroundColor: "#6b7280", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer" }}>
+                    <button type="button" onClick={handleCancelPaymentEdit} className="btn btn-secondary" style={{ flex: 1 }}>
                       Hủy
                     </button>
                   </div>
@@ -838,12 +898,7 @@ function StaffDashboard() {
                           ? "Đã hủy"
                           : "Chờ chuyển khoản";
 
-                      const statusColor =
-                        isConfirmed
-                          ? "#16a34a"
-                          : payment.status === "failed" || payment.status === "cancelled"
-                          ? "#dc2626"
-                          : "#d97706";
+                      const statusBadgeClass = isConfirmed ? "available" : (payment.status === "failed" || payment.status === "cancelled") ? "rented" : "reserved";
 
                       return (
                         <tr key={payment._id}>
@@ -857,7 +912,7 @@ function StaffDashboard() {
                           </td>
                           <td style={{ fontWeight: "bold" }}>{payment.amount?.toLocaleString("vi-VN")}đ</td>
                           <td>
-                            <span className="status-badge" style={{ background: statusColor, color: "#fff" }}>
+                            <span className={`status-badge ${statusBadgeClass}`}>
                               {statusLabel}
                             </span>
                           </td>
@@ -867,12 +922,11 @@ function StaffDashboard() {
                               <button
                                 onClick={() => handleEditPaymentClick(payment)}
                                 disabled={disableEditDelete}
+                                className="btn btn-primary"
                                 style={{
-                                  padding: "5px 10px",
-                                  background: disableEditDelete ? "#9ca3af" : "#f59e0b",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "4px",
+                                  padding: "6px 12px",
+                                  fontSize: "12px",
+                                  backgroundColor: disableEditDelete ? "#9ca3af" : undefined,
                                   cursor: disableEditDelete ? "not-allowed" : "pointer",
                                 }}
                               >
@@ -881,12 +935,11 @@ function StaffDashboard() {
                               <button
                                 onClick={() => handleDeletePayment(payment._id)}
                                 disabled={disableEditDelete}
+                                className="btn btn-danger"
                                 style={{
-                                  padding: "5px 10px",
-                                  background: disableEditDelete ? "#9ca3af" : "#ef4444",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "4px",
+                                  padding: "6px 12px",
+                                  fontSize: "12px",
+                                  backgroundColor: disableEditDelete ? "#9ca3af" : undefined,
                                   cursor: disableEditDelete ? "not-allowed" : "pointer",
                                 }}
                               >
@@ -895,12 +948,11 @@ function StaffDashboard() {
                               <button
                                 onClick={() => handleConfirmRental(payment._id)}
                                 disabled={disableConfirmRental}
+                                className="btn btn-primary"
                                 style={{
-                                  padding: "5px 10px",
-                                  background: disableConfirmRental ? "#9ca3af" : "#10b981",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "4px",
+                                  padding: "6px 12px",
+                                  fontSize: "12px",
+                                  backgroundColor: disableConfirmRental ? "#9ca3af" : "#10b981",
                                   cursor: disableConfirmRental ? "not-allowed" : "pointer",
                                 }}
                               >
@@ -909,21 +961,18 @@ function StaffDashboard() {
                               {hasCancellationRequest && (
                                 <button
                                   onClick={() => handleConfirmCancellation(payment._id)}
+                                  className="btn btn-danger"
                                   style={{
-                                    padding: "5px 10px",
-                                    background: "#dc2626",
-                                    color: "white",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: "pointer",
+                                    padding: "6px 12px",
+                                    fontSize: "12px",
                                   }}
                                 >
                                   Xác nhận hủy thuê
                                 </button>
                               )}
-                              {isConfirmed && <span style={{ color: "#10b981", fontWeight: "bold" }}>Đã chốt thuê</span>}
-                              {hasCancellationRequest && <span style={{ color: "#c2410c", fontWeight: "bold" }}>Khách đang yêu cầu hủy</span>}
-                              {isCancelledRental && <span style={{ color: "#6b7280", fontWeight: "bold" }}>Đã hủy thuê</span>}
+                              {isConfirmed && <span style={{ color: "#10b981", fontWeight: "bold", marginLeft: "5px" }}>Đã chốt thuê</span>}
+                              {hasCancellationRequest && <span style={{ color: "#c2410c", fontWeight: "bold", marginLeft: "5px" }}>Khách đang yêu cầu hủy</span>}
+                              {isCancelledRental && <span style={{ color: "#6b7280", fontWeight: "bold", marginLeft: "5px" }}>Đã hủy thuê</span>}
                             </div>
                           </td>
                         </tr>
@@ -938,13 +987,13 @@ function StaffDashboard() {
           {activeTab === "profile" && (
             <div className="profile-card">
               <div className="profile-card-header">
-                <h3 className="section-title" style={{ borderLeftColor: "#4f46e5" }}>Thông tin cá nhân</h3>
+                <h3 className="section-title">Thông tin cá nhân</h3>
                 <img src={staffAvatar} alt={user.full_name} className="profile-preview-avatar" />
               </div>
 
               <form className="profile-form" onSubmit={handleProfileSave}>
                 <div className="avatar-upload-box">
-                  <label className="avatar-upload-label" style={{ backgroundColor: "#4f46e5" }}>
+                  <label className="avatar-upload-label">
                     <span>{uploadingAvatar ? "Đang tải ảnh..." : "Tải ảnh đại diện từ máy tính"}</span>
                     <input type="file" accept="image/*" onChange={handleAvatarUpload} hidden />
                   </label>
@@ -988,7 +1037,7 @@ function StaffDashboard() {
                   </label>
                 </div>
 
-                <button type="submit" className="profile-save-btn" disabled={savingProfile}>
+                <button type="submit" className="profile-save-btn btn btn-primary" disabled={savingProfile}>
                   {savingProfile ? "Đang lưu..." : "Lưu thay đổi"}
                 </button>
               </form>
@@ -998,11 +1047,11 @@ function StaffDashboard() {
       </main>
 
       {viewingRoom && (
-        <div className="modal-overlay" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 }}>
-          <div className="modal-content" style={{ background: "white", padding: "20px", borderRadius: "8px", width: "80%", maxWidth: "800px", maxHeight: "90vh", overflowY: "auto" }}>
+        <div className="modal-overlay">
+          <div className="modal-content">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #ddd", paddingBottom: "10px", marginBottom: "20px" }}>
               <h2>Chi tiết phòng: {viewingRoom.name}</h2>
-              <button onClick={() => setViewingRoom(null)} style={{ background: "transparent", border: "none", fontSize: "28px", cursor: "pointer" }}>&times;</button>
+              <button onClick={() => setViewingRoom(null)} style={{ background: "transparent", border: "none", fontSize: "28px", cursor: "pointer", padding: 0 }}>&times;</button>
             </div>
 
             <div className="modal-body">
