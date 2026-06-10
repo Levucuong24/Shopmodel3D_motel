@@ -79,7 +79,10 @@ export const requestOTP = async (req, res, next) => {
       return res.json({ message: "Mã OTP đã được gửi về Gmail của bạn" });
     } catch (error) {
       console.error("OTP email sending error:", error);
-      return res.status(500).json({ message: "Không thể gửi email OTP, vui lòng thử lại sau" });
+      return res.status(500).json({ 
+        message: "Không thể gửi email OTP, vui lòng thử lại sau", 
+        error: error.message 
+      });
     }
   } catch (error) {
     console.error("requestOTP error:", error);

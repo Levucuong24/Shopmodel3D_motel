@@ -66,7 +66,7 @@ function Auth() {
       }
 
       if (!response.ok) {
-        throw new Error(data.message || "Yêu cầu OTP thất bại");
+        throw new Error(data.error ? `${data.message}: ${data.error}` : (data.message || "Yêu cầu OTP thất bại"));
       }
       alert("Mã OTP đã được gửi về Gmail của bạn!");
       setFpStep(2);
