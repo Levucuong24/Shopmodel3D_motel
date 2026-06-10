@@ -55,7 +55,16 @@ function Auth() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: fpEmail }),
       });
-      const data = await response.json();
+      
+      let data = {};
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        throw new Error(text || `Yêu cầu thất bại với mã lỗi ${response.status}`);
+      }
+
       if (!response.ok) {
         throw new Error(data.message || "Yêu cầu OTP thất bại");
       }
@@ -85,7 +94,16 @@ function Auth() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: fpEmail, otp: fpOTP, new_password: fpNewPassword }),
       });
-      const data = await response.json();
+      
+      let data = {};
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        throw new Error(text || `Yêu cầu thất bại với mã lỗi ${response.status}`);
+      }
+
       if (!response.ok) {
         throw new Error(data.message || "Khôi phục thất bại");
       }
