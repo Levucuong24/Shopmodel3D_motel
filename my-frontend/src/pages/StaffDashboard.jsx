@@ -597,16 +597,28 @@ function StaffDashboard() {
         </div>
         <ul className="nav-links">
           <li className={activeTab === "overview" ? "active" : ""}>
-            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("overview"); }}>Tổng quan</a>
+            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("overview"); }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              Tổng quan
+            </a>
           </li>
           <li className={activeTab === "properties" ? "active" : ""}>
-            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("properties"); }}>Quản lý phòng</a>
+            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("properties"); }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+              Quản lý phòng
+            </a>
           </li>
           <li className={activeTab === "payments" ? "active" : ""}>
-            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("payments"); }}>Quản lý đặt cọc</a>
+            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("payments"); }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+              Quản lý đặt cọc
+            </a>
           </li>
           <li className={activeTab === "profile" ? "active" : ""}>
-            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("profile"); }}>Thông tin cá nhân</a>
+            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("profile"); }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              Thông tin cá nhân
+            </a>
           </li>
         </ul>
         <div className="sidebar-footer">
@@ -632,55 +644,88 @@ function StaffDashboard() {
         </header>
 
         <section className="dashboard-content">
+          <div className="breadcrumb">
+            <span>Trang quản trị</span>
+            <span className="separator">/</span>
+            <span>Chủ nhà</span>
+            <span className="separator">/</span>
+            <span className="current">
+              {activeTab === "overview" && "Tổng quan"}
+              {activeTab === "properties" && "Quản lý phòng"}
+              {activeTab === "payments" && "Quản lý đặt cọc"}
+              {activeTab === "profile" && "Thông tin cá nhân"}
+            </span>
+          </div>
+
           {activeTab === "overview" && (
             <>
-              <div className="welcome-hero">
+              <div className="dashboard-header-greet">
                 <h2>Xin chào, {user.full_name}! 👋</h2>
-                <p>Chào mừng bạn trở lại trang quản lý chủ nhà. Dưới đây là tóm tắt số liệu hiệu quả hoạt động và quản lý các phòng trọ của bạn trong ngày hôm nay.</p>
+                <p>Chào mừng bạn trở lại trang quản trị. Xem qua hiệu suất hoạt động phòng trọ của bạn dưới đây.</p>
               </div>
 
               <div className="stats-grid">
                 <div className="stat-card">
-                  <div className="stat-icon icon-revenue">💰</div>
-                  <div className="stat-details">
+                  <div className="stat-card-top">
                     <h3>Tổng doanh thu đã cọc</h3>
+                    <div className="stat-icon icon-revenue">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    </div>
+                  </div>
+                  <div className="stat-card-bottom">
                     <p className="stat-number">{totalRevenue.toLocaleString("vi-VN")}đ</p>
+                    <div className="stat-trend">Phát sinh từ các lượt đặt cọc thành công</div>
                   </div>
                 </div>
 
                 <div className="stat-card">
-                  <div className="stat-icon icon-rooms">🏠</div>
-                  <div className="stat-details">
+                  <div className="stat-card-top">
                     <h3>Tổng số phòng trọ</h3>
+                    <div className="stat-icon icon-rooms">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    </div>
+                  </div>
+                  <div className="stat-card-bottom">
                     <p className="stat-number">{totalRoomsCount} phòng</p>
+                    <div className="stat-trend">Cập nhật 1 giờ trước</div>
                   </div>
                 </div>
 
                 <div className="stat-card">
-                  <div className="stat-icon icon-approved">✅</div>
-                  <div className="stat-details">
+                  <div className="stat-card-top">
                     <h3>Phòng đã phê duyệt</h3>
+                    <div className="stat-icon icon-approved">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    </div>
+                  </div>
+                  <div className="stat-card-bottom">
                     <p className="stat-number">{approvedRoomsCount} phòng</p>
+                    <div className="stat-trend"><span className="up">Đang hiển thị công khai</span></div>
                   </div>
                 </div>
 
                 <div className="stat-card">
-                  <div className="stat-icon icon-pending">⏳</div>
-                  <div className="stat-details">
+                  <div className="stat-card-top">
                     <h3>Yêu cầu chờ duyệt</h3>
+                    <div className="stat-icon icon-pending">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </div>
+                  </div>
+                  <div className="stat-card-bottom">
                     <p className="stat-number">{pendingRoomsCount} yêu cầu</p>
+                    <div className="stat-trend">Đang chờ Quản trị viên duyệt</div>
                   </div>
                 </div>
               </div>
 
-              <div className="recent-activity" style={{ marginTop: "20px" }}>
-                <h3>Lối tắt quản trị chủ nhà</h3>
-                <div style={{ display: "flex", gap: "15px", flexWrap: "wrap", marginTop: "15px" }}>
+              <div className="recent-activity">
+                <h3>Lối tắt quản trị nhanh</h3>
+                <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                   <button className="btn btn-primary" onClick={() => setActiveTab("properties")}>
                     + Đăng phòng trọ mới
                   </button>
                   <button className="btn btn-secondary" onClick={() => setActiveTab("payments")}>
-                    💼 Xem các lượt đặt cọc ({totalDepositsCount})
+                    💼 Xem đặt cọc ({totalDepositsCount})
                   </button>
                   <button className="btn btn-secondary" onClick={() => setActiveTab("profile")}>
                     ⚙️ Chỉnh sửa hồ sơ cá nhân
