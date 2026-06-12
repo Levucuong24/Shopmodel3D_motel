@@ -1,7 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
-
 .pd-container {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
   max-width: 1400px;
   margin: 0 auto;
   padding: 40px 20px 80px 20px;

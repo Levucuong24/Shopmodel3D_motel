@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
-
 :root {
   --primary: #ff6a00;
   --primary-hover: #e05d00;
@@ -26,7 +24,7 @@
 .dashboard-container {
   display: flex;
   min-height: 100vh;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
   background-color: #fcfcfd;
   color: var(--neutral-900);
 }

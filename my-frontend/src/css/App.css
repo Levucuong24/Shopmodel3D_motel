@@ -14,6 +14,11 @@ h1, h2, h3, h4, h5, h6, .section-title {
 
 /* NAVBAR */
 
+.navbar,
+.navbar * {
+  font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif !important;
+}
+
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -785,7 +790,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
   font-weight: 700;
   font-size: 14.5px;
   transition: var(--transition-normal);
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
   box-shadow: var(--shadow-sm);
 }
 

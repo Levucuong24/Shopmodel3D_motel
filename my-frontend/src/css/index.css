@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
   --bg-color: #f8fafc;          /* Slate 50 - clean off-white */
@@ -71,7 +71,7 @@
 
 body {
   margin: 0;
-  font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+  font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
   background-color: var(--bg-color);
   color: var(--text-color);
   transition: background-color 0.5s, color 0.5s;

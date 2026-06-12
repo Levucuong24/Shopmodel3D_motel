@@ -1,14 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
-
-body {
-  margin: 0;
-  background-color: #f4f7f6;
-}
-
 .dashboard-container {
   display: flex;
   min-height: 100vh;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
 }
 
 /* SIDEBAR STYLING - Matching Home page Navbar (Black) */
