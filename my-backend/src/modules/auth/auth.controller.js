@@ -109,14 +109,25 @@ export const resetPassword = async (req, res, next) => {
       return res.status(400).json({ message: "Thiếu thông tin khôi phục mật khẩu" });
     }
 
-    const otpRecord = await OTP.findOne({ email, otp });
+    const otpRecord = await OTP.findOne({ email });
     if (!otpRecord) {
-      return res.status(400).json({ message: "Mã OTP không chính xác hoặc đã hết hạn" });
+      return res.status(400).json({ message: "Yêu cầu khôi phục mật khẩu không tồn tại hoặc đã hết hạn" });
     }
 
     if (new Date() > otpRecord.expiresAt) {
       await OTP.deleteOne({ _id: otpRecord._id });
       return res.status(400).json({ message: "Mã OTP đã hết hạn" });
+    }
+
+    if (otpRecord.otp !== otp) {
+      otpRecord.attempts = (otpRecord.attempts || 0) + 1;
+      if (otpRecord.attempts >= 3) {
+        await OTP.deleteOne({ _id: otpRecord._id });
+        return res.status(400).json({ message: "Mã OTP đã bị nhập sai quá 3 lần và đã bị vô hiệu hóa. Vui lòng yêu cầu mã mới." });
+      } else {
+        await otpRecord.save();
+        return res.status(400).json({ message: `Mã OTP không chính xác. Bạn còn ${3 - otpRecord.attempts} lần thử.` });
+      }
     }
 
     const user = await User.findOne({ email });
