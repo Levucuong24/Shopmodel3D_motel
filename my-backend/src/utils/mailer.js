@@ -45,6 +45,7 @@ export const sendAdminPaymentNotification = async ({ customerName, customerEmail
 
 export const sendOTPEmail = async ({ email, otp }) => {
   const scriptUrl = process.env.GOOGLE_APP_SCRIPT_URL;
+  const resendApiKey = process.env.RESEND_API_KEY;
 
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e4e4e7; border-radius: 8px;">
@@ -61,6 +62,41 @@ export const sendOTPEmail = async ({ email, otp }) => {
       <p style="font-size: 12px; color: #71717a; text-align: center;">Đây là email tự động từ hệ thống HOMIE, vui lòng không trả lời email này.</p>
     </div>
   `;
+
+  if (resendApiKey) {
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${resendApiKey}`,
+        },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM || "onboarding@resend.dev",
+          to: email,
+          subject: "[HOMIE] Ma xac nhan (OTP) khoi phuc mat khau",
+          html: htmlContent,
+        }),
+      });
+
+      const contentType = response.headers.get("content-type");
+      let data = {};
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        throw new Error(text || `HTTP error ${response.status}`);
+      }
+
+      if (!response.ok || data.error) {
+        throw new Error(data.error?.message || `Yêu cầu thất bại với mã lỗi ${response.status}`);
+      }
+      return { success: true };
+    } catch (resendError) {
+      console.error("Failed to send OTP email via Resend:", resendError);
+      throw new Error(`Resend API failed: ${resendError.message}`);
+    }
+  }
 
   if (scriptUrl) {
     try {
