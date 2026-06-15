@@ -78,6 +78,14 @@ export const requestOTP = async (req, res, next) => {
       return res.status(404).json({ message: "Không tìm thấy tài khoản với Email này" });
     }
 
+    const existingBlock = await OTP.findOne({ email });
+    if (existingBlock && existingBlock.blockedUntil && new Date() < existingBlock.blockedUntil) {
+      const remainingMinutes = Math.ceil((existingBlock.blockedUntil - new Date()) / (60 * 1000));
+      return res.status(400).json({ 
+        message: `Email này đang bị khóa yêu cầu OTP mới do nhập sai quá 3 lần. Vui lòng quay lại sau ${remainingMinutes} phút.` 
+      });
+    }
+
     // Generate a random 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes expiration
@@ -114,6 +122,13 @@ export const resetPassword = async (req, res, next) => {
       return res.status(400).json({ message: "Yêu cầu khôi phục mật khẩu không tồn tại hoặc đã hết hạn" });
     }
 
+    if (otpRecord.blockedUntil && new Date() < otpRecord.blockedUntil) {
+      const remainingMinutes = Math.ceil((otpRecord.blockedUntil - new Date()) / (60 * 1000));
+      return res.status(400).json({ 
+        message: `Email này đang bị tạm khóa yêu cầu OTP mới do nhập sai quá 3 lần. Vui lòng quay lại sau ${remainingMinutes} phút.` 
+      });
+    }
+
     if (new Date() > otpRecord.expiresAt) {
       await OTP.deleteOne({ _id: otpRecord._id });
       return res.status(400).json({ message: "Mã OTP đã hết hạn" });
@@ -122,8 +137,11 @@ export const resetPassword = async (req, res, next) => {
     if (otpRecord.otp !== otp) {
       otpRecord.attempts = (otpRecord.attempts || 0) + 1;
       if (otpRecord.attempts >= 3) {
-        await OTP.deleteOne({ _id: otpRecord._id });
-        return res.status(400).json({ message: "Mã OTP đã bị nhập sai quá 3 lần và đã bị vô hiệu hóa. Vui lòng yêu cầu mã mới." });
+        otpRecord.otp = "BLOCKED";
+        otpRecord.blockedUntil = new Date(Date.now() + 10 * 60 * 1000);
+        otpRecord.expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+        await otpRecord.save();
+        return res.status(400).json({ message: "Mã OTP đã bị nhập sai quá 3 lần. Tài khoản của bạn bị tạm khóa yêu cầu OTP mới trong 10 phút." });
       } else {
         await otpRecord.save();
         return res.status(400).json({ message: `Mã OTP không chính xác. Bạn còn ${3 - otpRecord.attempts} lần thử.` });
@@ -199,6 +217,13 @@ export const verifyOTP = async (req, res, next) => {
       return res.status(400).json({ message: "Yêu cầu khôi phục mật khẩu không tồn tại hoặc đã hết hạn" });
     }
 
+    if (otpRecord.blockedUntil && new Date() < otpRecord.blockedUntil) {
+      const remainingMinutes = Math.ceil((otpRecord.blockedUntil - new Date()) / (60 * 1000));
+      return res.status(400).json({ 
+        message: `Email này đang bị tạm khóa yêu cầu OTP mới do nhập sai quá 3 lần. Vui lòng quay lại sau ${remainingMinutes} phút.` 
+      });
+    }
+
     if (new Date() > otpRecord.expiresAt) {
       await OTP.deleteOne({ _id: otpRecord._id });
       return res.status(400).json({ message: "Mã OTP đã hết hạn" });
@@ -207,8 +232,11 @@ export const verifyOTP = async (req, res, next) => {
     if (otpRecord.otp !== otp) {
       otpRecord.attempts = (otpRecord.attempts || 0) + 1;
       if (otpRecord.attempts >= 3) {
-        await OTP.deleteOne({ _id: otpRecord._id });
-        return res.status(400).json({ message: "Mã OTP đã bị nhập sai quá 3 lần và đã bị vô hiệu hóa. Vui lòng yêu cầu mã mới." });
+        otpRecord.otp = "BLOCKED";
+        otpRecord.blockedUntil = new Date(Date.now() + 10 * 60 * 1000);
+        otpRecord.expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+        await otpRecord.save();
+        return res.status(400).json({ message: "Mã OTP đã bị nhập sai quá 3 lần. Tài khoản của bạn bị tạm khóa yêu cầu OTP mới trong 10 phút." });
       } else {
         await otpRecord.save();
         return res.status(400).json({ message: `Mã OTP không chính xác. Bạn còn ${3 - otpRecord.attempts} lần thử.` });
