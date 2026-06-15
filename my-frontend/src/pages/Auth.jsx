@@ -27,6 +27,9 @@ function Auth() {
   const [fpConfirmPassword, setFpConfirmPassword] = useState("");
   const [fpSubmitting, setFpSubmitting] = useState(false);
 
+  const [isFpOtpVerified, setIsFpOtpVerified] = useState(false);
+  const [isFpVerifyingOtp, setIsFpVerifyingOtp] = useState(false);
+
   const generateCaptcha = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
     let text = "";
@@ -69,11 +72,56 @@ function Auth() {
         throw new Error(data.error ? `${data.message}: ${data.error}` : (data.message || "Yêu cầu OTP thất bại"));
       }
       alert("Mã OTP đã được gửi về Gmail của bạn!");
+      setIsFpOtpVerified(false);
+      setFpOTP("");
       setFpStep(2);
     } catch (error) {
       alert(error.message);
     } finally {
       setFpSubmitting(false);
+    }
+  };
+
+  const handleFpOtpChange = async (e) => {
+    const val = e.target.value;
+    setFpOTP(val);
+    setIsFpOtpVerified(false);
+
+    const cleanOtp = val.trim();
+    if (cleanOtp.length === 6) {
+      setIsFpVerifyingOtp(true);
+      try {
+        const response = await fetch("/api/auth/verify-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: fpEmail, otp: cleanOtp }),
+        });
+
+        let data = {};
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          data = await response.json();
+        } else {
+          const text = await response.text();
+          throw new Error(text || `Yêu cầu thất bại với mã lỗi ${response.status}`);
+        }
+
+        if (!response.ok) {
+          if (data.message && data.message.includes("vô hiệu hóa")) {
+            alert(data.message);
+            setFpStep(1);
+            setFpOTP("");
+            return;
+          }
+          throw new Error(data.message || "Xác thực OTP thất bại");
+        }
+
+        setIsFpOtpVerified(true);
+      } catch (error) {
+        alert(error.message);
+      } finally {
+        setIsFpVerifyingOtp(false);
+      }
     }
   };
 
@@ -285,32 +333,58 @@ function Auth() {
                     placeholder="Nhập mã OTP (6 số)" 
                     required 
                     value={fpOTP} 
-                    onChange={(e) => setFpOTP(e.target.value)} 
+                    onChange={handleFpOtpChange} 
                   />
-                  <input 
-                    type="password" 
-                    placeholder="Mật khẩu mới" 
-                    required 
-                    value={fpNewPassword} 
-                    onChange={(e) => setFpNewPassword(e.target.value)} 
-                  />
-                  <input 
-                    type="password" 
-                    placeholder="Xác nhận mật khẩu mới" 
-                    required 
-                    value={fpConfirmPassword} 
-                    onChange={(e) => setFpConfirmPassword(e.target.value)} 
-                  />
+                  {isFpVerifyingOtp && (
+                    <p style={{ fontSize: '12px', color: '#3b82f6', margin: '5px 0', textAlign: 'left', width: '100%' }}>
+                      Đang xác thực mã OTP...
+                    </p>
+                  )}
+                  {isFpOtpVerified && (
+                    <p style={{ fontSize: '12px', color: '#10b981', margin: '5px 0', textAlign: 'left', fontWeight: 'bold', width: '100%' }}>
+                      ✓ Mã OTP chính xác!
+                    </p>
+                  )}
+                  
+                  {isFpOtpVerified && (
+                    <>
+                      <input 
+                        type="password" 
+                        placeholder="Mật khẩu mới" 
+                        required 
+                        value={fpNewPassword} 
+                        onChange={(e) => setFpNewPassword(e.target.value)} 
+                        className="animate-fade-in"
+                      />
+                      <input 
+                        type="password" 
+                        placeholder="Xác nhận mật khẩu mới" 
+                        required 
+                        value={fpConfirmPassword} 
+                        onChange={(e) => setFpConfirmPassword(e.target.value)} 
+                        className="animate-fade-in"
+                      />
+                    </>
+                  )}
                   <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '10px' }}>
                     <button 
                       className="action-btn" 
                       type="button" 
-                      onClick={() => setFpStep(1)} 
+                      onClick={() => {
+                        setFpStep(1);
+                        setIsFpOtpVerified(false);
+                        setFpOTP("");
+                      }} 
                       style={{ background: '#71717a', flex: 1 }}
                     >
                       Quay lại
                     </button>
-                    <button className="action-btn" type="submit" disabled={fpSubmitting} style={{ flex: 1 }}>
+                    <button 
+                      className="action-btn" 
+                      type="submit" 
+                      disabled={fpSubmitting || !isFpOtpVerified} 
+                      style={{ flex: 1 }}
+                    >
                       {fpSubmitting ? "Đang đổi..." : "Xác nhận đổi"}
                     </button>
                   </div>
@@ -318,7 +392,20 @@ function Auth() {
               )}
               
               <div className="back-link-wrapper" style={{marginTop: "20px"}}>
-                 <span className="back-home" onClick={() => { setShowForgotPassword(false); setFpStep(1); }} style={{cursor: "pointer", color: "#333", fontSize: "14px", transition: "color 0.3s"}} onMouseOver={(e)=>e.target.style.color="#ff4b2b"} onMouseOut={(e)=>e.target.style.color="#333"}>&larr; Quay lại Đăng nhập</span>
+                 <span 
+                   className="back-home" 
+                   onClick={() => { 
+                     setShowForgotPassword(false); 
+                     setFpStep(1); 
+                     setIsFpOtpVerified(false); 
+                     setFpOTP(""); 
+                   }} 
+                   style={{cursor: "pointer", color: "#333", fontSize: "14px", transition: "color 0.3s"}} 
+                   onMouseOver={(e)=>e.target.style.color="#ff4b2b"} 
+                   onMouseOut={(e)=>e.target.style.color="#333"}
+                 >
+                   &larr; Quay lại Đăng nhập
+                 </span>
               </div>
             </form>
           ) : (
