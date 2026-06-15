@@ -70,6 +70,7 @@ export const sendOTPEmail = async ({ email, otp }) => {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${resendApiKey}`,
+          "User-Agent": "HomieApp/1.0",
         },
         body: JSON.stringify({
           from: process.env.RESEND_FROM || "onboarding@resend.dev",
