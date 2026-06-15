@@ -185,3 +185,40 @@ export const googleLogin = async (req, res) => {
     res.status(401).json({ message: "Xác thực Google thất bại" });
   }
 };
+
+export const verifyOTP = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Thiếu email hoặc mã OTP" });
+    }
+
+    const otpRecord = await OTP.findOne({ email });
+    if (!otpRecord) {
+      return res.status(400).json({ message: "Yêu cầu khôi phục mật khẩu không tồn tại hoặc đã hết hạn" });
+    }
+
+    if (new Date() > otpRecord.expiresAt) {
+      await OTP.deleteOne({ _id: otpRecord._id });
+      return res.status(400).json({ message: "Mã OTP đã hết hạn" });
+    }
+
+    if (otpRecord.otp !== otp) {
+      otpRecord.attempts = (otpRecord.attempts || 0) + 1;
+      if (otpRecord.attempts >= 3) {
+        await OTP.deleteOne({ _id: otpRecord._id });
+        return res.status(400).json({ message: "Mã OTP đã bị nhập sai quá 3 lần và đã bị vô hiệu hóa. Vui lòng yêu cầu mã mới." });
+      } else {
+        await otpRecord.save();
+        return res.status(400).json({ message: `Mã OTP không chính xác. Bạn còn ${3 - otpRecord.attempts} lần thử.` });
+      }
+    }
+
+    return res.json({ message: "Mã OTP hợp lệ" });
+  } catch (error) {
+    console.error("verifyOTP error:", error);
+    return res.status(500).json({ message: "Đã xảy ra lỗi trên hệ thống, vui lòng thử lại sau" });
+  }
+};
+

@@ -9,6 +9,8 @@ function ForgotPassword() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [step, setStep] = useState(1); // 1: Send OTP, 2: Reset Password
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const navigate = useNavigate();
 
   const handleRequestOTP = async (e) => {
@@ -38,11 +40,56 @@ function ForgotPassword() {
         throw new Error(data.error ? `${data.message}: ${data.error}` : (data.message || "Yêu cầu OTP thất bại"));
       }
       alert("Mã OTP đã được gửi về Gmail của bạn!");
+      setIsOtpVerified(false);
+      setOtp('');
       setStep(2);
     } catch (error) {
       alert(error.message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleOtpChange = async (e) => {
+    const val = e.target.value;
+    setOtp(val);
+    setIsOtpVerified(false);
+
+    const cleanOtp = val.trim();
+    if (cleanOtp.length === 6) {
+      setIsVerifyingOtp(true);
+      try {
+        const response = await fetch("/api/auth/verify-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, otp: cleanOtp }),
+        });
+
+        let data = {};
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          data = await response.json();
+        } else {
+          const text = await response.text();
+          throw new Error(text || `Yêu cầu thất bại với mã lỗi ${response.status}`);
+        }
+
+        if (!response.ok) {
+          if (data.message && data.message.includes("vô hiệu hóa")) {
+            alert(data.message);
+            setStep(1);
+            setOtp('');
+            return;
+          }
+          throw new Error(data.message || "Xác thực OTP thất bại");
+        }
+
+        setIsOtpVerified(true);
+      } catch (error) {
+        alert(error.message);
+      } finally {
+        setIsVerifyingOtp(false);
+      }
     }
   };
 
@@ -121,13 +168,23 @@ function ForgotPassword() {
                   type="text" 
                   required 
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
+                  onChange={handleOtpChange}
                 />
                 <label>Nhập mã OTP (6 số)</label>
                 <div className="input-line"></div>
+                {isVerifyingOtp && (
+                  <p style={{ fontSize: '12px', color: '#3b82f6', margin: '5px 0 0 0', textAlign: 'left' }}>
+                    Đang xác thực mã OTP...
+                  </p>
+                )}
+                {isOtpVerified && (
+                  <p style={{ fontSize: '12px', color: '#10b981', margin: '5px 0 0 0', textAlign: 'left', fontWeight: 'bold' }}>
+                    ✓ Mã OTP chính xác!
+                  </p>
+                )}
               </div>
 
-              {otp.trim().length === 6 && (
+              {isOtpVerified && (
                 <>
                   <div className="input-group animate-fade-in">
                     <input 
@@ -164,7 +221,11 @@ function ForgotPassword() {
               <button 
                 type="button" 
                 className="login-btn" 
-                onClick={() => setStep(1)} 
+                onClick={() => {
+                  setStep(1);
+                  setIsOtpVerified(false);
+                  setOtp('');
+                }} 
                 style={{ background: '#71717a', flex: 1 }}
                 disabled={isSubmitting}
               >
@@ -174,7 +235,7 @@ function ForgotPassword() {
                 type="submit" 
                 className="login-btn" 
                 style={{ flex: 1 }} 
-                disabled={isSubmitting || otp.trim().length !== 6}
+                disabled={isSubmitting || !isOtpVerified}
               >
                 {isSubmitting ? "Đang xử lý..." : "Xác nhận"}
               </button>
