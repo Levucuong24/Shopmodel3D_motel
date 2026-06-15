@@ -124,6 +124,7 @@ function Auth() {
   
   // Signup States
   const [fullName, setFullName] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -182,6 +183,12 @@ function Auth() {
   const handleSignup = async (e) => {
     e.preventDefault();
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(signupEmail)) {
+      alert("Email không hợp lệ! Vui lòng nhập đúng định dạng email (ví dụ: name@example.com).");
+      return;
+    }
+
     const phoneRegex = /^(032|033|034|035|036|037|038|039|086|096|097|098)\d{7}$/;
     if (!phoneRegex.test(phone)) {
       alert("Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 số không kèm kí tự đặc biệt và thuộc các đầu số cho phép.");
@@ -201,6 +208,7 @@ function Auth() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           full_name: fullName,
+          email: signupEmail,
           phone,
           password: signupPassword,
           role: "customer",
@@ -235,6 +243,7 @@ function Auth() {
             <GoogleAuth width="280" />
             <div style={{ margin: '15px 0', fontSize: '12px', color: '#999' }}>HOẶC ĐĂNG KÝ BẰNG TÊN</div>
             <input type="text" placeholder="Họ và tên" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            <input type="email" placeholder="Email" required value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} />
             <input type="tel" placeholder="Số điện thoại" value={phone} onChange={(e) => setPhone(e.target.value)} />
             <input type="password" placeholder="Mật khẩu" required value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} />
             <input type="password" placeholder="Xác nhận mật khẩu" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />

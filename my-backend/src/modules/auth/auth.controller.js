@@ -28,10 +28,15 @@ export const login = async (req, res) => {
 };
 
 export const register = async (req, res) => {
-  const { full_name, password, phone, role } = req.body;
+  const { full_name, password, phone, email, role } = req.body;
 
   if (!full_name || !password) {
     return res.status(400).json({ message: "Thiếu thông tin đăng ký" });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    return res.status(400).json({ message: "Email không hợp lệ" });
   }
 
   const phoneRegex = /^(032|033|034|035|036|037|038|039|086|096|097|098)\d{7}$/;
@@ -44,10 +49,16 @@ export const register = async (req, res) => {
     return res.status(409).json({ message: "Họ và tên này đã được dùng để đăng ký" });
   }
 
+  const existingEmail = await User.findOne({ email });
+  if (existingEmail) {
+    return res.status(409).json({ message: "Email này đã được dùng để đăng ký" });
+  }
+
   const user = await User.create({
     full_name,
     password,
     phone: phone || "",
+    email: email || "",
     role: role || "customer",
   });
 
