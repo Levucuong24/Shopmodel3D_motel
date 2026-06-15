@@ -63,6 +63,9 @@ export const sendOTPEmail = async ({ email, otp }) => {
     </div>
   `;
 
+  const errors = [];
+
+  // 1. Thử gửi qua Resend API
   if (resendApiKey) {
     try {
       const response = await fetch("https://api.resend.com/emails", {
@@ -94,11 +97,12 @@ export const sendOTPEmail = async ({ email, otp }) => {
       }
       return { success: true };
     } catch (resendError) {
-      console.error("Failed to send OTP email via Resend:", resendError);
-      throw new Error(`Resend API failed: ${resendError.message}`);
+      console.error("Failed to send OTP email via Resend, trying fallback:", resendError);
+      errors.push(`Resend API: ${resendError.message}`);
     }
   }
 
+  // 2. Thử gửi qua Google Apps Script
   if (scriptUrl) {
     try {
       const response = await fetch(scriptUrl, {
@@ -126,25 +130,30 @@ export const sendOTPEmail = async ({ email, otp }) => {
       }
       return { success: true };
     } catch (fetchError) {
-      console.error("Failed to send OTP email via Google Apps Script:", fetchError);
-      throw new Error(`Google Apps Script API failed: ${fetchError.message}`);
+      console.error("Failed to send OTP email via Google Apps Script, trying fallback:", fetchError);
+      errors.push(`Google Apps Script: ${fetchError.message}`);
     }
   }
 
-  // Fallback to Nodemailer SMTP
+  // 3. Thử gửi qua SMTP (Nodemailer)
   const transporter = createTransporter();
-
-  if (!transporter) {
-    console.warn("SMTP is not configured. Skip sending OTP email.");
-    return { skipped: true };
+  if (transporter) {
+    try {
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+        to: email,
+        subject: "[HOMIE] Ma xac nhan (OTP) khoi phuc mat khau",
+        html: htmlContent,
+      });
+      return { success: true };
+    } catch (smtpError) {
+      console.error("Failed to send OTP email via SMTP:", smtpError);
+      errors.push(`SMTP: ${smtpError.message}`);
+    }
+  } else {
+    errors.push("SMTP is not configured.");
   }
 
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM || process.env.SMTP_USER,
-    to: email,
-    subject: "[HOMIE] Ma xac nhan (OTP) khoi phuc mat khau",
-    html: htmlContent,
-  });
-
-  return { skipped: false };
+  // Nếu đi đến đây thì toàn bộ các phương pháp đều thất bại
+  throw new Error(`Không thể gửi email OTP. Chi tiết lỗi: ${errors.join(" | ")}`);
 };
