@@ -127,27 +127,31 @@ function ForgotPassword() {
                 <div className="input-line"></div>
               </div>
 
-              <div className="input-group">
-                <input 
-                  type="password" 
-                  required 
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-                <label>Mật khẩu mới</label>
-                <div className="input-line"></div>
-              </div>
+              {otp.trim().length === 6 && (
+                <>
+                  <div className="input-group animate-fade-in">
+                    <input 
+                      type="password" 
+                      required 
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                    <label>Mật khẩu mới</label>
+                    <div className="input-line"></div>
+                  </div>
 
-              <div className="input-group">
-                <input 
-                  type="password" 
-                  required 
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-                <label>Xác nhận mật khẩu mới</label>
-                <div className="input-line"></div>
-              </div>
+                  <div className="input-group animate-fade-in">
+                    <input 
+                      type="password" 
+                      required 
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    <label>Xác nhận mật khẩu mới</label>
+                    <div className="input-line"></div>
+                  </div>
+                </>
+              )}
             </>
           )}
 
@@ -166,7 +170,12 @@ function ForgotPassword() {
               >
                 Quay lại
               </button>
-              <button type="submit" className="login-btn" style={{ flex: 1 }} disabled={isSubmitting}>
+              <button 
+                type="submit" 
+                className="login-btn" 
+                style={{ flex: 1 }} 
+                disabled={isSubmitting || otp.trim().length !== 6}
+              >
                 {isSubmitting ? "Đang xử lý..." : "Xác nhận"}
               </button>
             </div>
