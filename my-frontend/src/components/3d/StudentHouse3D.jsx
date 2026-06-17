@@ -1,6 +1,6 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Html } from '@react-three/drei';
 
 // ==========================================
@@ -1024,9 +1024,113 @@ const DimensionLines = () => {
 };
 
 // ==========================================
+// 9.1 HOTSPOT COMPONENT FOR 3D INTERACTIVITY
+// ==========================================
+const Hotspot = ({ position, title, description, details, isActive, onClick }) => {
+  return (
+    <group position={position}>
+      <Html center distanceFactor={8}>
+        <div 
+          onClick={onClick}
+          className={`hotspot-marker ${isActive ? 'active' : ''}`}
+          style={{
+            width: '24px',
+            height: '24px',
+            borderRadius: '50%',
+            background: isActive ? '#ff6a00' : 'rgba(255, 106, 0, 0.85)',
+            border: '2px solid white',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 0 10px rgba(255, 106, 0, 0.5)',
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            userSelect: 'none',
+            transition: 'all 0.3s ease',
+            transform: isActive ? 'scale(1.2)' : 'none',
+          }}
+        >
+          {isActive ? '✓' : '+'}
+        </div>
+      </Html>
+      
+      {isActive && (
+        <Html position={[0, 0.4, 0]} center distanceFactor={8}>
+          <div 
+            style={{
+              background: 'rgba(15, 23, 42, 0.95)',
+              color: 'white',
+              padding: '16px',
+              borderRadius: '12px',
+              width: '220px',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              fontFamily: 'sans-serif',
+              backdropFilter: 'blur(8px)',
+              pointerEvents: 'auto',
+              animation: 'fadeInUp 0.3s ease',
+            }}
+          >
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#ff6a00', fontWeight: 'bold' }}>{title}</h4>
+            <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#cbd5e1', lineHeight: '1.4' }}>{description}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '8px' }}>
+              {details.map((detail, idx) => (
+                <div key={idx} style={{ fontSize: '11px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ color: '#ff6a00' }}>•</span>
+                  <span>{detail}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Html>
+      )}
+    </group>
+  );
+};
+
+// ==========================================
+// 9.2 CAMERA CONTROLLER FOR FOCUSING HOTSPOTS
+// ==========================================
+const CameraController = ({ controlsRef, activeHotspotId, hotspots }) => {
+  const { camera } = useThree();
+  const targetLookAt = useMemo(() => new THREE.Vector3(0, 1.2, 0), []);
+  const targetCamPos = useMemo(() => new THREE.Vector3(-8.5, 7.0, 9.0), []);
+
+  useEffect(() => {
+    if (activeHotspotId) {
+      const hs = hotspots.find(h => h.id === activeHotspotId);
+      if (hs) {
+        targetLookAt.set(...hs.targetLookAt);
+        targetCamPos.set(...hs.cameraPos);
+      }
+    } else {
+      targetLookAt.set(0, 1.2, 0);
+      targetCamPos.set(-8.5, 7.0, 9.0);
+    }
+  }, [activeHotspotId, hotspots, targetLookAt, targetCamPos]);
+
+  useFrame(() => {
+    // Smoothly lerp camera position
+    if (camera.position.distanceTo(targetCamPos) > 0.01) {
+      camera.position.lerp(targetCamPos, 0.08);
+    }
+
+    // Smoothly lerp controls target
+    if (controlsRef.current && controlsRef.current.target.distanceTo(targetLookAt) > 0.01) {
+      controlsRef.current.target.lerp(targetLookAt, 0.08);
+      controlsRef.current.update();
+    }
+  });
+
+  return null;
+};
+
+// ==========================================
 // 10. COMBINED ROOM ASSEMBLY
 // ==========================================
-const Room = () => {
+const Room = ({ activeHotspotId, onHotspotClick, hotspots }) => {
   return (
     <group position={[0, 0, 0]}>
       <Floor />
@@ -1043,6 +1147,19 @@ const Room = () => {
       <Character position={[0, 0, 0]} />
       {/* Add length & width dimensions to the model */}
       <DimensionLines />
+
+      {/* Hotspots */}
+      {hotspots.map((hs) => (
+        <Hotspot
+          key={hs.id}
+          position={hs.position}
+          title={hs.title}
+          description={hs.description}
+          details={hs.details}
+          isActive={activeHotspotId === hs.id}
+          onClick={() => onHotspotClick(hs.id)}
+        />
+      ))}
     </group>
   );
 };
@@ -1051,6 +1168,52 @@ const Room = () => {
 // 11. MAIN CONTAINER & CANVAS ENVIRONMENT
 // ==========================================
 const StudentHouse3D = () => {
+  const [activeHotspotId, setActiveHotspotId] = useState(null);
+  const controlsRef = useRef();
+
+  const hotspots = useMemo(() => [
+    {
+      id: 'bed',
+      position: [3.3, 0.7, 0.5],
+      targetLookAt: [3.5, 0.4, 0.5],
+      cameraPos: [1.8, 3.5, 2.5],
+      title: 'Giường ngủ cao cấp',
+      description: 'Giường gỗ sồi tự nhiên, đệm foam cao su non êm ái, hỗ trợ giấc ngủ chất lượng.',
+      details: ['Kích thước: 1.8m x 2.0m', 'Đệm: Cao su non dày 25cm', 'Ga trải giường: Cotton kháng khuẩn']
+    },
+    {
+      id: 'desk',
+      position: [0.4, 1.1, 2.7],
+      targetLookAt: [0.4, 0.75, 2.7],
+      cameraPos: [0.4, 2.8, 0.6],
+      title: 'Góc học tập & Làm việc',
+      description: 'Bàn học tích hợp tủ kệ, laptop làm việc, cây xanh decor và ghế xoay công thái học.',
+      details: ['Bàn làm việc: Gỗ MDF chống ẩm', 'Đèn: Đèn LED chống cận thị', 'Laptop: Thiết kế siêu mỏng nhẹ']
+    },
+    {
+      id: 'kitchen',
+      position: [-4.2, 1.1, 1.8],
+      targetLookAt: [-4.6, 0.85, 1.85],
+      cameraPos: [-2.0, 3.2, 1.85],
+      title: 'Khu vực bếp nấu tiện nghi',
+      description: 'Bếp chữ L hiện đại mặt đá vân mây sang trọng, trang bị bếp từ, chậu rửa, giá kệ bát đĩa.',
+      details: ['Bàn bếp: Đá granite trắng', 'Thiết bị: Bếp từ đôi, chậu rửa', 'Tủ bếp: Phủ Acrylic chống ẩm']
+    },
+    {
+      id: 'bathroom',
+      position: [-3.5, 1.4, -2.0],
+      targetLookAt: [-3.75, 0.8, -2.5],
+      cameraPos: [-1.2, 3.5, -2.0],
+      title: 'Phòng tắm khép kín',
+      description: 'Sen tắm đứng cao cấp, vách ngăn kính, bồn cầu thông minh và bình nóng lạnh Ariston.',
+      details: ['Vách kính: Kính cường lực 10mm', 'Bình nóng lạnh: Ariston 20L', 'Bồn cầu: Sứ tráng men Nano']
+    }
+  ], []);
+
+  const handleHotspotClick = (id) => {
+    setActiveHotspotId(currentId => currentId === id ? null : id);
+  };
+
   return (
     <div
       style={{
@@ -1061,14 +1224,44 @@ const StudentHouse3D = () => {
         padding: 0,
         overflow: 'hidden',
         fontFamily: 'sans-serif',
+        position: 'relative'
       }}
     >
+      {/* Hotspots Sidebar Overlay */}
+      <div className="threed-hotspots-sidebar">
+        <h4 className="sidebar-title">Danh mục đồ đạc</h4>
+        <div className="hotspots-list">
+          {hotspots.map((hs) => {
+            const isActive = activeHotspotId === hs.id;
+            return (
+              <button
+                key={hs.id}
+                type="button"
+                className={`hotspot-list-item ${isActive ? 'active' : ''}`}
+                onClick={() => handleHotspotClick(hs.id)}
+              >
+                <span className="item-dot"></span>
+                <span className="item-name">{hs.title}</span>
+              </button>
+            );
+          })}
+        </div>
+        {activeHotspotId && (
+          <button 
+            type="button" 
+            className="clear-focus-btn"
+            onClick={() => setActiveHotspotId(null)}
+          >
+            Xem toàn cảnh
+          </button>
+        )}
+      </div>
+
       <Canvas
         shadows
         gl={{ antialias: true, alpha: true }}
         camera={{ position: [-8.5, 7.0, 9.0], fov: 40 }}
       >
-
         {/* Soft Ambient Light for overall brightness */}
         <ambientLight intensity={0.7} color="#fffcf5" />
 
@@ -1099,14 +1292,26 @@ const StudentHouse3D = () => {
         {/* Soft Ground Bounce Light */}
         <hemisphereLight skyColor="#ffffff" groundColor="#7f7f7f" intensity={0.2} />
 
+        {/* Camera Controller for smooth camera transitions */}
+        <CameraController
+          controlsRef={controlsRef}
+          activeHotspotId={activeHotspotId}
+          hotspots={hotspots}
+        />
+
         {/* Assembly Room */}
-        <Room />
+        <Room 
+          activeHotspotId={activeHotspotId} 
+          onHotspotClick={handleHotspotClick}
+          hotspots={hotspots}
+        />
 
         {/* Ground grid helper surrounding the room */}
         <gridHelper args={[40, 40, '#d1d5db', '#e5e7eb']} position={[0, -0.01, 0]} />
 
         {/* Orbit Camera Controls (360-degree viewing) */}
         <OrbitControls
+          ref={controlsRef}
           enableDamping
           dampingFactor={0.05}
           minDistance={3}
