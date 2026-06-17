@@ -777,4 +777,89 @@
   }
 }
 
+/* 2D Active Hotspot Details Card overlay styles */
+.threed-hotspot-details-card {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 10;
+  width: 280px;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
+  color: white;
+  animation: detailsFadeInUp 0.3s ease;
+}
+
+.threed-hotspot-details-card .details-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 20px;
+  font-weight: 300;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.threed-hotspot-details-card .details-close-btn:hover {
+  color: white;
+}
+
+.threed-hotspot-details-card .details-title {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ff6a00;
+}
+
+.threed-hotspot-details-card .details-description {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+.threed-hotspot-details-card .details-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 10px;
+}
+
+.threed-hotspot-details-card .spec-bullet {
+  font-size: 11px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.threed-hotspot-details-card .bullet-dot {
+  color: #ff6a00;
+  font-weight: bold;
+}
+
+@keyframes detailsFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
 

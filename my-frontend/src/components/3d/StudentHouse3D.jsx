@@ -1026,7 +1026,7 @@ const DimensionLines = () => {
 // ==========================================
 // 9.1 HOTSPOT COMPONENT FOR 3D INTERACTIVITY
 // ==========================================
-const Hotspot = ({ position, title, description, details, isActive, onClick }) => {
+const Hotspot = ({ position, isActive, onClick }) => {
   return (
     <group position={position}>
       <Html center distanceFactor={8}>
@@ -1055,37 +1055,6 @@ const Hotspot = ({ position, title, description, details, isActive, onClick }) =
           {isActive ? '✓' : '+'}
         </div>
       </Html>
-      
-      {isActive && (
-        <Html position={[0, 0.4, 0]} center distanceFactor={8}>
-          <div 
-            style={{
-              background: 'rgba(15, 23, 42, 0.95)',
-              color: 'white',
-              padding: '16px',
-              borderRadius: '12px',
-              width: '220px',
-              boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              fontFamily: 'sans-serif',
-              backdropFilter: 'blur(8px)',
-              pointerEvents: 'auto',
-              animation: 'fadeInUp 0.3s ease',
-            }}
-          >
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#ff6a00', fontWeight: 'bold' }}>{title}</h4>
-            <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#cbd5e1', lineHeight: '1.4' }}>{description}</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '8px' }}>
-              {details.map((detail, idx) => (
-                <div key={idx} style={{ fontSize: '11px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ color: '#ff6a00' }}>•</span>
-                  <span>{detail}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Html>
-      )}
     </group>
   );
 };
@@ -1153,9 +1122,6 @@ const Room = ({ activeHotspotId, onHotspotClick, hotspots }) => {
         <Hotspot
           key={hs.id}
           position={hs.position}
-          title={hs.title}
-          description={hs.description}
-          details={hs.details}
           isActive={activeHotspotId === hs.id}
           onClick={() => onHotspotClick(hs.id)}
         />
@@ -1210,6 +1176,10 @@ const StudentHouse3D = () => {
     }
   ], []);
 
+  const activeHotspot = useMemo(() => {
+    return hotspots.find(h => h.id === activeHotspotId) || null;
+  }, [activeHotspotId, hotspots]);
+
   const handleHotspotClick = (id) => {
     setActiveHotspotId(currentId => currentId === id ? null : id);
   };
@@ -1256,6 +1226,29 @@ const StudentHouse3D = () => {
           </button>
         )}
       </div>
+
+      {/* 2D Active Hotspot Details Card */}
+      {activeHotspot && (
+        <div className="threed-hotspot-details-card">
+          <button 
+            type="button" 
+            className="details-close-btn"
+            onClick={() => setActiveHotspotId(null)}
+          >
+            ×
+          </button>
+          <h4 className="details-title">{activeHotspot.title}</h4>
+          <p className="details-description">{activeHotspot.description}</p>
+          <div className="details-specs">
+            {activeHotspot.details.map((detail, idx) => (
+              <div key={idx} className="spec-bullet">
+                <span className="bullet-dot">•</span>
+                <span>{detail}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <Canvas
         shadows
