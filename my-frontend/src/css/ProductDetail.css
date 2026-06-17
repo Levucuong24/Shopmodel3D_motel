@@ -780,17 +780,17 @@
 /* 2D Active Hotspot Details Card overlay styles */
 .threed-hotspot-details-card {
   position: absolute;
-  bottom: 20px;
-  left: 20px;
+  bottom: 15px;
+  left: 15px;
   z-index: 10;
-  width: 280px;
-  background: rgba(15, 23, 42, 0.9);
+  width: 230px;
+  background: rgba(15, 23, 42, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
   color: white;
   animation: detailsFadeInUp 0.3s ease;
@@ -798,12 +798,12 @@
 
 .threed-hotspot-details-card .details-close-btn {
   position: absolute;
-  top: 10px;
-  right: 12px;
+  top: 8px;
+  right: 10px;
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.5);
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 300;
   cursor: pointer;
   line-height: 1;
@@ -816,33 +816,34 @@
 }
 
 .threed-hotspot-details-card .details-title {
-  margin: 0 0 6px 0;
-  font-size: 15px;
+  margin: 0 0 4px 0;
+  font-size: 13px;
   font-weight: 700;
   color: #ff6a00;
+  padding-right: 15px;
 }
 
 .threed-hotspot-details-card .details-description {
-  margin: 0 0 12px 0;
-  font-size: 12px;
+  margin: 0 0 8px 0;
+  font-size: 11px;
   color: #cbd5e1;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .threed-hotspot-details-card .details-specs {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 10px;
+  padding-top: 8px;
 }
 
 .threed-hotspot-details-card .spec-bullet {
-  font-size: 11px;
+  font-size: 10px;
   color: #94a3b8;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .threed-hotspot-details-card .bullet-dot {
