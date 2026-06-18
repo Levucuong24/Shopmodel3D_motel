@@ -1,5 +1,5 @@
 import React from 'react';
-import loadingImage from '../../assets/loading-3d.webp';
+import loadingVideo from '../../assets/loading-3d.webm';
 
 const LoadingSpinner = () => {
   return (
@@ -29,14 +29,18 @@ const LoadingSpinner = () => {
         alignItems: 'center',
         boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)'
       }}>
-        <img 
-          src={loadingImage} 
-          alt="Loading..." 
+        <video 
+          src={loadingVideo} 
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
           style={{ 
             width: '160px', 
             height: '160px', 
             objectFit: 'contain',
-            borderRadius: '12px'
+            borderRadius: '12px',
+            pointerEvents: 'none'
           }} 
         />
         <p style={{
