@@ -927,6 +927,24 @@ function StaffDashboard() {
                         <td>
                           <div style={{ display: "flex", gap: "8px" }}>
                             <button onClick={() => handleViewRoomClick(room)} className="btn btn-secondary" style={{ padding: "6px 12px", fontSize: "12px" }}>Xem</button>
+                            <Link
+                              to={`/admin/room-builder/${room._id}`}
+                              className="btn btn-secondary"
+                              style={{
+                                padding: "6px 12px",
+                                fontSize: "12px",
+                                backgroundColor: "#0284c7",
+                                color: "white",
+                                border: "none",
+                                textDecoration: "none",
+                                borderRadius: "4px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center"
+                              }}
+                            >
+                              Thiết kế 3D
+                            </Link>
                             <button
                               onClick={() => handleEditRoomClick(room)}
                               disabled={room.status === "rented"}

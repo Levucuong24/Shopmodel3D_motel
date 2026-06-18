@@ -14,6 +14,26 @@ function Navbar() {
   const { userId: routeUserId } = useParams();
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
+  const [roomsForSelector, setRoomsForSelector] = useState([]);
+  const [selectorLoading, setSelectorLoading] = useState(false);
+  const [selectorOpen, setSelectorOpen] = useState(false);
+
+  const handleOpenRoomSelector = () => {
+    setMenuOpen(false);
+    setSelectorOpen(true);
+    setSelectorLoading(true);
+    fetch("/api/rooms")
+      .then((res) => res.json())
+      .then((data) => {
+        setRoomsForSelector(Array.isArray(data) ? data : []);
+        setSelectorLoading(false);
+      })
+      .catch((err) => {
+        console.error("Lỗi tải danh sách phòng:", err);
+        setSelectorLoading(false);
+      });
+  };
+
 
   useEffect(() => {
     const q = searchParams.get("search");
@@ -184,6 +204,21 @@ function Navbar() {
                   </button>
                 )}
 
+                <button
+                  type="button"
+                  className="user-menu-item"
+                  onClick={handleOpenRoomSelector}
+                  style={{
+                    color: "#ff6a00",
+                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px"
+                  }}
+                >
+                  🎨 Tự thiết kế 3D
+                </button>
+
                 <button type="button" className="user-menu-item logout" onClick={handleLogout}>
                   Dang xuat
                 </button>
@@ -231,6 +266,138 @@ function Navbar() {
                 <Link to="/login" className="mobile-nav-link" onClick={() => setNavOpen(false)}>Đăng nhập</Link>
                 <Link to="/signup" className="mobile-nav-link mobile-nav-cta" onClick={() => setNavOpen(false)}>Đăng ký</Link>
               </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 3D Room Builder Selector Modal */}
+      {selectorOpen && (
+        <div className="room-selector-modal-overlay" onClick={() => setSelectorOpen(false)} style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(15, 23, 42, 0.75)",
+          backdropFilter: "blur(8px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 99999,
+          padding: "20px"
+        }}>
+          <div className="room-selector-modal" onClick={(e) => e.stopPropagation()} style={{
+            background: "rgba(30, 41, 59, 0.9)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            borderRadius: "16px",
+            padding: "24px",
+            maxWidth: "600px",
+            width: "100%",
+            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.4)",
+            display: "flex",
+            flexDirection: "column",
+            maxHeight: "80vh",
+            color: "white"
+          }}>
+            <style>{`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
+            
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "bold", background: "linear-gradient(135deg, #ff6a00, #ee0979)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                🎨 Chọn phòng để tự sắp xếp 3D
+              </h3>
+              <button onClick={() => setSelectorOpen(false)} style={{
+                background: "none",
+                border: "none",
+                color: "#94a3b8",
+                fontSize: "20px",
+                cursor: "pointer",
+                padding: "4px"
+              }}>
+                ✕
+              </button>
+            </div>
+
+            {selectorLoading ? (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 0" }}>
+                <div style={{
+                  width: "40px",
+                  height: "40px",
+                  border: "4px solid rgba(255,255,255,0.1)",
+                  borderTop: "4px solid #ff6a00",
+                  borderRadius: "50%",
+                  animation: "spin 1s linear infinite",
+                  marginBottom: "16px"
+                }}></div>
+                <p style={{ color: "#94a3b8", margin: 0 }}>Đang tải danh sách phòng trọ...</p>
+              </div>
+            ) : roomsForSelector.length === 0 ? (
+              <p style={{ color: "#94a3b8", textAlign: "center", padding: "20px 0", margin: 0 }}>
+                Không tìm thấy phòng trọ nào đã duyệt trong hệ thống.
+              </p>
+            ) : (
+              <div style={{
+                overflowY: "auto",
+                flex: 1,
+                paddingRight: "6px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px"
+              }}>
+                {roomsForSelector.map((room) => {
+                  const image = room.images?.[0] || "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500";
+                  return (
+                    <div
+                      key={room._id}
+                      onClick={() => {
+                        setSelectorOpen(false);
+                        navigate(`/room-builder/${room._id}`);
+                      }}
+                      style={{
+                        display: "flex",
+                        gap: "16px",
+                        padding: "12px",
+                        background: "rgba(255, 255, 255, 0.05)",
+                        border: "1px solid rgba(255, 255, 255, 0.05)",
+                        borderRadius: "12px",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.2)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.05)";
+                      }}
+                    >
+                      <img
+                        src={image}
+                        alt={room.name}
+                        style={{
+                          width: "80px",
+                          height: "60px",
+                          objectFit: "cover",
+                          borderRadius: "8px",
+                          background: "#334155"
+                        }}
+                      />
+                      <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                        <h4 style={{ margin: "0 0 4px 0", fontSize: "15px", color: "white" }}>{room.name}</h4>
+                        <p style={{ margin: 0, fontSize: "13px", color: "#94a3b8" }}>
+                          📍 {room.location} • {room.price?.toLocaleString("vi-VN")}đ
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>

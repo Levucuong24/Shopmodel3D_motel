@@ -461,9 +461,9 @@ const BathroomDoor = ({ position }) => {
   );
 };
 
-const Bathroom = () => {
+const Bathroom = ({ position, rotation }) => {
   return (
-    <group>
+    <group position={position || [0, 0, 0]} rotation={rotation || [0, 0, 0]}>
       {/* Right partition wall */}
       <mesh position={[-2.5, 1.75, -2.25]} castShadow receiveShadow>
         <boxGeometry args={[0.1, 3.5, 2.5]} />
@@ -503,14 +503,14 @@ const Bathroom = () => {
 // 5. KITCHEN (L-SHAPED COUNTER & UTENSILS)
 // ==========================================
 
-const Kitchen = () => {
+const Kitchen = ({ position, rotation }) => {
   const cabinetWood = '#ebd6bf';
   const counterWhite = '#ffffff';
   const cabinetWhite = '#ffffff';
   const metalColor = '#d1d5db';
 
   return (
-    <group>
+    <group position={position || [0, 0, 0]} rotation={rotation || [0, 0, 0]}>
       {/* ==========================================
           1. MAIN CABINET (ALONG LEFT WALL)
           ========================================== */}
@@ -667,12 +667,12 @@ const Kitchen = () => {
 // 6. STUDY DESK & SWIVEL CHAIR
 // ==========================================
 
-const Desk = () => {
+const Desk = ({ position, rotation }) => {
   const woodColor = '#968270';
   const darkWoodColor = '#706050';
 
   return (
-    <group position={[0.4, 0, 2.7]}>
+    <group position={position || [0.4, 0, 2.7]} rotation={rotation || [0, 0, 0]}>
       {/* Tabletop */}
       <mesh position={[0, 0.73, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.8, 0.04, 0.7]} />
@@ -783,13 +783,13 @@ const Desk = () => {
   );
 };
 
-const Chair = () => {
+const Chair = ({ position, rotation }) => {
   const plasticColor = '#374151';
   const cushionColor = '#9ca3af';
   const chromeColor = '#d1d5db';
 
   return (
-    <group position={[0.4, 0, 1.9]} rotation={[0, -0.2, 0]}>
+    <group position={position || [0.4, 0, 1.9]} rotation={rotation || [0, -0.2, 0]}>
       {/* Base wheels & star */}
       <group position={[0, 0.05, 0]}>
         {[0, 1, 2, 3, 4].map((i) => {
@@ -842,13 +842,13 @@ const Chair = () => {
 // 7. BED (DARK WOOD FRAME & GREY BEDDING)
 // ==========================================
 
-const Bed = () => {
+const Bed = ({ position, rotation }) => {
   const frameColor = '#3a2e2b'; // Dark wood
   const mattressColor = '#d6cfc7'; // Light grey/beige bedding
   const pillowColor = '#8c8380'; // Darker grey pillows
 
   return (
-    <group position={[3.5, 0, 0.5]}>
+    <group position={position || [3.5, 0, 0.5]} rotation={rotation || [0, 0, 0]}>
       {/* Bed Base */}
       <mesh position={[0, 0.18, 0]} castShadow receiveShadow>
         <boxGeometry args={[2.6, 0.36, 1.95]} />
@@ -875,6 +875,77 @@ const Bed = () => {
       <mesh position={[0.8, 0.58, -0.4]} rotation={[0, 0, -0.08]} castShadow>
         <boxGeometry args={[0.35, 0.08, 0.6]} />
         <meshStandardMaterial color={pillowColor} roughness={0.85} />
+      </mesh>
+    </group>
+  );
+};
+
+// ==========================================
+// 7.1 WARDROBE (CLOTHES CLOSET)
+// ==========================================
+const Wardrobe = ({ position, rotation }) => {
+  const woodColor = '#4b382a'; // Rich mahogany wood
+  const handleColor = '#d1d5db'; // Brushed steel handles
+
+  return (
+    <group position={position || [2.0, 0, -2.5]} rotation={rotation || [0, 0, 0]}>
+      {/* Main Cabinet Body */}
+      <mesh position={[0, 1.0, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.2, 2.0, 0.6]} />
+        <meshStandardMaterial color={woodColor} roughness={0.7} />
+      </mesh>
+      {/* Doors Division Line */}
+      <mesh position={[0, 1.0, 0.305]} castShadow>
+        <boxGeometry args={[0.01, 1.96, 0.01]} />
+        <meshStandardMaterial color="#1a0f07" roughness={0.9} />
+      </mesh>
+      {/* Left Handle */}
+      <mesh position={[-0.08, 1.0, 0.32]} castShadow>
+        <boxGeometry args={[0.02, 0.2, 0.02]} />
+        <meshStandardMaterial color={handleColor} metalness={0.8} roughness={0.2} />
+      </mesh>
+      {/* Right Handle */}
+      <mesh position={[0.08, 1.0, 0.32]} castShadow>
+        <boxGeometry args={[0.02, 0.2, 0.02]} />
+        <meshStandardMaterial color={handleColor} metalness={0.8} roughness={0.2} />
+      </mesh>
+    </group>
+  );
+};
+
+// ==========================================
+// 7.2 FRIDGE (REFRIGERATOR)
+// ==========================================
+const Fridge = ({ position, rotation }) => {
+  const metalColor = '#475569'; // Slate dark grey
+  const handleColor = '#94a3b8'; // Light silver
+
+  return (
+    <group position={position || [-1.5, 0, -2.5]} rotation={rotation || [0, 0, 0]}>
+      {/* Fridge Base Body */}
+      <mesh position={[0, 0.75, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.6, 1.5, 0.6]} />
+        <meshStandardMaterial color={metalColor} metalness={0.5} roughness={0.3} />
+      </mesh>
+      {/* Freezer door (top) */}
+      <mesh position={[0, 1.25, 0.305]} castShadow>
+        <boxGeometry args={[0.58, 0.46, 0.02]} />
+        <meshStandardMaterial color={metalColor} metalness={0.5} roughness={0.3} />
+      </mesh>
+      {/* Fridge door (bottom) */}
+      <mesh position={[0, 0.5, 0.305]} castShadow>
+        <boxGeometry args={[0.58, 0.96, 0.02]} />
+        <meshStandardMaterial color={metalColor} metalness={0.5} roughness={0.3} />
+      </mesh>
+      {/* Freezer handle */}
+      <mesh position={[0.22, 1.1, 0.32]} castShadow>
+        <boxGeometry args={[0.02, 0.1, 0.02]} />
+        <meshStandardMaterial color={handleColor} metalness={0.8} roughness={0.2} />
+      </mesh>
+      {/* Fridge handle */}
+      <mesh position={[0.22, 0.7, 0.32]} castShadow>
+        <boxGeometry args={[0.02, 0.2, 0.02]} />
+        <meshStandardMaterial color={handleColor} metalness={0.8} roughness={0.2} />
       </mesh>
     </group>
   );
@@ -1099,7 +1170,9 @@ const CameraController = ({ controlsRef, activeHotspotId, hotspots }) => {
 // ==========================================
 // 10. COMBINED ROOM ASSEMBLY
 // ==========================================
-const Room = ({ activeHotspotId, onHotspotClick, hotspots }) => {
+const Room = ({ layout3d, activeHotspotId, onHotspotClick, hotspots }) => {
+  const hasCustomLayout = layout3d && layout3d.length > 0;
+
   return (
     <group position={[0, 0, 0]}>
       <Floor />
@@ -1107,15 +1180,55 @@ const Room = ({ activeHotspotId, onHotspotClick, hotspots }) => {
       <RightWall />
       <BackWall />
       <FrontWall />
-      <Bathroom />
-      <Kitchen />
-      <Desk />
-      <Chair />
-      <Bed />
+      
       {/* Stand the character "Tùng" in the middle of the room */}
       <Character position={[0, 0, 0]} />
       {/* Add length & width dimensions to the model */}
       <DimensionLines />
+
+      {hasCustomLayout ? (
+        // Dynamic landlord layout rendering
+        layout3d.map((item, idx) => {
+          const pos = item.position;
+          const rot = item.rotation;
+
+          switch (item.type) {
+            case 'bed':
+              return <Bed key={idx} position={pos} rotation={rot} />;
+            case 'desk':
+              return <Desk key={idx} position={pos} rotation={rot} />;
+            case 'chair':
+              return <Chair key={idx} position={pos} rotation={rot} />;
+            case 'fridge':
+              return <Fridge key={idx} position={pos} rotation={rot} />;
+            case 'wardrobe':
+              return <Wardrobe key={idx} position={pos} rotation={rot} />;
+            case 'kitchen':
+              return <Kitchen key={idx} position={pos} rotation={rot} />;
+            case 'bathroom':
+              return <Bathroom key={idx} position={pos} rotation={rot} />;
+            case 'window':
+              return <Window key={idx} position={pos} rotation={rot} />;
+            case 'entrance-door':
+              return <EntranceDoor key={idx} position={pos} rotation={rot} />;
+            case 'fan':
+              return <CeilingFan key={idx} position={pos} rotation={rot} />;
+            case 'aircon':
+              return <AirConditioner key={idx} position={pos} rotation={rot} />;
+            default:
+              return null;
+          }
+        })
+      ) : (
+        // Fallback to default hardcoded layout
+        <>
+          <Bathroom />
+          <Kitchen />
+          <Desk />
+          <Chair />
+          <Bed />
+        </>
+      )}
 
       {/* Hotspots */}
       {hotspots.map((hs) => (
@@ -1133,48 +1246,124 @@ const Room = ({ activeHotspotId, onHotspotClick, hotspots }) => {
 // ==========================================
 // 11. MAIN CONTAINER & CANVAS ENVIRONMENT
 // ==========================================
-const StudentHouse3D = () => {
+const StudentHouse3D = ({ layout3d }) => {
   const [activeHotspotId, setActiveHotspotId] = useState(null);
   const controlsRef = useRef();
 
-  const hotspots = useMemo(() => [
-    {
-      id: 'bed',
-      position: [3.3, 0.7, 0.5],
-      targetLookAt: [3.5, 0.4, 0.5],
-      cameraPos: [1.8, 3.5, 2.5],
-      title: 'Giường ngủ cao cấp',
-      description: 'Giường gỗ sồi tự nhiên, đệm foam cao su non êm ái, hỗ trợ giấc ngủ chất lượng.',
-      details: ['Kích thước: 1.8m x 2.0m', 'Đệm: Cao su non dày 25cm', 'Ga trải giường: Cotton kháng khuẩn']
-    },
-    {
-      id: 'desk',
-      position: [0.4, 1.1, 2.7],
-      targetLookAt: [0.4, 0.75, 2.7],
-      cameraPos: [0.4, 2.8, 0.6],
-      title: 'Góc học tập & Làm việc',
-      description: 'Bàn học tích hợp tủ kệ, laptop làm việc, cây xanh decor và ghế xoay công thái học.',
-      details: ['Bàn làm việc: Gỗ MDF chống ẩm', 'Đèn: Đèn LED chống cận thị', 'Laptop: Thiết kế siêu mỏng nhẹ']
-    },
-    {
-      id: 'kitchen',
-      position: [-4.2, 1.1, 1.8],
-      targetLookAt: [-4.6, 0.85, 1.85],
-      cameraPos: [-2.0, 3.2, 1.85],
-      title: 'Khu vực bếp nấu tiện nghi',
-      description: 'Bếp chữ L hiện đại mặt đá vân mây sang trọng, trang bị bếp từ, chậu rửa, giá kệ bát đĩa.',
-      details: ['Bàn bếp: Đá granite trắng', 'Thiết bị: Bếp từ đôi, chậu rửa', 'Tủ bếp: Phủ Acrylic chống ẩm']
-    },
-    {
-      id: 'bathroom',
-      position: [-3.5, 1.4, -2.0],
-      targetLookAt: [-3.75, 0.8, -2.5],
-      cameraPos: [-1.2, 3.5, -2.0],
-      title: 'Phòng tắm khép kín',
-      description: 'Sen tắm đứng cao cấp, vách ngăn kính, bồn cầu thông minh và bình nóng lạnh Ariston.',
-      details: ['Vách kính: Kính cường lực 10mm', 'Bình nóng lạnh: Ariston 20L', 'Bồn cầu: Sứ tráng men Nano']
+  const hotspots = useMemo(() => {
+    if (!layout3d || layout3d.length === 0) {
+      // Default hotspots
+      return [
+        {
+          id: 'bed',
+          position: [3.3, 0.7, 0.5],
+          targetLookAt: [3.5, 0.4, 0.5],
+          cameraPos: [1.8, 3.5, 2.5],
+          title: 'Giường ngủ cao cấp',
+          description: 'Giường gỗ sồi tự nhiên, đệm foam cao su non êm ái, hỗ trợ giấc ngủ chất lượng.',
+          details: ['Kích thước: 1.8m x 2.0m', 'Đệm: Cao su non dày 25cm', 'Ga trải giường: Cotton kháng khuẩn']
+        },
+        {
+          id: 'desk',
+          position: [0.4, 1.1, 2.7],
+          targetLookAt: [0.4, 0.75, 2.7],
+          cameraPos: [0.4, 2.8, 0.6],
+          title: 'Góc học tập & Làm việc',
+          description: 'Bàn học tích hợp tủ kệ, laptop làm việc, cây xanh decor và ghế xoay công thái học.',
+          details: ['Bàn làm việc: Gỗ MDF chống ẩm', 'Đèn: Đèn LED chống cận thị', 'Laptop: Thiết kế siêu mỏng nhẹ']
+        },
+        {
+          id: 'kitchen',
+          position: [-4.2, 1.1, 1.8],
+          targetLookAt: [-4.6, 0.85, 1.85],
+          cameraPos: [-2.0, 3.2, 1.85],
+          title: 'Khu vực bếp nấu tiện nghi',
+          description: 'Bếp chữ L hiện đại mặt đá vân mây sang trọng, trang bị bếp từ, chậu rửa, giá kệ bát đĩa.',
+          details: ['Bàn bếp: Đá granite trắng', 'Thiết bị: Bếp từ đôi, chậu rửa', 'Tủ bếp: Phủ Acrylic chống ẩm']
+        },
+        {
+          id: 'bathroom',
+          position: [-3.5, 1.4, -2.0],
+          targetLookAt: [-3.75, 0.8, -2.5],
+          cameraPos: [-1.2, 3.5, -2.0],
+          title: 'Phòng tắm khép kín',
+          description: 'Sen tắm đứng cao cấp, vách ngăn kính, bồn cầu thông minh và bình nóng lạnh Ariston.',
+          details: ['Vách kính: Kính cường lực 10mm', 'Bình nóng lạnh: Ariston 20L', 'Bồn cầu: Sứ tráng men Nano']
+        }
+      ];
     }
-  ], []);
+
+    // Generate hotspots dynamically from layout3d items
+    const list = [];
+    layout3d.forEach((item, idx) => {
+      const id = `${item.type}_${idx}`;
+      const pos = item.position;
+
+      if (item.type === 'bed') {
+        list.push({
+          id,
+          position: [pos[0], pos[1] + 0.6, pos[2]],
+          targetLookAt: [pos[0], pos[1] + 0.3, pos[2]],
+          cameraPos: [pos[0] - 1.5, pos[1] + 2.5, pos[2] + 2.0],
+          title: 'Giường ngủ thông minh',
+          description: 'Giường ngủ hiện đại tối ưu diện tích, đem lại giấc ngủ êm ái và phục hồi sức khỏe.',
+          details: ['Thiết kế: Gỗ công nghiệp cao cấp', 'Đệm: Foam kháng khuẩn', 'Ga giường: Vải lanh mát mịn']
+        });
+      } else if (item.type === 'desk') {
+        list.push({
+          id,
+          position: [pos[0], pos[1] + 0.7, pos[2]],
+          targetLookAt: [pos[0], pos[1] + 0.4, pos[2]],
+          cameraPos: [pos[0], pos[1] + 2.2, pos[2] - 1.5],
+          title: 'Bàn làm việc đa năng',
+          description: 'Bàn làm việc gọn gàng kết hợp ghế công thái học tiện lợi cho công việc và học tập.',
+          details: ['Chất liệu: Mặt gỗ chống trầy', 'Ghế: Ghế xoay lưới thoáng khí', 'Đèn: LED 3 chế độ sáng']
+        });
+      } else if (item.type === 'fridge') {
+        list.push({
+          id,
+          position: [pos[0], pos[1] + 0.8, pos[2]],
+          targetLookAt: [pos[0], pos[1] + 0.5, pos[2]],
+          cameraPos: [pos[0] + 1.8, pos[1] + 1.8, pos[2] + 1.2],
+          title: 'Tủ lạnh Inverter',
+          description: 'Tủ lạnh tiết kiệm điện năng dung tích lớn, giữ thực phẩm tươi ngon suốt cả tuần.',
+          details: ['Dung tích: 150 Lít', 'Công nghệ: Inverter siêu tiết kiệm điện', 'Kháng khuẩn: Bộ lọc Deodorizer']
+        });
+      } else if (item.type === 'kitchen') {
+        list.push({
+          id,
+          position: [pos[0], pos[1] + 0.9, pos[2]],
+          targetLookAt: [pos[0], pos[1] + 0.5, pos[2]],
+          cameraPos: [pos[0] + 2.0, pos[1] + 2.5, pos[2] + 1.5],
+          title: 'Bếp nấu ấm cúng',
+          description: 'Hệ thống tủ bếp hiện đại mặt đá chống ố, chậu rửa lớn và bếp từ đôi tiện nghi.',
+          details: ['Mặt đá: Đá cẩm thạch trắng', 'Bếp: Bếp từ hồng ngoại', 'Tủ bếp: Phủ Laminate cao cấp']
+        });
+      } else if (item.type === 'bathroom') {
+        list.push({
+          id,
+          position: [pos[0], pos[1] + 1.0, pos[2]],
+          targetLookAt: [pos[0], pos[1] + 0.5, pos[2]],
+          cameraPos: [pos[0] + 2.0, pos[1] + 2.2, pos[2]],
+          title: 'Nhà vệ sinh sạch sẽ',
+          description: 'Không gian vệ sinh khép kín với bồn cầu tráng men nano chống bám bẩn và bình nóng lạnh.',
+          details: ['Thiết bị: Sứ nano trắng sáng', 'Vách ngăn: Vách kính chịu lực', 'Bình nóng lạnh: Rossi 20L']
+        });
+      } else if (item.type === 'wardrobe') {
+        list.push({
+          id,
+          position: [pos[0], pos[1] + 1.0, pos[2]],
+          targetLookAt: [pos[0], pos[1] + 0.5, pos[2]],
+          cameraPos: [pos[0] - 1.8, pos[1] + 2.0, pos[2] + 1.5],
+          title: 'Tủ quần áo cỡ lớn',
+          description: 'Tủ quần áo nhiều ngăn chứa tiện dụng, giúp tối ưu hóa không gian lưu trữ quần áo đồ dùng.',
+          details: ['Kích thước: 2 cánh lớn', 'Chất liệu: Melamine chống trầy xước', 'Bên trong: Ngăn treo + Hộc tủ khóa']
+        });
+      }
+    });
+
+    return list;
+  }, [layout3d]);
 
   const activeHotspot = useMemo(() => {
     return hotspots.find(h => h.id === activeHotspotId) || null;
@@ -1198,34 +1387,36 @@ const StudentHouse3D = () => {
       }}
     >
       {/* Hotspots Sidebar Overlay */}
-      <div className="threed-hotspots-sidebar">
-        <h4 className="sidebar-title">Danh mục đồ đạc</h4>
-        <div className="hotspots-list">
-          {hotspots.map((hs) => {
-            const isActive = activeHotspotId === hs.id;
-            return (
-              <button
-                key={hs.id}
-                type="button"
-                className={`hotspot-list-item ${isActive ? 'active' : ''}`}
-                onClick={() => handleHotspotClick(hs.id)}
-              >
-                <span className="item-dot"></span>
-                <span className="item-name">{hs.title}</span>
-              </button>
-            );
-          })}
+      {hotspots.length > 0 && (
+        <div className="threed-hotspots-sidebar">
+          <h4 className="sidebar-title">Danh mục đồ đạc</h4>
+          <div className="hotspots-list">
+            {hotspots.map((hs) => {
+              const isActive = activeHotspotId === hs.id;
+              return (
+                <button
+                  key={hs.id}
+                  type="button"
+                  className={`hotspot-list-item ${isActive ? 'active' : ''}`}
+                  onClick={() => handleHotspotClick(hs.id)}
+                >
+                  <span className="item-dot"></span>
+                  <span className="item-name">{hs.title}</span>
+                </button>
+              );
+            })}
+          </div>
+          {activeHotspotId && (
+            <button 
+              type="button" 
+              className="clear-focus-btn"
+              onClick={() => setActiveHotspotId(null)}
+            >
+              Xem toàn cảnh
+            </button>
+          )}
         </div>
-        {activeHotspotId && (
-          <button 
-            type="button" 
-            className="clear-focus-btn"
-            onClick={() => setActiveHotspotId(null)}
-          >
-            Xem toàn cảnh
-          </button>
-        )}
-      </div>
+      )}
 
       {/* 2D Active Hotspot Details Card */}
       {activeHotspot && (
@@ -1294,6 +1485,7 @@ const StudentHouse3D = () => {
 
         {/* Assembly Room */}
         <Room 
+          layout3d={layout3d}
           activeHotspotId={activeHotspotId} 
           onHotspotClick={handleHotspotClick}
           hotspots={hotspots}

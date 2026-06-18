@@ -67,6 +67,10 @@ const roomSchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
+    layout3d: {
+      type: Array,
+      default: [],
+    },
   },
   { timestamps: true }
 );

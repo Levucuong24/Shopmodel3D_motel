@@ -394,7 +394,7 @@ function ProductDetail() {
               ) : (
                 <div className="model-container">
                   <Suspense fallback={<ThreeDLoader />}>
-                    <StudentHouse3D />
+                    <StudentHouse3D layout3d={product?.layout3d} />
                   </Suspense>
                   <p className="model-instruction">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: "13px", height: "13px", display: "inline-block", verticalAlign: "middle", position: "relative", top: "-1px", color: "var(--primary-color)" }}>
@@ -404,6 +404,28 @@ function ProductDetail() {
                     </svg>
                     Chuột trái xoay, chuột phải di chuyển, cuộn để phóng to/thu nhỏ.
                   </p>
+                  <div className="room-builder-sandbox-lnk" style={{ marginTop: "12px", textAlign: "center" }}>
+                    <Link
+                      to={`/room-builder/${product?._id}`}
+                      className="btn-builder-try"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "10px 20px",
+                        background: "linear-gradient(135deg, var(--primary-color, #ff6a00), #ee0979)",
+                        color: "white",
+                        fontWeight: "600",
+                        textDecoration: "none",
+                        borderRadius: "8px",
+                        boxShadow: "0 4px 15px rgba(238, 9, 121, 0.3)",
+                        fontSize: "14px",
+                        transition: "all 0.3s ease",
+                      }}
+                    >
+                      🎨 Tự thiết kế & Sắp xếp nội thất 3D
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>

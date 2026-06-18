@@ -8,6 +8,7 @@ import ForgotPassword from "./pages/ForgotPassword.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import CustomerDashboard from "./pages/CustomerDashboard.jsx";
 import StaffDashboard from "./pages/StaffDashboard.jsx";
+import RoomBuilder from "./pages/RoomBuilder.jsx";
 import Blog from "./pages/Blog.jsx";
 import MapPage from "./pages/MapPage.jsx";
 import NewPage from "./pages/NewPage.jsx";
@@ -54,6 +55,8 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/customer" element={<CustomerDashboard />} />
         <Route path="/staff" element={<StaffDashboard />} />
+        <Route path="/admin/room-builder/:id" element={<RoomBuilder />} />
+        <Route path="/room-builder/:id" element={<RoomBuilder />} />
 
         {/* Catch-all Route for 404 */}
         <Route path="*" element={<NotFound />} />

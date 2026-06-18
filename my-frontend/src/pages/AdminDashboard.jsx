@@ -1112,6 +1112,22 @@ function AdminDashboard() {
                         </td>
                         <td>
                           <div style={{ display: "flex", gap: "5px" }}>
+                            <Link
+                              to={`/admin/room-builder/${room._id}`}
+                              style={{
+                                padding: "5px 10px",
+                                background: "#0284c7",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "4px",
+                                textDecoration: "none",
+                                fontSize: "13px",
+                                display: "inline-flex",
+                                alignItems: "center"
+                              }}
+                            >
+                              Thiết kế 3D
+                            </Link>
                             <button onClick={() => handleEditRoomClick(room)} style={{ padding: "5px 10px", background: "#f59e0b", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Sửa</button>
                             <button onClick={() => handleDeleteRoom(room._id)} style={{ padding: "5px 10px", background: "#ef4444", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Xóa</button>
                           </div>
