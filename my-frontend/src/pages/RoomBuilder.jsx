@@ -33,11 +33,21 @@ function RoomBuilder() {
   const [placedItems, setPlacedItems] = useState([]);
   const [selectedPlacedIndex, setSelectedPlacedIndex] = useState(null);
 
-  const isEditable = authToken && (userRole === "admin" || userRole === "staff");
-
+  const isFreeMode = id === "free";
+  const isEditable = !isFreeMode && authToken && (userRole === "admin" || userRole === "staff");
 
   // Load room data
   useEffect(() => {
+    if (isFreeMode) {
+      setRoom({
+        name: "Phòng trống thiết kế tự do",
+        title: "Thiết kế phòng từ con số 0"
+      });
+      setPlacedItems([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     fetch(`/api/rooms/${id}`, {
       headers: authToken ? { Authorization: authToken } : {},
@@ -82,7 +92,7 @@ function RoomBuilder() {
         setError(err.message);
         setLoading(false);
       });
-  }, [id, authToken]);
+  }, [id, authToken, isFreeMode]);
 
   // Map 2D grid items to 3D layout data
   const getLayout3D = () => {
@@ -230,7 +240,7 @@ function RoomBuilder() {
       {/* Top Header */}
       <header className="builder-header">
         <div className="header-left">
-          <Link to={isEditable ? (userRole === "admin" ? "/admin" : "/staff") : `/product/${id}`} className="back-btn">
+          <Link to={isFreeMode ? "/welcome" : (isEditable ? (userRole === "admin" ? "/admin" : "/staff") : `/product/${id}`)} className="back-btn">
             ← Quay lại
           </Link>
           <div className="header-title">

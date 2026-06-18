@@ -323,6 +323,60 @@ function Navbar() {
               </button>
             </div>
 
+            {/* Option for Free Design */}
+            <div
+              onClick={() => {
+                setSelectorOpen(false);
+                navigate("/room-builder/free");
+              }}
+              style={{
+                display: "flex",
+                gap: "16px",
+                padding: "16px",
+                background: "linear-gradient(135deg, rgba(255, 106, 0, 0.15), rgba(238, 9, 121, 0.15))",
+                border: "1px dashed rgba(255, 106, 0, 0.5)",
+                borderRadius: "12px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                alignItems: "center",
+                marginBottom: "16px"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "linear-gradient(135deg, rgba(255, 106, 0, 0.25), rgba(238, 9, 121, 0.25))";
+                e.currentTarget.style.borderColor = "rgba(255, 106, 0, 0.8)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "linear-gradient(135deg, rgba(255, 106, 0, 0.15), rgba(238, 9, 121, 0.15))";
+                e.currentTarget.style.borderColor = "rgba(255, 106, 0, 0.5)";
+              }}
+            >
+              <div style={{
+                width: "48px",
+                height: "48px",
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #ff6a00, #ee0979)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "24px",
+                color: "white",
+                boxShadow: "0 4px 10px rgba(238, 9, 121, 0.3)"
+              }}>
+                ➕
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <h4 style={{ margin: "0 0 4px 0", fontSize: "16px", color: "white", fontWeight: "bold" }}>
+                  Tạo phòng trống mới & Tự do thiết kế
+                </h4>
+                <p style={{ margin: 0, fontSize: "12px", color: "#cbd5e1" }}>
+                  Bắt đầu từ lưới 2D trống, tự do thêm/sắp đặt tất cả các thiết bị.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ borderTop: "1px solid rgba(255, 255, 255, 0.1)", margin: "8px 0 16px 0" }}></div>
+            <p style={{ fontSize: "14px", color: "#94a3b8", margin: "0 0 12px 0", fontWeight: "600" }}>Hoặc chọn mẫu phòng có sẵn:</p>
+
             {selectorLoading ? (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 0" }}>
                 <div style={{
