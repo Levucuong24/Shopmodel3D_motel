@@ -20,7 +20,7 @@ function Home() {
   const [hasSeenIntro, setHasSeenIntro] = useState(() => {
     return sessionStorage.getItem("hasSeenIntroVideo") === "true";
   });
-  const [videoFinished, setVideoFinished] = useState(hasSeenIntro);
+  const [videoTimerDone, setVideoTimerDone] = useState(hasSeenIntro);
   
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
@@ -53,16 +53,21 @@ function Home() {
 
     if (!hasSeenIntro) {
       const timer = setTimeout(() => {
-        setVideoFinished(true);
-        sessionStorage.setItem("hasSeenIntroVideo", "true");
-        setHasSeenIntro(true);
+        setVideoTimerDone(true);
       }, 10000); // 10 seconds (duration of loading-3d.mp4)
 
       return () => clearTimeout(timer);
     }
   }, [hasSeenIntro]);
 
-  const showVideoLoader = !hasSeenIntro && (!backendReady || !videoFinished);
+  useEffect(() => {
+    if (!hasSeenIntro && videoTimerDone && backendReady) {
+      sessionStorage.setItem("hasSeenIntroVideo", "true");
+      setHasSeenIntro(true);
+    }
+  }, [hasSeenIntro, videoTimerDone, backendReady]);
+
+  const showVideoLoader = !hasSeenIntro;
 
   const [visibleCount, setVisibleCount] = useState(6);
 
