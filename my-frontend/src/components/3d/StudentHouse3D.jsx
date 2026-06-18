@@ -952,6 +952,382 @@ const Fridge = ({ position, rotation }) => {
 };
 
 // ==========================================
+// 7.3 SOFA
+// ==========================================
+const Sofa = ({ position, rotation }) => {
+  const fabricColor = '#64748b';
+  const cushionColor = '#94a3b8';
+  return (
+    <group position={position || [0, 0, 2]} rotation={rotation || [0, 0, 0]}>
+      {/* Base frame */}
+      <mesh position={[0, 0.2, 0]} castShadow receiveShadow>
+        <boxGeometry args={[2.0, 0.4, 0.8]} />
+        <meshStandardMaterial color={fabricColor} roughness={0.8} />
+      </mesh>
+      {/* Back rest */}
+      <mesh position={[0, 0.55, -0.3]} castShadow>
+        <boxGeometry args={[2.0, 0.5, 0.2]} />
+        <meshStandardMaterial color={fabricColor} roughness={0.8} />
+      </mesh>
+      {/* Left armrest */}
+      <mesh position={[-0.9, 0.4, 0]} castShadow>
+        <boxGeometry args={[0.2, 0.3, 0.8]} />
+        <meshStandardMaterial color={fabricColor} roughness={0.8} />
+      </mesh>
+      {/* Right armrest */}
+      <mesh position={[0.9, 0.4, 0]} castShadow>
+        <boxGeometry args={[0.2, 0.3, 0.8]} />
+        <meshStandardMaterial color={fabricColor} roughness={0.8} />
+      </mesh>
+      {/* Seat cushions */}
+      <mesh position={[-0.4, 0.42, 0.05]} castShadow>
+        <boxGeometry args={[0.75, 0.08, 0.65]} />
+        <meshStandardMaterial color={cushionColor} roughness={0.9} />
+      </mesh>
+      <mesh position={[0.4, 0.42, 0.05]} castShadow>
+        <boxGeometry args={[0.75, 0.08, 0.65]} />
+        <meshStandardMaterial color={cushionColor} roughness={0.9} />
+      </mesh>
+    </group>
+  );
+};
+
+// ==========================================
+// 7.4 TV STAND
+// ==========================================
+const TV = ({ position, rotation }) => {
+  return (
+    <group position={position || [0, 0, -3]} rotation={rotation || [0, 0, 0]}>
+      {/* TV Stand */}
+      <mesh position={[0, 0.25, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.4, 0.5, 0.4]} />
+        <meshStandardMaterial color="#1e293b" roughness={0.6} />
+      </mesh>
+      {/* Screen */}
+      <mesh position={[0, 0.95, -0.15]} castShadow>
+        <boxGeometry args={[1.3, 0.75, 0.05]} />
+        <meshStandardMaterial color="#0f172a" roughness={0.3} metalness={0.2} />
+      </mesh>
+      {/* Screen bezel highlight */}
+      <mesh position={[0, 0.95, -0.12]} castShadow>
+        <boxGeometry args={[1.22, 0.67, 0.01]} />
+        <meshStandardMaterial color="#334155" roughness={0.1} metalness={0.5} emissive="#1e3a5f" emissiveIntensity={0.15} />
+      </mesh>
+      {/* Stand neck */}
+      <mesh position={[0, 0.55, -0.15]} castShadow>
+        <boxGeometry args={[0.08, 0.1, 0.08]} />
+        <meshStandardMaterial color="#334155" metalness={0.6} roughness={0.3} />
+      </mesh>
+    </group>
+  );
+};
+
+// ==========================================
+// 7.5 COFFEE TABLE
+// ==========================================
+const CoffeeTable = ({ position, rotation }) => {
+  return (
+    <group position={position || [0, 0, 1]} rotation={rotation || [0, 0, 0]}>
+      {/* Tabletop */}
+      <mesh position={[0, 0.35, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.2, 0.06, 0.6]} />
+        <meshStandardMaterial color="#92400e" roughness={0.5} />
+      </mesh>
+      {/* Lower shelf */}
+      <mesh position={[0, 0.1, 0]} castShadow>
+        <boxGeometry args={[1.0, 0.04, 0.5]} />
+        <meshStandardMaterial color="#78350f" roughness={0.6} />
+      </mesh>
+      {/* Legs */}
+      {[[-0.5, 0.175, -0.25], [0.5, 0.175, -0.25], [-0.5, 0.175, 0.25], [0.5, 0.175, 0.25]].map((lp, i) => (
+        <mesh key={i} position={lp} castShadow>
+          <boxGeometry args={[0.05, 0.35, 0.05]} />
+          <meshStandardMaterial color="#451a03" roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  );
+};
+
+// ==========================================
+// 7.6 BOOKSHELF
+// ==========================================
+const Bookshelf = ({ position, rotation }) => {
+  const woodColor = '#78350f';
+  const bookColors = ['#dc2626', '#2563eb', '#16a34a', '#eab308', '#7c3aed', '#f97316'];
+  return (
+    <group position={position || [3.5, 0, 0]} rotation={rotation || [0, 0, 0]}>
+      {/* Frame */}
+      <mesh position={[0, 1.0, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.8, 2.0, 0.35]} />
+        <meshStandardMaterial color={woodColor} roughness={0.7} />
+      </mesh>
+      {/* Shelves */}
+      {[0.15, 0.65, 1.15, 1.65].map((y, i) => (
+        <mesh key={i} position={[0, y, 0.02]} castShadow>
+          <boxGeometry args={[0.76, 0.04, 0.33]} />
+          <meshStandardMaterial color="#451a03" roughness={0.6} />
+        </mesh>
+      ))}
+      {/* Books on shelves */}
+      {[0.35, 0.85, 1.35].map((y, si) => (
+        <group key={si}>
+          {bookColors.slice(0, 3 + si).map((color, bi) => (
+            <mesh key={bi} position={[-0.25 + bi * 0.15, y + 0.15, 0.04]} castShadow>
+              <boxGeometry args={[0.08, 0.25, 0.22]} />
+              <meshStandardMaterial color={color} roughness={0.8} />
+            </mesh>
+          ))}
+        </group>
+      ))}
+    </group>
+  );
+};
+
+// ==========================================
+// 7.7 NIGHTSTAND
+// ==========================================
+const Nightstand = ({ position, rotation }) => {
+  return (
+    <group position={position || [3, 0, 2]} rotation={rotation || [0, 0, 0]}>
+      {/* Body */}
+      <mesh position={[0, 0.3, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.5, 0.6, 0.4]} />
+        <meshStandardMaterial color="#78350f" roughness={0.6} />
+      </mesh>
+      {/* Drawer face */}
+      <mesh position={[0, 0.3, 0.205]} castShadow>
+        <boxGeometry args={[0.46, 0.24, 0.02]} />
+        <meshStandardMaterial color="#92400e" roughness={0.5} />
+      </mesh>
+      {/* Handle */}
+      <mesh position={[0, 0.3, 0.22]} castShadow>
+        <boxGeometry args={[0.12, 0.02, 0.02]} />
+        <meshStandardMaterial color="#d1d5db" metalness={0.8} roughness={0.2} />
+      </mesh>
+      {/* Legs */}
+      {[[-0.2, 0, -0.15], [0.2, 0, -0.15], [-0.2, 0, 0.15], [0.2, 0, 0.15]].map((lp, i) => (
+        <mesh key={i} position={lp} castShadow>
+          <cylinderGeometry args={[0.02, 0.02, 0.04, 8]} />
+          <meshStandardMaterial color="#451a03" roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  );
+};
+
+// ==========================================
+// 7.8 MIRROR (STANDING)
+// ==========================================
+const Mirror = ({ position, rotation }) => {
+  return (
+    <group position={position || [-3, 0, 0]} rotation={rotation || [0, 0, 0]}>
+      {/* Frame */}
+      <mesh position={[0, 0.9, 0]} castShadow>
+        <boxGeometry args={[0.6, 1.6, 0.06]} />
+        <meshStandardMaterial color="#1e293b" roughness={0.5} metalness={0.3} />
+      </mesh>
+      {/* Mirror glass */}
+      <mesh position={[0, 0.9, 0.035]}>
+        <boxGeometry args={[0.5, 1.4, 0.01]} />
+        <meshStandardMaterial color="#e2e8f0" metalness={0.95} roughness={0.05} />
+      </mesh>
+      {/* Base stand */}
+      <mesh position={[0, 0.05, 0.1]} castShadow>
+        <boxGeometry args={[0.5, 0.1, 0.3]} />
+        <meshStandardMaterial color="#1e293b" roughness={0.5} />
+      </mesh>
+    </group>
+  );
+};
+
+// ==========================================
+// 7.9 DESK LAMP
+// ==========================================
+const Lamp = ({ position, rotation }) => {
+  return (
+    <group position={position || [2, 0, 0]} rotation={rotation || [0, 0, 0]}>
+      {/* Base */}
+      <mesh position={[0, 0.02, 0]} castShadow>
+        <cylinderGeometry args={[0.12, 0.15, 0.04, 16]} />
+        <meshStandardMaterial color="#1e293b" metalness={0.6} roughness={0.3} />
+      </mesh>
+      {/* Arm */}
+      <mesh position={[0, 0.25, 0]} castShadow>
+        <cylinderGeometry args={[0.015, 0.015, 0.45, 8]} />
+        <meshStandardMaterial color="#475569" metalness={0.7} roughness={0.3} />
+      </mesh>
+      {/* Shade */}
+      <mesh position={[0, 0.48, 0]} castShadow>
+        <cylinderGeometry args={[0.06, 0.15, 0.15, 16]} />
+        <meshStandardMaterial color="#fbbf24" roughness={0.8} emissive="#fbbf24" emissiveIntensity={0.2} />
+      </mesh>
+    </group>
+  );
+};
+
+// ==========================================
+// 7.10 WASHING MACHINE
+// ==========================================
+const Washer = ({ position, rotation }) => {
+  return (
+    <group position={position || [-3, 0, 2]} rotation={rotation || [0, 0, 0]}>
+      {/* Body */}
+      <mesh position={[0, 0.45, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.6, 0.9, 0.6]} />
+        <meshStandardMaterial color="#e2e8f0" roughness={0.3} metalness={0.2} />
+      </mesh>
+      {/* Door circle */}
+      <mesh position={[0, 0.35, 0.305]}>
+        <cylinderGeometry args={[0.2, 0.2, 0.02, 24]} />
+        <meshStandardMaterial color="#94a3b8" metalness={0.5} roughness={0.2} />
+      </mesh>
+      {/* Door glass */}
+      <mesh position={[0, 0.35, 0.32]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.16, 0.16, 0.01, 24]} />
+        <meshStandardMaterial color="#bae6fd" transparent opacity={0.5} metalness={0.3} roughness={0.1} />
+      </mesh>
+      {/* Control panel */}
+      <mesh position={[0, 0.82, 0.28]} castShadow>
+        <boxGeometry args={[0.5, 0.1, 0.06]} />
+        <meshStandardMaterial color="#cbd5e1" roughness={0.4} />
+      </mesh>
+    </group>
+  );
+};
+
+// ==========================================
+// 7.11 SHOE RACK
+// ==========================================
+const ShoeRack = ({ position, rotation }) => {
+  return (
+    <group position={position || [4, 0, 3]} rotation={rotation || [0, 0, 0]}>
+      {/* Frame */}
+      <mesh position={[0, 0.45, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.0, 0.9, 0.35]} />
+        <meshStandardMaterial color="#d6d3d1" roughness={0.6} />
+      </mesh>
+      {/* Shelves */}
+      {[0.15, 0.45, 0.75].map((y, i) => (
+        <mesh key={i} position={[0, y, 0.02]} castShadow>
+          <boxGeometry args={[0.96, 0.03, 0.33]} />
+          <meshStandardMaterial color="#a8a29e" roughness={0.5} />
+        </mesh>
+      ))}
+    </group>
+  );
+};
+
+// ==========================================
+// 7.12 CURTAIN
+// ==========================================
+const Curtain = ({ position, rotation }) => {
+  return (
+    <group position={position || [0, 0, -3.4]} rotation={rotation || [0, 0, 0]}>
+      {/* Curtain rod */}
+      <mesh position={[0, 2.6, 0]} castShadow>
+        <cylinderGeometry args={[0.02, 0.02, 1.8, 8]} />
+        <meshStandardMaterial color="#78716c" metalness={0.7} roughness={0.3} />
+      </mesh>
+      {/* Left panel */}
+      <mesh position={[-0.55, 1.45, 0.02]}>
+        <boxGeometry args={[0.6, 2.2, 0.03]} />
+        <meshStandardMaterial color="#7c3aed" roughness={0.9} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Right panel */}
+      <mesh position={[0.55, 1.45, 0.02]}>
+        <boxGeometry args={[0.6, 2.2, 0.03]} />
+        <meshStandardMaterial color="#7c3aed" roughness={0.9} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+};
+
+// ==========================================
+// 7.13 CEILING FAN
+// ==========================================
+const CeilingFan = ({ position, rotation }) => {
+  return (
+    <group position={position || [0, 2.8, 0]} rotation={rotation || [0, 0, 0]}>
+      {/* Motor hub */}
+      <mesh position={[0, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.12, 0.12, 0.15, 16]} />
+        <meshStandardMaterial color="#e2e8f0" metalness={0.5} roughness={0.3} />
+      </mesh>
+      {/* Down rod */}
+      <mesh position={[0, 0.15, 0]}>
+        <cylinderGeometry args={[0.02, 0.02, 0.2, 8]} />
+        <meshStandardMaterial color="#94a3b8" metalness={0.6} roughness={0.3} />
+      </mesh>
+      {/* Blades */}
+      {[0, Math.PI / 2, Math.PI, Math.PI * 1.5].map((angle, i) => (
+        <mesh key={i} position={[Math.cos(angle) * 0.45, -0.02, Math.sin(angle) * 0.45]} rotation={[0, -angle, 0]} castShadow>
+          <boxGeometry args={[0.7, 0.02, 0.12]} />
+          <meshStandardMaterial color="#a8a29e" roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  );
+};
+
+// ==========================================
+// 7.14 AIR CONDITIONER
+// ==========================================
+const AirConditioner = ({ position, rotation }) => {
+  return (
+    <group position={position || [0, 2.2, -3.3]} rotation={rotation || [0, 0, 0]}>
+      {/* Main body */}
+      <mesh position={[0, 0, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.2, 0.3, 0.25]} />
+        <meshStandardMaterial color="#f1f5f9" roughness={0.3} metalness={0.1} />
+      </mesh>
+      {/* Vent slats */}
+      <mesh position={[0, -0.1, 0.13]}>
+        <boxGeometry args={[1.1, 0.06, 0.02]} />
+        <meshStandardMaterial color="#e2e8f0" roughness={0.4} />
+      </mesh>
+      {/* LED indicator */}
+      <mesh position={[0.5, 0.08, 0.13]}>
+        <boxGeometry args={[0.04, 0.02, 0.01]} />
+        <meshStandardMaterial color="#22c55e" emissive="#22c55e" emissiveIntensity={0.8} />
+      </mesh>
+    </group>
+  );
+};
+
+// ==========================================
+// 7.15 POTTED PLANT
+// ==========================================
+const Plant = ({ position, rotation }) => {
+  return (
+    <group position={position || [3, 0, 2]} rotation={rotation || [0, 0, 0]}>
+      {/* Pot */}
+      <mesh position={[0, 0.15, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.15, 0.12, 0.3, 12]} />
+        <meshStandardMaterial color="#92400e" roughness={0.8} />
+      </mesh>
+      {/* Soil */}
+      <mesh position={[0, 0.3, 0]}>
+        <cylinderGeometry args={[0.14, 0.14, 0.02, 12]} />
+        <meshStandardMaterial color="#451a03" roughness={0.9} />
+      </mesh>
+      {/* Main stem */}
+      <mesh position={[0, 0.5, 0]}>
+        <cylinderGeometry args={[0.015, 0.02, 0.4, 8]} />
+        <meshStandardMaterial color="#166534" roughness={0.8} />
+      </mesh>
+      {/* Leaf clusters */}
+      {[[0, 0.7, 0], [0.1, 0.6, 0.05], [-0.08, 0.55, -0.06], [0.06, 0.65, -0.08]].map((lp, i) => (
+        <mesh key={i} position={lp}>
+          <sphereGeometry args={[0.12, 8, 8]} />
+          <meshStandardMaterial color="#22c55e" roughness={0.8} />
+        </mesh>
+      ))}
+    </group>
+  );
+};
+
+// ==========================================
 // 8. PROCEDURAL CHARACTER WITH HTML LABEL
 // ==========================================
 const Character = ({ position }) => {
@@ -1215,6 +1591,28 @@ const Room = ({ layout3d, activeHotspotId, onHotspotClick, hotspots }) => {
               return <CeilingFan key={idx} position={pos} rotation={rot} />;
             case 'aircon':
               return <AirConditioner key={idx} position={pos} rotation={rot} />;
+            case 'sofa':
+              return <Sofa key={idx} position={pos} rotation={rot} />;
+            case 'tv':
+              return <TV key={idx} position={pos} rotation={rot} />;
+            case 'coffeetable':
+              return <CoffeeTable key={idx} position={pos} rotation={rot} />;
+            case 'bookshelf':
+              return <Bookshelf key={idx} position={pos} rotation={rot} />;
+            case 'nightstand':
+              return <Nightstand key={idx} position={pos} rotation={rot} />;
+            case 'mirror':
+              return <Mirror key={idx} position={pos} rotation={rot} />;
+            case 'lamp':
+              return <Lamp key={idx} position={pos} rotation={rot} />;
+            case 'washer':
+              return <Washer key={idx} position={pos} rotation={rot} />;
+            case 'shoerack':
+              return <ShoeRack key={idx} position={pos} rotation={rot} />;
+            case 'curtain':
+              return <Curtain key={idx} position={pos} rotation={rot} />;
+            case 'plant':
+              return <Plant key={idx} position={pos} rotation={rot} />;
             default:
               return null;
           }

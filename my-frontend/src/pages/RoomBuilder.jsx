@@ -5,13 +5,31 @@ import StudentHouse3D from "../components/3d/StudentHouse3D.jsx";
 import "../css/RoomBuilder.css";
 
 const FURNITURE_LIBRARY = [
-  { type: "bed", name: "Giường ngủ", icon: "🛏️", size: [3, 2], desc: "Giường ngủ hiện đại" },
-  { type: "desk", name: "Bàn làm việc", icon: "💻", size: [2, 1], desc: "Bàn làm việc đa năng" },
-  { type: "chair", name: "Ghế xoay", icon: "🪑", size: [1, 1], desc: "Ghế công thái học" },
-  { type: "fridge", name: "Tủ lạnh", icon: "❄️", size: [1, 1], desc: "Tủ lạnh Inverter" },
-  { type: "wardrobe", name: "Tủ quần áo", icon: "🚪", size: [2, 1], desc: "Tủ quần áo cỡ lớn" },
-  { type: "kitchen", name: "Bàn bếp", icon: "🍳", size: [3, 1], desc: "Bếp nấu chữ L" },
-  { type: "bathroom", name: "Phòng tắm", icon: "🚿", size: [3, 3], desc: "Không gian khép kín" },
+  // --- Phòng ngủ ---
+  { type: "bed", name: "Giường ngủ", icon: "🛏️", size: [3, 2], desc: "Giường ngủ hiện đại", category: "bedroom" },
+  { type: "wardrobe", name: "Tủ quần áo", icon: "🚪", size: [2, 1], desc: "Tủ quần áo cỡ lớn", category: "bedroom" },
+  { type: "nightstand", name: "Tủ đầu giường", icon: "🗄️", size: [1, 1], desc: "Tủ đầu giường nhỏ gọn", category: "bedroom" },
+  { type: "mirror", name: "Gương đứng", icon: "🪞", size: [1, 1], desc: "Gương soi toàn thân", category: "bedroom" },
+  // --- Làm việc ---
+  { type: "desk", name: "Bàn làm việc", icon: "💻", size: [2, 1], desc: "Bàn làm việc đa năng", category: "work" },
+  { type: "chair", name: "Ghế xoay", icon: "🪑", size: [1, 1], desc: "Ghế công thái học", category: "work" },
+  { type: "bookshelf", name: "Kệ sách", icon: "📚", size: [1, 2], desc: "Kệ sách cao 4 tầng", category: "work" },
+  { type: "lamp", name: "Đèn bàn", icon: "💡", size: [1, 1], desc: "Đèn bàn LED chống cận", category: "work" },
+  // --- Phòng khách ---
+  { type: "sofa", name: "Ghế sofa", icon: "🛋️", size: [3, 1], desc: "Sofa vải bọc êm ái", category: "living" },
+  { type: "tv", name: "Kệ TV", icon: "📺", size: [2, 1], desc: "Kệ TV treo tường", category: "living" },
+  { type: "coffeetable", name: "Bàn trà", icon: "☕", size: [2, 1], desc: "Bàn trà gỗ Nhật Bản", category: "living" },
+  { type: "plant", name: "Chậu cây", icon: "🌿", size: [1, 1], desc: "Cây xanh trang trí", category: "living" },
+  // --- Nhà bếp & Phòng tắm ---
+  { type: "kitchen", name: "Bàn bếp", icon: "🍳", size: [3, 1], desc: "Bếp nấu chữ L", category: "kitchen" },
+  { type: "fridge", name: "Tủ lạnh", icon: "❄️", size: [1, 1], desc: "Tủ lạnh Inverter", category: "kitchen" },
+  { type: "washer", name: "Máy giặt", icon: "🫧", size: [1, 1], desc: "Máy giặt cửa trước", category: "kitchen" },
+  { type: "bathroom", name: "Phòng tắm", icon: "🚿", size: [3, 3], desc: "Không gian khép kín", category: "kitchen" },
+  // --- Tiện ích ---
+  { type: "aircon", name: "Máy lạnh", icon: "🌬️", size: [2, 1], desc: "Máy lạnh treo tường", category: "utility" },
+  { type: "fan", name: "Quạt trần", icon: "🌀", size: [1, 1], desc: "Quạt trần trang trí", category: "utility" },
+  { type: "shoerack", name: "Kệ giày", icon: "👟", size: [2, 1], desc: "Kệ giày 3 tầng", category: "utility" },
+  { type: "curtain", name: "Rèm cửa", icon: "🪟", size: [2, 1], desc: "Rèm cửa sổ thanh lịch", category: "utility" },
 ];
 
 const GRID_COLS = 10;
@@ -32,6 +50,7 @@ function RoomBuilder() {
   const [selectedLibraryItem, setSelectedLibraryItem] = useState(null);
   const [placedItems, setPlacedItems] = useState([]);
   const [selectedPlacedIndex, setSelectedPlacedIndex] = useState(null);
+  const [activeCategory, setActiveCategory] = useState("all");
 
   const isFreeMode = id === "free";
   const isEditable = !isFreeMode && authToken && (userRole === "admin" || userRole === "staff");
@@ -283,8 +302,30 @@ function RoomBuilder() {
         <aside className="builder-sidebar">
           <h3>Thư viện nội thất</h3>
           <p className="sidebar-instruction">Chọn một vật dụng bên dưới rồi nhấp vào lưới để đặt vào phòng.</p>
+          
+          {/* Category Filter Tabs */}
+          <div className="category-tabs">
+            {[
+              { key: "all", label: "Tất cả" },
+              { key: "bedroom", label: "🛏️ Ngủ" },
+              { key: "work", label: "💻 Làm việc" },
+              { key: "living", label: "🛋️ Khách" },
+              { key: "kitchen", label: "🍳 Bếp" },
+              { key: "utility", label: "⚡ Tiện ích" },
+            ].map((cat) => (
+              <button
+                key={cat.key}
+                type="button"
+                className={`category-tab ${activeCategory === cat.key ? "active" : ""}`}
+                onClick={() => setActiveCategory(cat.key)}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
           <div className="library-grid">
-            {FURNITURE_LIBRARY.map((item) => {
+            {FURNITURE_LIBRARY.filter((item) => activeCategory === "all" || item.category === activeCategory).map((item) => {
               const isSelected = selectedLibraryItem?.type === item.type;
               return (
                 <button
