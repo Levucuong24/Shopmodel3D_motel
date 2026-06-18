@@ -9,57 +9,75 @@ const LoadingSpinner = () => {
       left: 0,
       width: '100vw',
       height: '100vh',
-      background: 'rgba(15, 23, 42, 0.75)', // Elegant dark translucent overlay
-      backdropFilter: 'blur(10px)', // Modern glassmorphic blur
-      WebkitBackdropFilter: 'blur(10px)',
+      background: '#090d16', // Dark background fallback
       display: 'flex',
-      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 9999,
-      fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif"
+      fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif",
+      overflow: 'hidden'
     }}>
+      {/* Fullscreen Video Background */}
+      <video 
+        src={loadingVideo} 
+        autoPlay 
+        loop 
+        muted 
+        playsInline 
+        style={{ 
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          pointerEvents: 'none',
+          zIndex: 1
+        }} 
+      />
+
+      {/* Translucent Dark Overlay to make the text readable */}
       <div style={{
-        background: 'rgba(255, 255, 255, 0.05)',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        background: 'rgba(9, 13, 22, 0.4)', // Subtle dark overlay
+        backdropFilter: 'blur(3px)', // Light blur for premium feel
+        WebkitBackdropFilter: 'blur(3px)',
+        zIndex: 2
+      }} />
+
+      {/* Floating Info Text on top */}
+      <div style={{
+        position: 'relative',
+        zIndex: 3,
+        textAlign: 'center',
+        background: 'rgba(15, 23, 42, 0.75)',
         border: '1px solid rgba(255, 255, 255, 0.1)',
-        padding: '24px 32px',
-        borderRadius: '20px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)'
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        padding: '16px 28px',
+        borderRadius: '16px',
+        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)'
       }}>
-        <video 
-          src={loadingVideo} 
-          autoPlay 
-          loop 
-          muted 
-          playsInline 
-          style={{ 
-            width: '160px', 
-            height: '160px', 
-            objectFit: 'contain',
-            borderRadius: '12px',
-            pointerEvents: 'none'
-          }} 
-        />
         <p style={{
-          marginTop: '20px',
           color: '#ff6a00',
-          fontSize: '15px',
+          fontSize: '16px',
           fontWeight: '700',
-          letterSpacing: '1px',
+          letterSpacing: '1.5px',
           textTransform: 'uppercase',
-          margin: '20px 0 4px 0'
+          margin: '0 0 4px 0'
         }}>
           Đang kết nối Homie...
         </p>
         <span style={{
-          color: '#94a3b8',
-          fontSize: '12px',
+          color: '#e2e8f0',
+          fontSize: '11px',
           fontWeight: '500'
         }}>
-          Vui lòng đợi trong giây lát
+          Hệ thống đang tải dữ liệu phòng trọ 3D
         </span>
       </div>
     </div>
