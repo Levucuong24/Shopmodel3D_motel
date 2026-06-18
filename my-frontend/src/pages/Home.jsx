@@ -16,7 +16,12 @@ function Home() {
   const [userCount, setUserCount] = useState(0);
   const [selectedLandlordId, setSelectedLandlordId] = useState("");
   const [backendReady, setBackendReady] = useState(false);
-  const [videoFinished, setVideoFinished] = useState(false);
+  
+  const [hasSeenIntro, setHasSeenIntro] = useState(() => {
+    return sessionStorage.getItem("hasSeenIntroVideo") === "true";
+  });
+  const [videoFinished, setVideoFinished] = useState(hasSeenIntro);
+  
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
 
@@ -46,14 +51,18 @@ function Home() {
       setBackendReady(true);
     });
 
-    const timer = setTimeout(() => {
-      setVideoFinished(true);
-    }, 10000); // 10 seconds (duration of loading-3d.mp4)
+    if (!hasSeenIntro) {
+      const timer = setTimeout(() => {
+        setVideoFinished(true);
+        sessionStorage.setItem("hasSeenIntroVideo", "true");
+        setHasSeenIntro(true);
+      }, 10000); // 10 seconds (duration of loading-3d.mp4)
 
-    return () => clearTimeout(timer);
-  }, []);
+      return () => clearTimeout(timer);
+    }
+  }, [hasSeenIntro]);
 
-  const isLoading = !backendReady || !videoFinished;
+  const showVideoLoader = !hasSeenIntro && (!backendReady || !videoFinished);
 
   const [visibleCount, setVisibleCount] = useState(6);
 
@@ -87,7 +96,7 @@ function Home() {
 
   return (
     <div>
-      {isLoading && <LoadingSpinner />}
+      {showVideoLoader && <LoadingSpinner />}
       <div className="hero-and-category-container">
         <video
           autoPlay
