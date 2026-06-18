@@ -15,12 +15,12 @@ function Home() {
   const [loadingError, setLoadingError] = useState("");
   const [userCount, setUserCount] = useState(0);
   const [selectedLandlordId, setSelectedLandlordId] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [backendReady, setBackendReady] = useState(false);
+  const [videoFinished, setVideoFinished] = useState(false);
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
 
   useEffect(() => {
-    setIsLoading(true);
     const fetchCount = fetch("/api/users/count")
       .then((res) => res.json())
       .then((data) => setUserCount(data.count || 0))
@@ -43,9 +43,17 @@ function Home() {
       .catch((err) => console.error("Error fetching landlords", err));
 
     Promise.allSettled([fetchCount, fetchRooms, fetchLandlords]).then(() => {
-      setIsLoading(false);
+      setBackendReady(true);
     });
+
+    const timer = setTimeout(() => {
+      setVideoFinished(true);
+    }, 9840); // 9.84 seconds (duration of loading-3d.webm)
+
+    return () => clearTimeout(timer);
   }, []);
+
+  const isLoading = !backendReady || !videoFinished;
 
   const [visibleCount, setVisibleCount] = useState(6);
 
