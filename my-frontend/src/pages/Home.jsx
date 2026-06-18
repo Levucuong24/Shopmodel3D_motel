@@ -6,6 +6,7 @@ import InvestmentStages from "../components/home/InvestmentStages";
 import CallToAction from "../components/home/CallToAction";
 import Footer from "../components/layout/Footer";
 import Chatbot from "../components/chatbot/Chatbot";
+import LoadingSpinner from "../components/layout/LoadingSpinner";
 import "../css/Home.css";
 
 function Home() {
@@ -14,16 +15,18 @@ function Home() {
   const [loadingError, setLoadingError] = useState("");
   const [userCount, setUserCount] = useState(0);
   const [selectedLandlordId, setSelectedLandlordId] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
 
   useEffect(() => {
-        fetch("/api/users/count")
+    setIsLoading(true);
+    const fetchCount = fetch("/api/users/count")
       .then((res) => res.json())
       .then((data) => setUserCount(data.count || 0))
       .catch((err) => console.error("Error fetching user count", err));
 
-    fetch("/api/rooms")
+    const fetchRooms = fetch("/api/rooms")
       .then((res) => res.json())
       .then((data) => {
         setProducts(Array.isArray(data) ? data : []);
@@ -34,10 +37,14 @@ function Home() {
         setLoadingError("Không thể tải danh sách room. Hãy kiểm tra backend đang chạy ở cổng 3000.");
       });
 
-    fetch("/api/reviews/top-landlords")
+    const fetchLandlords = fetch("/api/reviews/top-landlords")
       .then((res) => res.json())
       .then((data) => setTopLandlords(Array.isArray(data) ? data : []))
       .catch((err) => console.error("Error fetching landlords", err));
+
+    Promise.allSettled([fetchCount, fetchRooms, fetchLandlords]).then(() => {
+      setIsLoading(false);
+    });
   }, []);
 
   const [visibleCount, setVisibleCount] = useState(6);
@@ -72,6 +79,7 @@ function Home() {
 
   return (
     <div>
+      {isLoading && <LoadingSpinner />}
       <div className="hero-and-category-container">
         <video
           autoPlay
