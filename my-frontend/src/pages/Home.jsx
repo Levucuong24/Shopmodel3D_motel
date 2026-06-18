@@ -48,7 +48,7 @@ function Home() {
 
     const timer = setTimeout(() => {
       setVideoFinished(true);
-    }, 9840); // 9.84 seconds (duration of loading-3d.webm)
+    }, 10000); // 10 seconds (duration of loading-3d.mp4)
 
     return () => clearTimeout(timer);
   }, []);

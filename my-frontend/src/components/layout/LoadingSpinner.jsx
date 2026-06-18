@@ -1,5 +1,5 @@
 import React from 'react';
-import loadingVideo from '../../assets/loading-3d.webm';
+import loadingVideo from '../../assets/loading-3d.mp4';
 
 const LoadingSpinner = () => {
   return (
