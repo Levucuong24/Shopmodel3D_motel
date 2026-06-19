@@ -151,6 +151,9 @@ function Navbar() {
         <Link to="/new" className="nav-link">
           New
         </Link>
+        <Link to="/community" className="nav-link" style={{ color: "var(--primary-color)", fontWeight: "bold" }}>
+          Cộng đồng
+        </Link>
       </div>
 
       <div className="navbar-center">

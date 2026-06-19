@@ -15,6 +15,8 @@ import NewPage from "./pages/NewPage.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import ScrollToTop from "./components/layout/ScrollToTop.jsx";
 import { clearLegacyAuthStorage } from "./utils/authStorage.js";
+import CommunityBoard from "./pages/CommunityBoard.jsx";
+
 // Dashboard Wrapper to selectively render Navbar
 function DashboardLayout({ children }) {
   return <>{children}</>;
@@ -42,6 +44,7 @@ function App() {
         <Route path="/welcome/:userId" element={<MainLayout><Home /></MainLayout>} />
         <Route path="/product/:id" element={<MainLayout><ProductDetail /></MainLayout>} />
         <Route path="/blog" element={<MainLayout><Blog /></MainLayout>} />
+        <Route path="/community" element={<MainLayout><CommunityBoard /></MainLayout>} />
         <Route path="/map" element={<MainLayout><MapPage /></MainLayout>} />
         <Route path="/new" element={<MainLayout><NewPage /></MainLayout>} />
         <Route path="/" element={<Navigate to="/welcome" />} />

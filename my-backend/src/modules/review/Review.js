@@ -17,6 +17,16 @@ const reviewSchema = new mongoose.Schema(
 
     content: String,
 
+    media: {
+      type: [String],
+      default: [],
+    },
+
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+
     status: {
       type: String,
       enum: ["pending", "approved"],

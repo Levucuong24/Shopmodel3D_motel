@@ -106,17 +106,23 @@ export const createReview = async (req, res, next) => {
       return res.status(401).json({ message: "Bạn cần đăng nhập để đánh giá" });
     }
 
-    const { room_id, rating, content } = req.body;
+    const { room_id, rating, content, media } = req.body;
 
     if (!room_id || !rating || !content?.trim()) {
       return res.status(400).json({ message: "Thiếu nội dung đánh giá" });
     }
+
+    // Check if user is the tenant of the room to set isVerified
+    const room = await Room.findById(room_id);
+    const isVerified = room && room.tenant_id && room.tenant_id.toString() === req.user.id;
 
     const review = await Review.create({
       user_id: req.user.id,
       room_id,
       rating,
       content: content.trim(),
+      media: Array.isArray(media) ? media.filter(m => typeof m === 'string' && m.trim() !== '') : [],
+      isVerified: isVerified || false,
       status: "approved",
     });
 

@@ -12,6 +12,7 @@ import viewingRoutes from "./viewing/viewing.routes.js";
 import galleryRoutes from "./gallery/gallery.routes.js";
 import logRoutes from "./log/log.routes.js";
 import roommateRoutes from "./roommate/roommate.routes.js";
+import communityRoutes from "./community/community.routes.js";
 
 const router = express.Router();
 
@@ -27,5 +28,6 @@ router.use("/viewings", viewingRoutes);
 router.use("/gallery", galleryRoutes);
 router.use("/logs", logRoutes);
 router.use("/roommates", roommateRoutes);
+router.use("/community", communityRoutes);
 
 export default router;

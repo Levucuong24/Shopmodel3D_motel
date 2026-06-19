@@ -59,6 +59,7 @@ function ProductDetail() {
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
   const [newReview, setNewReview] = useState("");
+  const [newReviewMedia, setNewReviewMedia] = useState("");
   const [rating, setRating] = useState(5);
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
@@ -210,6 +211,8 @@ function ProductDetail() {
     setReviewSubmitting(true);
 
     try {
+      const mediaUrls = newReviewMedia.split(',').map(url => url.trim()).filter(url => url);
+
       const response = await fetch("/api/reviews", {
         method: "POST",
         headers: {
@@ -220,6 +223,7 @@ function ProductDetail() {
           room_id: id,
           rating,
           content: newReview,
+          media: mediaUrls,
         }),
       });
 
@@ -230,6 +234,7 @@ function ProductDetail() {
       }
 
       setNewReview("");
+      setNewReviewMedia("");
       setRating(5);
       alert("Đánh giá đã được gửi thành công.");
       await refreshReviews();
@@ -489,19 +494,38 @@ function ProductDetail() {
             ) : reviews.length > 0 ? (
               <div className="review-list">
                 {reviews.map((comment) => (
-                  <div className="review-item" key={comment._id}>
+                  <div className="review-item" key={comment._id} style={{ padding: "16px", marginBottom: "16px", borderRadius: "12px", border: "1px solid var(--border-color)", background: "var(--surface-color)" }}>
                     <img
                       src={comment.user_id?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user_id?.full_name || "User")}&background=random`}
                       alt={comment.user_id?.full_name || "Người dùng"}
                       className="review-avatar"
+                      style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover" }}
                     />
-                    <div className="review-content">
-                      <div className="review-header">
-                        <h4>{comment.user_id?.full_name || "Người dùng"}</h4>
-                        <span className="stars">{"★".repeat(comment.rating)}{"☆".repeat(5 - comment.rating)}</span>
+                    <div className="review-content" style={{ flex: 1, marginLeft: "16px" }}>
+                      <div className="review-header" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px", marginBottom: "4px" }}>
+                        <h4 style={{ margin: 0, fontSize: "16px" }}>{comment.user_id?.full_name || "Người dùng"}</h4>
+                        {comment.isVerified && (
+                          <span className="verified-badge" style={{ color: "#10b981", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px", background: "rgba(16, 185, 129, 0.1)", padding: "2px 8px", borderRadius: "12px" }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            Đã thuê phòng này
+                          </span>
+                        )}
+                        <span className="stars" style={{ color: "#f59e0b", letterSpacing: "2px" }}>{"★".repeat(comment.rating)}{"☆".repeat(5 - comment.rating)}</span>
                       </div>
-                      <span className="review-date">{new Date(comment.createdAt).toLocaleDateString("vi-VN")}</span>
-                      <p className="review-text">{comment.content}</p>
+                      <span className="review-date" style={{ color: "var(--text-secondary)", fontSize: "13px", display: "block", marginBottom: "8px" }}>{new Date(comment.createdAt).toLocaleDateString("vi-VN")}</span>
+                      <p className="review-text" style={{ margin: "0 0 12px 0", lineHeight: "1.5" }}>{comment.content}</p>
+                      
+                      {comment.media && comment.media.length > 0 && (
+                        <div className="review-media-gallery" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          {comment.media.map((url, idx) => (
+                            url.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
+                              <img key={idx} src={url} alt="Review media" style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "8px", cursor: "pointer", border: "1px solid var(--border-color)" }} onClick={() => window.open(url, "_blank")} />
+                            ) : (
+                              <video key={idx} src={url} style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "8px", cursor: "pointer", border: "1px solid var(--border-color)" }} controls muted />
+                            )
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -511,12 +535,12 @@ function ProductDetail() {
             )}
 
             {userRole === "customer" && (
-              <div className="add-review">
-                <h3>Thêm đánh giá của bạn</h3>
-                <form onSubmit={handleReviewSubmit}>
-                  <div className="rating-select">
-                    <span>Chấm điểm: </span>
-                    <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+              <div className="add-review" style={{ marginTop: "32px", padding: "24px", background: "var(--surface-color)", borderRadius: "16px", border: "1px solid var(--border-color)" }}>
+                <h3 style={{ marginTop: 0, marginBottom: "16px" }}>Thêm đánh giá của bạn</h3>
+                <form onSubmit={handleReviewSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  <div className="rating-select" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <span style={{ fontWeight: 500 }}>Chấm điểm: </span>
+                    <select value={rating} onChange={(e) => setRating(Number(e.target.value))} style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border-color)", background: "var(--bg-color)", color: "var(--text-color)" }}>
                       <option value={5}>5 Sao - Tuyệt vời</option>
                       <option value={4}>4 Sao - Tốt</option>
                       <option value={3}>3 Sao - Tạm được</option>
@@ -524,14 +548,25 @@ function ProductDetail() {
                       <option value={1}>1 Sao - Rất tệ</option>
                     </select>
                   </div>
+                  
                   <textarea
                     placeholder="Chia sẻ trải nghiệm của bạn về phòng trọ này..."
                     value={newReview}
                     onChange={(e) => setNewReview(e.target.value)}
                     rows={4}
                     required
+                    style={{ padding: "12px", borderRadius: "8px", border: "1px solid var(--border-color)", background: "var(--bg-color)", color: "var(--text-color)", resize: "vertical" }}
                   />
-                  <button type="submit" className="submit-review-btn" disabled={reviewSubmitting}>
+                  
+                  <input
+                    type="text"
+                    placeholder="Link hình ảnh/video thực tế (cách nhau bằng dấu phẩy)..."
+                    value={newReviewMedia}
+                    onChange={(e) => setNewReviewMedia(e.target.value)}
+                    style={{ padding: "12px", borderRadius: "8px", border: "1px solid var(--border-color)", background: "var(--bg-color)", color: "var(--text-color)" }}
+                  />
+
+                  <button type="submit" className="submit-review-btn" disabled={reviewSubmitting} style={{ padding: "12px 24px", background: "var(--primary-color)", color: "white", border: "none", borderRadius: "8px", fontWeight: 600, cursor: "pointer", alignSelf: "flex-start", opacity: reviewSubmitting ? 0.7 : 1 }}>
                     {reviewSubmitting ? "Đang gửi..." : "Gửi đánh giá"}
                   </button>
                 </form>
