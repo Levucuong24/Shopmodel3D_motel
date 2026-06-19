@@ -78,29 +78,14 @@ function RoomBuilder() {
       .then((data) => {
         setRoom(data);
         if (data.layout3d && Array.isArray(data.layout3d)) {
-          // Convert database layout3d back to placedItems state
+          // Keep 3D layout data directly
           const converted = data.layout3d.map((item) => {
             const libItem = FURNITURE_LIBRARY.find((f) => f.type === item.type);
-            
-            // Map 3D pos [x, y, z] back to 2D grid [col, row]
-            const w = libItem ? libItem.size[0] : 1;
-            const h = libItem ? libItem.size[1] : 1;
-            
-            // x = (col + w/2 - 0.5) - 4.5 => col = x + 4.5 + 0.5 - w/2
-            const col = Math.round(item.position[0] + 5.0 - w / 2);
-            const row = Math.round(item.position[2] + 3.5 - h / 2);
-            
-            // Rotation in radians to degrees (0, 90, 180, 270)
-            const rotationDeg = Math.round((item.rotation[1] * 180) / Math.PI);
-
             return {
-              type: item.type,
+              ...item,
               name: libItem ? libItem.name : item.type,
               icon: libItem ? libItem.icon : "📦",
-              col: Math.max(0, Math.min(GRID_COLS - 1, col)),
-              row: Math.max(0, Math.min(GRID_ROWS - 1, row)),
               size: libItem ? libItem.size : [1, 1],
-              rotation: rotationDeg,
             };
           });
           setPlacedItems(converted);
@@ -113,87 +98,50 @@ function RoomBuilder() {
       });
   }, [id, authToken, isFreeMode]);
 
-  // Map 2D grid items to 3D layout data
   const getLayout3D = () => {
-    return placedItems.map((item) => {
-      const w = item.size[0];
-      const h = item.size[1];
-      
-      // Map 2D grid [col, row] to 3D [x, y, z] centered on grid cell
-      const x = item.col + w / 2 - 0.5 - 4.5;
-      const z = item.row + h / 2 - 0.5 - 3.0;
-      
-      // Convert rotation degrees to radians
-      const rotationRad = (item.rotation * Math.PI) / 180;
-
-      return {
-        type: item.type,
-        position: [x, 0, z],
-        rotation: [0, rotationRad, 0],
-        scale: [1, 1, 1],
-        metadata: {},
-      };
-    });
+    return placedItems.map((item) => ({
+      type: item.type,
+      position: item.position,
+      rotation: item.rotation,
+      scale: item.scale || [1, 1, 1],
+      metadata: item.metadata || {},
+    }));
   };
 
-  const handleCellClick = (col, row) => {
-    if (selectedLibraryItem) {
-      // Check boundaries
-      const w = selectedLibraryItem.size[0];
-      const h = selectedLibraryItem.size[1];
-      if (col + w > GRID_COLS || row + h > GRID_ROWS) {
-        setError("Vật dụng vượt ra ngoài diện tích phòng!");
-        setTimeout(() => setError(""), 3000);
-        return;
-      }
-
-      // Place item
-      const newItem = {
-        ...selectedLibraryItem,
-        col,
-        row,
-        rotation: 0,
-      };
-      setPlacedItems([...placedItems, newItem]);
-      setSelectedLibraryItem(null);
-      setSuccess("Đã thêm vật dụng vào phòng!");
-      setTimeout(() => setSuccess(""), 2000);
-    } else {
-      // Select existing item
-      const idx = placedItems.findIndex((item) => {
-        const w = item.rotation % 180 === 0 ? item.size[0] : item.size[1];
-        const h = item.rotation % 180 === 0 ? item.size[1] : item.size[0];
-        return (
-          col >= item.col &&
-          col < item.col + w &&
-          row >= item.row &&
-          row < item.row + h
-        );
-      });
-      if (idx !== -1) {
-        setSelectedPlacedIndex(idx);
-      } else {
-        setSelectedPlacedIndex(null);
-      }
-    }
+  const handlePlaceFurniture = (itemTemplate, position) => {
+    const newItem = {
+      type: itemTemplate.type,
+      name: itemTemplate.name,
+      icon: itemTemplate.icon,
+      size: itemTemplate.size,
+      position: position,
+      rotation: [0, 0, 0],
+      scale: [1, 1, 1],
+    };
+    setPlacedItems([...placedItems, newItem]);
+    setSelectedLibraryItem(null); // Clear selection after placing
+    setSuccess("Đã thêm vật dụng vào phòng!");
+    setTimeout(() => setSuccess(""), 2000);
   };
 
+  const handleUpdateFurniture = (idx, newPosition, newRotation) => {
+    const updated = [...placedItems];
+    updated[idx] = { ...updated[idx], position: newPosition, rotation: newRotation };
+    setPlacedItems(updated);
+  };
+
+  const handleSelectFurniture = (idx) => {
+    setSelectedPlacedIndex(idx);
+    setSelectedLibraryItem(null);
+  };
   const handleRotate = () => {
     if (selectedPlacedIndex === null) return;
     const updated = [...placedItems];
     const item = updated[selectedPlacedIndex];
     
-    // Rotate 90 degrees clockwise
-    const newRotation = (item.rotation + 90) % 360;
-    
-    // Check boundaries with new rotation
-    const w = newRotation % 180 === 0 ? item.size[0] : item.size[1];
-    const h = newRotation % 180 === 0 ? item.size[1] : item.size[0];
-    if (item.col + w > GRID_COLS || item.row + h > GRID_ROWS) {
-      setError("Không thể xoay vì vật dụng sẽ vượt ra ngoài!");
-      setTimeout(() => setError(""), 3000);
-      return;
-    }
+    // Rotate 90 degrees around Y axis (radians)
+    const newRotation = [...(item.rotation || [0, 0, 0])];
+    newRotation[1] = newRotation[1] + (Math.PI / 2);
 
     updated[selectedPlacedIndex] = { ...item, rotation: newRotation };
     setPlacedItems(updated);
@@ -374,10 +322,13 @@ function RoomBuilder() {
           )}
         </aside>
 
-        {/* Center Grid Editor */}
-        <main className="editor-area">
-          <div className="editor-card">
-            <h3>Sơ đồ phòng 2D (Lưới $10 \times 7$ mét)</h3>
+        {/* Main 3D Editor Area */}
+        <main className="editor-area" style={{ gridColumn: 'span 2' }}>
+          <div className="editor-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3>Không gian 3D tương tác (Thử Nội Thất)</h3>
+            </div>
+            
             {!isEditable && (
               <div className="sandbox-notice" style={{
                 background: "rgba(245, 158, 11, 0.1)",
@@ -392,80 +343,38 @@ function RoomBuilder() {
                 gap: "8px"
               }}>
                 <span>💡</span>
-                <span>Bạn đang ở chế độ thiết kế thử. Hãy thỏa thích di chuyển, xoay và đặt thêm đồ đạc để xem có phù hợp với nhu cầu của bạn không! Thiết kế này không ghi đè lên phòng gốc.</span>
+                <span>Bạn đang ở chế độ thiết kế 3D tương tác. Hãy chọn đồ từ danh sách bên trái, sau đó <strong>nhấp vào mặt sàn 3D</strong> để đặt. Bạn có thể <strong>kéo thả trực tiếp</strong> các vật dụng 3D!</span>
               </div>
             )}
+            
             <p className="editor-instruction">
               {selectedLibraryItem
-                ? `👉 Nhấp vào ô bất kỳ để đặt "${selectedLibraryItem.name}"`
-                : "👉 Nhấp vào vật dụng trên lưới để chỉnh sửa, xoay hoặc xóa."}
+                ? `👉 Nhấp vào mặt sàn 3D để đặt "${selectedLibraryItem.name}"`
+                : "👉 Nhấp vào vật dụng trong không gian 3D để di chuyển, xoay hoặc xóa."}
             </p>
             
-            <div className="grid-container">
-              {/* Grid Cells */}
-              <div className="grid-base">
-                {Array.from({ length: GRID_ROWS }).map((_, r) => (
-                  <div key={r} className="grid-row">
-                    {Array.from({ length: GRID_COLS }).map((_, c) => (
-                      <div
-                        key={c}
-                        className="grid-cell"
-                        onClick={() => handleCellClick(c, r)}
-                      ></div>
-                    ))}
-                  </div>
-                ))}
-
-                {/* Placed Items Overlay */}
-                {placedItems.map((item, idx) => {
-                  const isSelected = selectedPlacedIndex === idx;
-                  const w = item.rotation % 180 === 0 ? item.size[0] : item.size[1];
-                  const h = item.rotation % 180 === 0 ? item.size[1] : item.size[0];
-                  
-                  return (
-                    <div
-                      key={idx}
-                      className={`placed-grid-item ${isSelected ? "selected" : ""}`}
-                      style={{
-                        left: `${(item.col / GRID_COLS) * 100}%`,
-                        top: `${(item.row / GRID_ROWS) * 100}%`,
-                        width: `${(w / GRID_COLS) * 100}%`,
-                        height: `${(h / GRID_ROWS) * 100}%`,
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedPlacedIndex(idx);
-                        setSelectedLibraryItem(null);
-                      }}
-                    >
-                      <span className="placed-icon">{item.icon}</span>
-                      <span className="placed-name">{item.name}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </main>
-
-        {/* Right 3D Preview */}
-        <section className="preview-area">
-          <div className="preview-card">
-            <h3>Xem trước 3D thời gian thực</h3>
-            <div className="canvas-wrapper">
+            <div className="canvas-wrapper" style={{ flex: 1, minHeight: '600px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)', position: 'relative' }}>
               <Suspense
                 fallback={
                   <div className="preview-loading">
                     <div className="builder-spinner"></div>
-                    <p>Đang dựng hình 3D...</p>
+                    <p>Đang dựng môi trường 3D...</p>
                   </div>
                 }
               >
-                <StudentHouse3D layout3d={currentLayout} />
+                <StudentHouse3D 
+                  layout3d={getLayout3D()} 
+                  isEditMode={true}
+                  selectedPlacedIndex={selectedPlacedIndex}
+                  onSelectFurniture={handleSelectFurniture}
+                  onUpdateFurniture={handleUpdateFurniture}
+                  activeTool={selectedLibraryItem}
+                  onPlaceFurniture={handlePlaceFurniture}
+                />
               </Suspense>
             </div>
           </div>
-        </section>
+        </main>
       </div>
     </div>
   );

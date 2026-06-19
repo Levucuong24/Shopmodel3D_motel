@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Html } from '@react-three/drei';
+import { OrbitControls, Html, TransformControls } from '@react-three/drei';
 
 // ==========================================
 // 1. PROCEDURAL WOOD TEXTURE GENERATOR
@@ -60,10 +60,10 @@ const useWoodTexture = () => {
 // ==========================================
 
 // Floor
-const Floor = () => {
+const Floor = (props) => {
   const woodTexture = useWoodTexture();
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow {...props}>
       <planeGeometry args={[10, 7]} />
       {woodTexture ? (
         <meshStandardMaterial map={woodTexture} roughness={0.5} metalness={0.05} />
@@ -1546,12 +1546,36 @@ const CameraController = ({ controlsRef, activeHotspotId, hotspots }) => {
 // ==========================================
 // 10. COMBINED ROOM ASSEMBLY
 // ==========================================
-const Room = ({ layout3d, activeHotspotId, onHotspotClick, hotspots }) => {
+const Room = ({ 
+  layout3d, 
+  activeHotspotId, 
+  onHotspotClick, 
+  hotspots,
+  isEditMode = false,
+  selectedPlacedIndex = null,
+  onSelectFurniture = () => {},
+  onUpdateFurniture = () => {},
+  activeTool = null,
+  onPlaceFurniture = () => {},
+  setIsDragging = () => {}
+}) => {
   const hasCustomLayout = layout3d && layout3d.length > 0;
+  const [ghostPos, setGhostPos] = useState([0, 0, 0]);
+
+  const handlePointerMove = (e) => {
+    if (!isEditMode || !activeTool) return;
+    setGhostPos([e.point.x, 0, e.point.z]);
+  };
+
+  const handlePointerDown = (e) => {
+    if (!isEditMode || !activeTool) return;
+    e.stopPropagation();
+    onPlaceFurniture(activeTool, [e.point.x, 0, e.point.z]);
+  };
 
   return (
     <group position={[0, 0, 0]}>
-      <Floor />
+      <Floor onPointerMove={handlePointerMove} onPointerDown={handlePointerDown} />
       <LeftWall />
       <RightWall />
       <BackWall />
@@ -1562,60 +1586,87 @@ const Room = ({ layout3d, activeHotspotId, onHotspotClick, hotspots }) => {
       {/* Add length & width dimensions to the model */}
       <DimensionLines />
 
+      {/* Ghost for active tool */}
+      {isEditMode && activeTool && (
+        <group position={ghostPos}>
+          <mesh position={[0, 0.2, 0]}>
+            <boxGeometry args={[activeTool.size[0] * 0.8, 0.4, activeTool.size[1] * 0.8]} />
+            <meshStandardMaterial color="#38bdf8" transparent opacity={0.5} />
+          </mesh>
+        </group>
+      )}
+
       {hasCustomLayout ? (
         // Dynamic landlord layout rendering
         layout3d.map((item, idx) => {
           const pos = item.position;
           const rot = item.rotation;
+          const isSelected = isEditMode && selectedPlacedIndex === idx;
 
-          switch (item.type) {
-            case 'bed':
-              return <Bed key={idx} position={pos} rotation={rot} />;
-            case 'desk':
-              return <Desk key={idx} position={pos} rotation={rot} />;
-            case 'chair':
-              return <Chair key={idx} position={pos} rotation={rot} />;
-            case 'fridge':
-              return <Fridge key={idx} position={pos} rotation={rot} />;
-            case 'wardrobe':
-              return <Wardrobe key={idx} position={pos} rotation={rot} />;
-            case 'kitchen':
-              return <Kitchen key={idx} position={pos} rotation={rot} />;
-            case 'bathroom':
-              return <Bathroom key={idx} position={pos} rotation={rot} />;
-            case 'window':
-              return <Window key={idx} position={pos} rotation={rot} />;
-            case 'entrance-door':
-              return <EntranceDoor key={idx} position={pos} rotation={rot} />;
-            case 'fan':
-              return <CeilingFan key={idx} position={pos} rotation={rot} />;
-            case 'aircon':
-              return <AirConditioner key={idx} position={pos} rotation={rot} />;
-            case 'sofa':
-              return <Sofa key={idx} position={pos} rotation={rot} />;
-            case 'tv':
-              return <TV key={idx} position={pos} rotation={rot} />;
-            case 'coffeetable':
-              return <CoffeeTable key={idx} position={pos} rotation={rot} />;
-            case 'bookshelf':
-              return <Bookshelf key={idx} position={pos} rotation={rot} />;
-            case 'nightstand':
-              return <Nightstand key={idx} position={pos} rotation={rot} />;
-            case 'mirror':
-              return <Mirror key={idx} position={pos} rotation={rot} />;
-            case 'lamp':
-              return <Lamp key={idx} position={pos} rotation={rot} />;
-            case 'washer':
-              return <Washer key={idx} position={pos} rotation={rot} />;
-            case 'shoerack':
-              return <ShoeRack key={idx} position={pos} rotation={rot} />;
-            case 'curtain':
-              return <Curtain key={idx} position={pos} rotation={rot} />;
-            case 'plant':
-              return <Plant key={idx} position={pos} rotation={rot} />;
-            default:
-              return null;
+          const renderItem = () => {
+            switch (item.type) {
+              case 'bed': return <Bed position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'desk': return <Desk position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'chair': return <Chair position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'fridge': return <Fridge position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'wardrobe': return <Wardrobe position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'kitchen': return <Kitchen position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'bathroom': return <Bathroom position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'window': return <Window position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'entrance-door': return <EntranceDoor position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'fan': return <CeilingFan position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'aircon': return <AirConditioner position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'sofa': return <Sofa position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'tv': return <TV position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'coffeetable': return <CoffeeTable position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'bookshelf': return <Bookshelf position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'nightstand': return <Nightstand position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'mirror': return <Mirror position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'lamp': return <Lamp position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'washer': return <Washer position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'shoerack': return <ShoeRack position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'curtain': return <Curtain position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              case 'plant': return <Plant position={isSelected ? [0,0,0] : pos} rotation={isSelected ? [0,0,0] : rot} />;
+              default: return null;
+            }
+          };
+
+          const content = (
+            <group 
+              key={idx} 
+              onClick={(e) => {
+                if (isEditMode) {
+                  e.stopPropagation();
+                  onSelectFurniture(idx);
+                }
+              }}
+            >
+              {renderItem()}
+            </group>
+          );
+
+          if (isSelected) {
+            return (
+              <TransformControls
+                key={`tc-${idx}`}
+                mode="translate"
+                position={pos}
+                rotation={rot}
+                onMouseDown={() => setIsDragging(true)}
+                onMouseUp={(e) => {
+                  setIsDragging(false);
+                  const target = e.target.object;
+                  if (target) {
+                    onUpdateFurniture(idx, [target.position.x, target.position.y, target.position.z], [target.rotation.x, target.rotation.y, target.rotation.z]);
+                  }
+                }}
+              >
+                {content}
+              </TransformControls>
+            );
           }
+
+          return content;
         })
       ) : (
         // Fallback to default hardcoded layout
@@ -1644,9 +1695,18 @@ const Room = ({ layout3d, activeHotspotId, onHotspotClick, hotspots }) => {
 // ==========================================
 // 11. MAIN CONTAINER & CANVAS ENVIRONMENT
 // ==========================================
-const StudentHouse3D = ({ layout3d }) => {
+const StudentHouse3D = ({ 
+  layout3d,
+  isEditMode = false,
+  selectedPlacedIndex = null,
+  onSelectFurniture = () => {},
+  onUpdateFurniture = () => {},
+  activeTool = null,
+  onPlaceFurniture = () => {}
+}) => {
   const [activeHotspotId, setActiveHotspotId] = useState(null);
   const controlsRef = useRef();
+  const [isDragging, setIsDragging] = useState(false);
 
   const hotspots = useMemo(() => {
     if (!layout3d || layout3d.length === 0) {
@@ -1771,6 +1831,16 @@ const StudentHouse3D = ({ layout3d }) => {
     setActiveHotspotId(currentId => currentId === id ? null : id);
   };
 
+  // Handle click outside to deselect hotspots
+  const handlePointerMissed = (e) => {
+    if (e.type === 'click') {
+      onHotspotClick(null);
+      if (isEditMode) {
+        onSelectFurniture(null);
+      }
+    }
+  };
+
   return (
     <div
       style={{
@@ -1843,6 +1913,7 @@ const StudentHouse3D = ({ layout3d }) => {
         shadows
         gl={{ antialias: true, alpha: true }}
         camera={{ position: [-8.5, 7.0, 9.0], fov: 40 }}
+        onPointerMissed={handlePointerMissed}
       >
         {/* Soft Ambient Light for overall brightness */}
         <ambientLight intensity={0.7} color="#fffcf5" />
@@ -1875,11 +1946,13 @@ const StudentHouse3D = ({ layout3d }) => {
         <hemisphereLight skyColor="#ffffff" groundColor="#7f7f7f" intensity={0.2} />
 
         {/* Camera Controller for smooth camera transitions */}
-        <CameraController
-          controlsRef={controlsRef}
-          activeHotspotId={activeHotspotId}
-          hotspots={hotspots}
-        />
+        {!isEditMode && (
+          <CameraController
+            controlsRef={controlsRef}
+            activeHotspotId={activeHotspotId}
+            hotspots={hotspots}
+          />
+        )}
 
         {/* Assembly Room */}
         <Room 
@@ -1887,6 +1960,13 @@ const StudentHouse3D = ({ layout3d }) => {
           activeHotspotId={activeHotspotId} 
           onHotspotClick={handleHotspotClick}
           hotspots={hotspots}
+          isEditMode={isEditMode}
+          selectedPlacedIndex={selectedPlacedIndex}
+          onSelectFurniture={onSelectFurniture}
+          onUpdateFurniture={onUpdateFurniture}
+          activeTool={activeTool}
+          onPlaceFurniture={onPlaceFurniture}
+          setIsDragging={setIsDragging}
         />
 
         {/* Ground grid helper surrounding the room */}
@@ -1901,6 +1981,7 @@ const StudentHouse3D = ({ layout3d }) => {
           maxDistance={20}
           maxPolarAngle={Math.PI / 2 - 0.05} // Stops camera from going under the floor
           target={[0, 1.2, 0]}
+          enabled={!isDragging}
         />
       </Canvas>
     </div>
