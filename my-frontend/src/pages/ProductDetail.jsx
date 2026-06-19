@@ -7,6 +7,7 @@ import { getAuthToken, getUserData, getUserRole } from "../utils/authStorage.js"
 import { formatPriceByUnit, formatRentalDuration } from "../utils/rentalFormat.js";
 import "../css/ProductDetail.css";
 
+import NeighborhoodMap from "../components/product/NeighborhoodMap.jsx";
 const StudentHouse3D = lazy(() => import("../components/3d/StudentHouse3D"));
 
 const ThreeDLoader = () => (
@@ -484,6 +485,15 @@ function ProductDetail() {
             <p className="description-text">
               {product.description || "Phòng trọ được thiết kế hiện đại, tối ưu không gian sống với nhiều ánh sáng tự nhiên."}
             </p>
+          </div>
+
+          {/* Neighborhood Explorer */}
+          <div className="neighborhood-section" style={{ marginTop: "40px", marginBottom: "40px" }}>
+            <h2>Khám phá tiện ích xung quanh</h2>
+            <p style={{ color: "var(--text-secondary)", marginBottom: "20px" }}>
+              Xem các trạm xe buýt, siêu thị, phòng gym và quán cafe trong bán kính 1-2km.
+            </p>
+            <NeighborhoodMap latitude={product.latitude} longitude={product.longitude} roomName={product.name} />
           </div>
 
           <div className="reviews-section">
