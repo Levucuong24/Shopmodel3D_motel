@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { clearAuthSession, getAuthToken, getUserData, getUserRole, setUserData } from "../utils/authStorage.js";
 import { formatDateTime, formatPriceByUnit, formatRentalDuration, getRentalUnitLabel } from "../utils/rentalFormat.js";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import InboxManager from "../components/inbox/InboxManager.jsx";
 import "../css/StaffDashboard.css";
 
 const roomStatusLabel = {
@@ -635,6 +636,12 @@ function StaffDashboard() {
               Quản lý phòng
             </a>
           </li>
+          <li className={activeTab === "inbox" ? "active" : ""}>
+            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("inbox"); }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              Hộp thư
+            </a>
+          </li>
           <li className={activeTab === "payments" ? "active" : ""}>
             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("payments"); }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
@@ -1122,6 +1129,12 @@ function StaffDashboard() {
                   </tbody>
                 </table>
               )}
+            </div>
+          )}
+
+          {activeTab === "inbox" && (
+            <div className="inbox-section" style={{ height: "calc(100vh - 140px)" }}>
+              <InboxManager />
             </div>
           )}
 

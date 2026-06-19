@@ -13,6 +13,7 @@ import galleryRoutes from "./gallery/gallery.routes.js";
 import logRoutes from "./log/log.routes.js";
 import roommateRoutes from "./roommate/roommate.routes.js";
 import communityRoutes from "./community/community.routes.js";
+import inboxRoutes from "./inbox/inbox.routes.js";
 
 const router = express.Router();
 
@@ -29,5 +30,6 @@ router.use("/gallery", galleryRoutes);
 router.use("/logs", logRoutes);
 router.use("/roommates", roommateRoutes);
 router.use("/community", communityRoutes);
+router.use("/inbox", inboxRoutes);
 
 export default router;
