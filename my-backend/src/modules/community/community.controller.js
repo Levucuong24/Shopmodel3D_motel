@@ -70,7 +70,8 @@ export const createPost = async (req, res, next) => {
 
     res.status(201).json(populatedPost);
   } catch (error) {
-    next(error);
+    console.error("Error creating post:", error);
+    res.status(500).json({ message: "Server Error: " + error.message });
   }
 };
 

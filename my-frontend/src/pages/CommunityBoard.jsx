@@ -69,7 +69,7 @@ function CommunityBoard() {
       }
     } catch (err) {
       console.error(err);
-      alert("Đã xảy ra lỗi");
+      alert("Đã xảy ra lỗi: " + err.message);
     }
   };
 
