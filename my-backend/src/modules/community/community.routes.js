@@ -6,13 +6,13 @@ import {
   toggleLike,
   createComment,
 } from "./community.controller.js";
-import { protect } from "../../middleware/authMiddleware.js";
+import auth from "../../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.route("/").get(getPosts).post(protect, createPost);
+router.route("/").get(getPosts).post(auth, createPost);
 router.route("/:id").get(getPost);
-router.route("/:id/like").post(protect, toggleLike);
-router.route("/:id/comments").post(protect, createComment);
+router.route("/:id/like").post(auth, toggleLike);
+router.route("/:id/comments").post(auth, createComment);
 
 export default router;
