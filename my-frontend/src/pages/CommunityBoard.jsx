@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { getAuthToken } from "../utils/authStorage.js";
 import "../css/Community.css";
 
 function CommunityBoard() {
@@ -15,7 +16,7 @@ function CommunityBoard() {
     media: ""
   });
 
-  const authToken = localStorage.getItem("token");
+  const authToken = getAuthToken();
 
   useEffect(() => {
     fetchPosts();
