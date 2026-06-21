@@ -62,16 +62,30 @@ function GeneratorUI() {
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      text: "Xin chào! Tôi có thể tra dữ liệu phòng, đánh giá, lịch xem, thanh toán và hợp đồng cho bạn.",
-      sender: "bot",
-    },
-  ]);
+  const [messages, setMessages] = useState(() => {
+    const saved = sessionStorage.getItem("chatbotMessages");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        // Fallback
+      }
+    }
+    return [
+      {
+        id: 1,
+        text: "Xin chào! Tôi có thể tra dữ liệu phòng, đánh giá, lịch xem, thanh toán và hợp đồng cho bạn.",
+        sender: "bot",
+      },
+    ];
+  });
   const [inputValue, setInputValue] = useState("");
   const [isReplying, setIsReplying] = useState(false);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    sessionStorage.setItem("chatbotMessages", JSON.stringify(messages));
+  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
