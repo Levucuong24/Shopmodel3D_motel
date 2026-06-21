@@ -85,7 +85,7 @@ function MapPage() {
                         </p>
                         <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#666' }}>{room.location}</p>
                         <button 
-                            onClick={() => navigate(`/room/${room._id}`)}
+                            onClick={() => navigate(`/product/${room._id}`)}
                             style={{ width: '100%', padding: '5px', backgroundColor: '#333', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
                         >
                             Xem chi tiết
