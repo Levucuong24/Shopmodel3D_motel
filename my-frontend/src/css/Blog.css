@@ -26,13 +26,109 @@
   margin: 0 auto;
 }
 
-.blog-content-wrapper {
-  max-width: 900px;
+/* --- BLOG LIST VIEW --- */
+.blog-list-wrapper {
+  max-width: 1200px;
   margin: -40px auto 60px;
+  padding: 0 20px;
+}
+
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 30px;
+}
+
+.blog-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.blog-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+.blog-card-image {
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+}
+
+.blog-card-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.blog-card-date {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.blog-card-title {
+  font-size: 1.25rem;
+  color: #0f172a;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.blog-card-excerpt {
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.blog-read-more {
+  color: #4f46e5;
+  font-weight: 600;
+  font-size: 0.95rem;
+  align-self: flex-start;
+}
+
+/* --- BLOG DETAIL VIEW --- */
+.blog-article-detail {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.blog-back-btn {
+  background: none;
+  border: none;
+  color: #4f46e5;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 20px 0;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.blog-back-btn:hover {
+  color: #3730a3;
+  text-decoration: underline;
+}
+
+.blog-content-wrapper {
   background: var(--card-bg);
   padding: 50px;
   border-radius: 16px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  margin-bottom: 60px;
 }
 
 .blog-section {
@@ -89,7 +185,6 @@
 
 @media (max-width: 768px) {
   .blog-content-wrapper {
-    margin: 20px;
     padding: 30px;
   }
   
