@@ -8,6 +8,9 @@ function CommunityBoard() {
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [expandedPostId, setExpandedPostId] = useState(null);
+  const [comments, setComments] = useState({});
+  const [newComment, setNewComment] = useState("");
 
   const [newPost, setNewPost] = useState({
     title: "",
@@ -103,6 +106,59 @@ function CommunityBoard() {
     }
   };
 
+  const toggleComments = async (postId) => {
+    if (expandedPostId === postId) {
+      setExpandedPostId(null);
+      return;
+    }
+    
+    setExpandedPostId(postId);
+    if (!comments[postId]) {
+      try {
+        const res = await fetch(`/api/community/${postId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setComments(prev => ({ ...prev, [postId]: data.comments || [] }));
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleCommentSubmit = async (e, postId) => {
+    e.preventDefault();
+    if (!authToken) {
+      alert("Bạn cần đăng nhập để bình luận.");
+      return;
+    }
+    if (!newComment.trim()) return;
+
+    try {
+      const res = await fetch(`/api/community/${postId}/comments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authToken
+        },
+        body: JSON.stringify({ content: newComment })
+      });
+
+      if (res.ok) {
+        const addedComment = await res.json();
+        setComments(prev => ({
+          ...prev,
+          [postId]: [...(prev[postId] || []), addedComment]
+        }));
+        setNewComment("");
+      } else {
+        alert("Lỗi khi gửi bình luận");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="community-page">
       <div className="community-header">
@@ -191,8 +247,40 @@ function CommunityBoard() {
                 <button className="like-btn" onClick={() => handleLike(post._id)}>
                   ❤️ {post.likes?.length || 0}
                 </button>
-                <button className="comment-btn">💬 Bình luận</button>
+                <button className="comment-btn" onClick={() => toggleComments(post._id)}>
+                  💬 Bình luận {comments[post._id] ? `(${comments[post._id].length})` : ""}
+                </button>
               </div>
+              
+              {expandedPostId === post._id && (
+                <div className="comments-section">
+                  <div className="comments-list">
+                    {comments[post._id] && comments[post._id].length > 0 ? (
+                      comments[post._id].map(comment => (
+                        <div key={comment._id} className="comment-item">
+                          <img src={comment.user_id?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user_id?.full_name || "User")}&background=random`} alt="avatar" className="comment-avatar" />
+                          <div className="comment-content-box">
+                            <strong>{comment.user_id?.full_name || "Người dùng"}</strong>
+                            <p>{comment.content}</p>
+                            <span className="comment-date">{new Date(comment.createdAt).toLocaleString("vi-VN")}</span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="no-comments">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+                    )}
+                  </div>
+                  <form className="comment-form" onSubmit={(e) => handleCommentSubmit(e, post._id)}>
+                    <input
+                      type="text"
+                      placeholder="Viết bình luận..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                    />
+                    <button type="submit" disabled={!newComment.trim()}>Gửi</button>
+                  </form>
+                </div>
+              )}
             </div>
           ))
         ) : (
