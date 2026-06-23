@@ -248,7 +248,7 @@ function CommunityBoard() {
                   ❤️ {post.likes?.length || 0}
                 </button>
                 <button className="comment-btn" onClick={() => toggleComments(post._id)}>
-                  💬 Bình luận {comments[post._id] ? `(${comments[post._id].length})` : ""}
+                  💬 Bình luận ({comments[post._id] ? comments[post._id].length : (post.commentCount || 0)})
                 </button>
               </div>
               

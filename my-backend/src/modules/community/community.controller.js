@@ -12,9 +12,17 @@ export const getPosts = async (req, res, next) => {
     const posts = await CommunityPost.find(query)
       .sort({ createdAt: -1 })
       .populate("user_id", "full_name avatar")
-      .populate("likes", "full_name");
+      .populate("likes", "full_name")
+      .lean();
 
-    res.json(posts);
+    const postsWithCommentCount = await Promise.all(
+      posts.map(async (post) => {
+        const commentCount = await CommunityComment.countDocuments({ post_id: post._id });
+        return { ...post, commentCount };
+      })
+    );
+
+    res.json(postsWithCommentCount);
   } catch (error) {
     next(error);
   }
