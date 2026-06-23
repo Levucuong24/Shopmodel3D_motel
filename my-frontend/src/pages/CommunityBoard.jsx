@@ -28,10 +28,14 @@ function CommunityBoard() {
       let url = "/api/community";
       if (categoryFilter) url += `?category=${encodeURIComponent(categoryFilter)}`;
       const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status}`);
+      }
       const data = await res.json();
       setPosts(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
+      setPosts([]);
     }
     setLoading(false);
   };
@@ -64,8 +68,13 @@ function CommunityBoard() {
         setShowForm(false);
         fetchPosts();
       } else {
-        const data = await res.json();
-        alert(data.message || "Lỗi khi đăng bài");
+        const text = await res.text();
+        try {
+          const data = JSON.parse(text);
+          alert(data.message || "Lỗi khi đăng bài");
+        } catch (e) {
+          alert(`Lỗi khi đăng bài: ${res.status} ${res.statusText}`);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -86,6 +95,8 @@ function CommunityBoard() {
       if (res.ok) {
         const updatedPost = await res.json();
         setPosts(posts.map(p => p._id === postId ? updatedPost : p));
+      } else {
+        alert("Lỗi khi thích bài viết");
       }
     } catch (err) {
       console.error(err);
