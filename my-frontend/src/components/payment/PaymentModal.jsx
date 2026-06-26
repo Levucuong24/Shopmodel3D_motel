@@ -67,10 +67,6 @@ const PaymentModal = ({ payment, onClose, onSuccess }) => {
             </div>
             
             <div className="loader" style={{ fontSize: '14px', marginTop: '10px' }}>Hệ thống đang tự động theo dõi giao dịch...</div>
-            
-            <button className="confirm-btn" onClick={() => window.open(payment?.checkoutUrl, '_blank')} style={{ marginTop: '15px' }}>
-              Hoặc mở trang thanh toán PayOS
-            </button>
           </>
         ) : (
           <div className="success-msg">
