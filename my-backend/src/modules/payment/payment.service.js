@@ -16,6 +16,18 @@ export const updatePaymentSuccess = async (qr_content) => {
   return payment;
 };
 
+export const updatePaymentSuccessByOrderCode = async (orderCode) => {
+  const payment = await Payment.findOne({ orderCode });
+
+  if (!payment) throw new Error("Payment not found");
+
+  payment.status = "success";
+  payment.paid_at = new Date();
+
+  await payment.save();
+  return payment;
+};
+
 export const getPaymentByIdService = async (id) => {
   return await Payment.findById(id);
 };

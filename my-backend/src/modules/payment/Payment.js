@@ -72,6 +72,10 @@ const paymentSchema = new mongoose.Schema(
     qr_content: String,
 
     qr_url: String,
+    
+    orderCode: Number,
+    
+    checkoutUrl: String,
 
     status: {
       type: String,

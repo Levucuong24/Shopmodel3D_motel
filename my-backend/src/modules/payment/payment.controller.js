@@ -2,7 +2,7 @@ import Contract from "../contract/Contract.js";
 import Payment from "./Payment.js";
 import Revenue from "./Revenue.js";
 import Room from "../room/Room.js";
-import { createPaymentService, getPaymentByIdService, updatePaymentSuccess } from "./payment.service.js";
+import { createPaymentService, getPaymentByIdService, updatePaymentSuccess, updatePaymentSuccessByOrderCode } from "./payment.service.js";
 import { emitPaymentUpdate } from "../../sockets/payment.socket.js";
 import { sendAdminPaymentNotification } from "../../utils/mailer.js";
 import {
@@ -11,6 +11,14 @@ import {
   normalizeRentalDurationValue,
   releaseExpiredRentals,
 } from "../../utils/rental.js";
+import PayOSPackage from "@payos/node";
+
+const PayOS = PayOSPackage.PayOS || PayOSPackage;
+const payos = new PayOS(
+  process.env.PAYOS_CLIENT_ID || "client_id",
+  process.env.PAYOS_API_KEY || "api_key",
+  process.env.PAYOS_CHECKSUM_KEY || "checksum_key"
+);
 
 const getMonthKey = (date) => new Date(date).toISOString().slice(0, 7);
 
@@ -71,47 +79,85 @@ export const createPayment = async (req, res) => {
     };
   }
 
+  const orderCode = Number(String(Date.now()).slice(-9) + Math.floor(Math.random() * 10).toString());
+  const DOMAIN = process.env.FRONTEND_URL || "http://localhost:5173";
+  
+  const body = {
+    orderCode,
+    amount: paymentPayload.amount,
+    description: paymentPayload.note ? paymentPayload.note.substring(0, 25) : "Thanh toan don hang",
+    returnUrl: `${DOMAIN}/customer-dashboard?tab=rented`,
+    cancelUrl: `${DOMAIN}/customer-dashboard?tab=rented`
+  };
+
+  try {
+    const paymentLinkRes = await payos.createPaymentLink(body);
+    paymentPayload.orderCode = orderCode;
+    paymentPayload.checkoutUrl = paymentLinkRes.checkoutUrl;
+  } catch (error) {
+    console.error("PayOS Error:", error);
+    return res.status(500).json({ message: "Lỗi tạo link thanh toán PayOS" });
+  }
+
   const payment = await createPaymentService(paymentPayload);
   res.json(payment);
 };
 
 export const paymentWebhook = async (req, res) => {
-  const { qr_content } = req.body;
+  try {
+    const webhookData = payos.verifyPaymentWebhookData(req.body);
 
-  const payment = await updatePaymentSuccess(qr_content);
+    if (webhookData.code === "00") {
+      const orderCode = webhookData.orderCode;
+      const paymentToUpdate = await Payment.findOne({ orderCode });
+      
+      if (!paymentToUpdate) {
+        return res.json({ message: "Payment not found" });
+      }
 
-  if (payment.contract_id) {
-    const contract = await Contract.findById(payment.contract_id);
-    if (contract) {
-      contract.status = "active";
-      await contract.save();
+      if (paymentToUpdate.status === "success") {
+        return res.json({ message: "Payment already processed" });
+      }
 
-      if (contract.room_id) {
-        const room = await Room.findById(contract.room_id);
+      const payment = await updatePaymentSuccessByOrderCode(orderCode);
+
+      if (payment.contract_id) {
+        const contract = await Contract.findById(payment.contract_id);
+        if (contract) {
+          contract.status = "active";
+          await contract.save();
+
+          if (contract.room_id) {
+            const room = await Room.findById(contract.room_id);
+            if (room) {
+              room.status = "reserved";
+              await room.save();
+            }
+          }
+        }
+      }
+
+      if (!payment.contract_id && payment.room_id) {
+        const room = await Room.findById(payment.room_id);
         if (room) {
           room.status = "reserved";
           await room.save();
         }
       }
+
+      emitPaymentUpdate(payment);
+      await sendAdminPaymentNotification({
+        customerName: payment.customer_name || "Khach hang",
+        customerEmail: payment.customer_email || "Khong co email",
+        amount: payment.amount,
+      });
     }
+
+    res.json({ message: "Payment success" });
+  } catch (error) {
+    console.error("Webhook Error:", error);
+    res.status(400).json({ message: "Invalid webhook data" });
   }
-
-  if (!payment.contract_id && payment.room_id) {
-    const room = await Room.findById(payment.room_id);
-    if (room) {
-      room.status = "reserved";
-      await room.save();
-    }
-  }
-
-  emitPaymentUpdate(payment);
-  await sendAdminPaymentNotification({
-    customerName: payment.customer_name || "Khach hang",
-    customerEmail: payment.customer_email || "Khong co email",
-    amount: payment.amount,
-  });
-
-  res.json({ message: "Payment success" });
 };
 
 export const getPaymentById = async (req, res) => {
