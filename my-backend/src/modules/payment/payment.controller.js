@@ -94,6 +94,7 @@ export const createPayment = async (req, res) => {
     const paymentLinkRes = await payos.createPaymentLink(body);
     paymentPayload.orderCode = orderCode;
     paymentPayload.checkoutUrl = paymentLinkRes.checkoutUrl;
+    paymentPayload.qr_url = paymentLinkRes.qrCode; // PayOS trả về chuỗi VietQR trong trường qrCode
   } catch (error) {
     console.error("PayOS Error:", error);
     return res.status(500).json({ message: "Lỗi tạo link thanh toán PayOS" });
