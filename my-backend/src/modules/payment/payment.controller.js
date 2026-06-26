@@ -91,7 +91,7 @@ export const createPayment = async (req, res) => {
   };
 
   try {
-    const paymentLinkRes = await payos.createPaymentLink(body);
+    const paymentLinkRes = await payos.paymentRequests.create(body);
     paymentPayload.orderCode = orderCode;
     paymentPayload.checkoutUrl = paymentLinkRes.checkoutUrl;
     paymentPayload.qr_url = paymentLinkRes.qrCode; // PayOS trả về chuỗi VietQR trong trường qrCode
@@ -106,7 +106,7 @@ export const createPayment = async (req, res) => {
 
 export const paymentWebhook = async (req, res) => {
   try {
-    const webhookData = payos.verifyPaymentWebhookData(req.body);
+    const webhookData = payos.webhooks.verify(req.body);
 
     if (webhookData.code === "00") {
       const orderCode = webhookData.orderCode;
