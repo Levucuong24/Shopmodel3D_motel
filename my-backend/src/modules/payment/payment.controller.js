@@ -14,11 +14,11 @@ import {
 import PayOSPackage from "@payos/node";
 
 const PayOS = PayOSPackage.PayOS || PayOSPackage;
-const payos = new PayOS(
-  process.env.PAYOS_CLIENT_ID || "client_id",
-  process.env.PAYOS_API_KEY || "api_key",
-  process.env.PAYOS_CHECKSUM_KEY || "checksum_key"
-);
+const payos = new PayOS({
+  clientId: process.env.PAYOS_CLIENT_ID || "client_id",
+  apiKey: process.env.PAYOS_API_KEY || "api_key",
+  checksumKey: process.env.PAYOS_CHECKSUM_KEY || "checksum_key"
+});
 
 const getMonthKey = (date) => new Date(date).toISOString().slice(0, 7);
 
