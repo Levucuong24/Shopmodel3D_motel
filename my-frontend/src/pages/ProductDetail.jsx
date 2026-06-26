@@ -191,11 +191,16 @@ function ProductDetail() {
         }),
       });
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || "Lỗi tạo thanh toán từ Server");
+      }
+      
       setCurrentPayment(data);
       setShowPayment(true);
     } catch (error) {
       console.error("Error creating payment:", error);
-      alert("Không thể khởi tạo thanh toán");
+      alert("Không thể khởi tạo thanh toán: " + error.message);
     }
   };
 
