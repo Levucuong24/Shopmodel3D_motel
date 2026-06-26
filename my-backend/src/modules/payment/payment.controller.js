@@ -106,21 +106,20 @@ export const createPayment = async (req, res) => {
 
 export const paymentWebhook = async (req, res) => {
   try {
-    const webhookData = payos.webhooks.verify(req.body);
+    const webhookData = await payos.webhooks.verify(req.body);
 
-    if (webhookData.code === "00") {
-      const orderCode = webhookData.orderCode;
-      const paymentToUpdate = await Payment.findOne({ orderCode });
-      
-      if (!paymentToUpdate) {
-        return res.json({ message: "Payment not found" });
-      }
+    const orderCode = webhookData.orderCode;
+    const paymentToUpdate = await Payment.findOne({ orderCode });
+    
+    if (!paymentToUpdate) {
+      return res.json({ message: "Payment not found" });
+    }
 
-      if (paymentToUpdate.status === "success") {
-        return res.json({ message: "Payment already processed" });
-      }
+    if (paymentToUpdate.status === "success") {
+      return res.json({ message: "Payment already processed" });
+    }
 
-      const payment = await updatePaymentSuccessByOrderCode(orderCode);
+    const payment = await updatePaymentSuccessByOrderCode(orderCode);
 
       if (payment.contract_id) {
         const contract = await Contract.findById(payment.contract_id);
@@ -152,7 +151,6 @@ export const paymentWebhook = async (req, res) => {
         customerEmail: payment.customer_email || "Khong co email",
         amount: payment.amount,
       });
-    }
 
     res.json({ message: "Payment success" });
   } catch (error) {
