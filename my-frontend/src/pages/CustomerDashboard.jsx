@@ -13,6 +13,21 @@ import {
 } from "../utils/rentalFormat.js";
 import "../css/CustomerDashboard.css";
 
+const translateStatus = (status) => {
+  const statusMap = {
+    available: "Trống",
+    rented: "Đã thuê",
+    reserved: "Đã cọc",
+    maintenance: "Bảo trì",
+    pending: "Chờ xác nhận",
+    confirmed: "Đã xác nhận",
+    cancelled: "Đã hủy",
+    success: "Thành công",
+    failed: "Thất bại"
+  };
+  return statusMap[status?.toLowerCase()] || status;
+};
+
 function CustomerDashboard() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -376,14 +391,14 @@ function CustomerDashboard() {
                     <h4>{room.name}</h4>
                     <p>{room.location}</p>
                     <p className="price">{formatPriceByUnit(room.price, room.price_unit)}</p>
-                    <p>Dien tich: {room.specs?.area ? `${room.specs.area}m2` : "Dang cap nhat"}</p>
-                    <p>Trang thai: {room.status}</p>
+                    <p>Diện tích: {room.specs?.area ? `${room.specs.area}m2` : "Đang cập nhật"}</p>
+                    <p>Trạng thái: {translateStatus(room.status)}</p>
                     <Link
                       to={`/product/${room._id}`}
                       className="view-detail-btn"
                       style={{ display: "block", textAlign: "center", textDecoration: "none" }}
                     >
-                      Xem chi tiet
+                      Xem chi tiết
                     </Link>
                   </div>
                 </div>
@@ -399,7 +414,7 @@ function CustomerDashboard() {
         <>
           <h3 className="section-title">Lich xem phong</h3>
           {viewingsLoading ? (
-            <p>Dang tai lich xem phong...</p>
+            <p>Đang tải lịch xem phòng...</p>
           ) : viewings.length > 0 ? (
             <div
               style={{
@@ -412,17 +427,17 @@ function CustomerDashboard() {
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ borderBottom: "2px solid #f1f5f9", textAlign: "left" }}>
-                    <th style={{ padding: "12px", color: "#64748b" }}>Phong</th>
-                    <th style={{ padding: "12px", color: "#64748b" }}>Thoi gian xem</th>
-                    <th style={{ padding: "12px", color: "#64748b" }}>Ghi chu</th>
-                    <th style={{ padding: "12px", color: "#64748b" }}>Trang thai</th>
+                    <th style={{ padding: "12px", color: "#64748b" }}>Phòng</th>
+                    <th style={{ padding: "12px", color: "#64748b" }}>Thời gian xem</th>
+                    <th style={{ padding: "12px", color: "#64748b" }}>Ghi chú</th>
+                    <th style={{ padding: "12px", color: "#64748b" }}>Trạng thái</th>
                   </tr>
                 </thead>
                 <tbody>
                   {viewings.map((item) => (
                     <tr key={item._id} style={{ borderBottom: "1px solid #f1f5f9" }}>
                       <td style={{ padding: "12px", fontWeight: "bold" }}>
-                        {item.room_id?.name || "Phong da xoa"}
+                        {item.room_id?.name || "Phòng đã xóa"}
                         <br />
                         <span
                           style={{
@@ -437,10 +452,10 @@ function CustomerDashboard() {
                       <td style={{ padding: "12px" }}>
                         {item.scheduled_at
                           ? new Date(item.scheduled_at).toLocaleString("vi-VN")
-                          : "Dang cap nhat"}
+                          : "Đang cập nhật"}
                       </td>
                       <td style={{ padding: "12px", maxWidth: "200px" }}>
-                        {item.note || "Khong co"}
+                        {item.note || "Không có"}
                       </td>
                       <td style={{ padding: "12px" }}>
                         <span
@@ -459,15 +474,11 @@ function CustomerDashboard() {
                               item.status === "confirmed"
                                 ? "#16a34a"
                                 : item.status === "cancelled"
-                                  ? "#dc2626"
-                                  : "#d97706",
+                                  ? "#ef4444"
+                                  : "#f59e0b",
                           }}
                         >
-                          {item.status === "confirmed"
-                            ? "Da duyet"
-                            : item.status === "cancelled"
-                              ? "Bi tu choi"
-                              : "Cho xac nhan"}
+                          {translateStatus(item.status)}
                         </span>
                       </td>
                     </tr>
@@ -476,7 +487,7 @@ function CustomerDashboard() {
               </table>
             </div>
           ) : (
-            <p style={{ color: "#64748b" }}>Ban chua co lich dat xem phong nao.</p>
+            <p style={{ color: "#64748b" }}>Bạn chưa có lịch đặt xem phòng nào.</p>
           )}
         </>
       );
@@ -485,9 +496,9 @@ function CustomerDashboard() {
     if (activeTab === "rented") {
       return (
         <>
-          <h3 className="section-title">Phong dang thue</h3>
+          <h3 className="section-title">Phòng đang thuê</h3>
           {loading || rentalPaymentLoading ? (
-            <p>Dang tai du lieu phong...</p>
+            <p>Đang tải dữ liệu phòng...</p>
           ) : rentedRoom ? (
             <div
               className="rented-rooms-container"
@@ -511,9 +522,9 @@ function CustomerDashboard() {
               >
                 <div>
                   <h4 style={{ margin: "0 0 5px 0", fontSize: "18px" }}>{rentedRoom.name}</h4>
-                  <p style={{ margin: 0, color: "#666" }}>
-                    Trang thai:{" "}
-                    <span style={{ color: "green", fontWeight: "bold" }}>{rentedRoom.status}</span>
+                  <p style={{ margin: "4px 0", fontSize: "14px", color: "#475569" }}>
+                    Trạng thái:{" "}
+                    <span style={{ color: "green", fontWeight: "bold" }}>{translateStatus(rentedRoom.status)}</span>
                   </p>
                 </div>
                 <div>
@@ -536,30 +547,30 @@ function CustomerDashboard() {
                   {formatPriceByUnit(rentedRoom.price, rentedRoom.price_unit)}
                 </li>
                 <li>
-                  <strong>Chu ky thue:</strong>{" "}
+                  <strong>Chu kỳ thuê:</strong>{" "}
                   {formatRentalDuration(
                     rentalPayment?.rental_duration_value,
                     rentalPayment?.rental_duration_unit
                   )}
                 </li>
                 <li>
-                  <strong>Bat dau:</strong>{" "}
+                  <strong>Bắt đầu:</strong>{" "}
                   {formatDateTime(
                     rentalPayment?.rental_start_at || rentalPayment?.rental_confirmed_at
                   )}
                 </li>
                 <li>
-                  <strong>Het han:</strong> {formatDateTime(rentalPayment?.rental_end_at)}
+                  <strong>Hết hạn:</strong> {formatDateTime(rentalPayment?.rental_end_at)}
                 </li>
                 <li>
-                  <strong>Dien tich:</strong>{" "}
-                  {rentedRoom.specs?.area ? `${rentedRoom.specs.area}m2` : "Dang cap nhat"}
+                  <strong>Diện tích:</strong>{" "}
+                  {rentedRoom.specs?.area ? `${rentedRoom.specs.area}m2` : "Đang cập nhật"}
                 </li>
                 <li>
-                  <strong>Bo tri:</strong> {rentedRoom.specs?.layout || "Dang cap nhat"}
+                  <strong>Bố trí:</strong> {rentedRoom.specs?.layout || "Đang cập nhật"}
                 </li>
                 <li>
-                  <strong>Thu cung:</strong> {rentedRoom.pet_policy || "Dang cap nhat"}
+                  <strong>Thú cưng:</strong> {rentedRoom.pet_policy || "Đang cập nhật"}
                 </li>
               </ul>
 
