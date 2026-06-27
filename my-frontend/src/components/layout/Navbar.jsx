@@ -103,17 +103,17 @@ function Navbar() {
         </Link>
 
         <div className="dropdown">
-          <span className="nav-link">For Business</span>
+          <span className="nav-link">Doanh nghiệp</span>
           <div className="dropdown-menu">
-            <Link to="/enterprise">Enterprise</Link>
-            <Link to="/pricing">Pricing</Link>
-            <Link to="/partners">Partners</Link>
-            <Link to="/support">Support</Link>
+            <Link to="/enterprise">Khách hàng lớn</Link>
+            <Link to="/pricing">Bảng giá</Link>
+            <Link to="/partners">Đối tác</Link>
+            <Link to="/support">Hỗ trợ</Link>
           </div>
         </div>
 
         <div className="dropdown">
-          <span className="nav-link">Location</span>
+          <span className="nav-link">Khu vực</span>
           <div className="dropdown-menu">
             {!selectedCampus &&
               Object.keys(campuses).map((campus) => (
@@ -143,13 +143,13 @@ function Navbar() {
         </div>
 
         <Link to="/blog" className="nav-link">
-          Blog
+          Bài viết
         </Link>
         <Link to="/map" className="nav-link">
-          Map
+          Bản đồ
         </Link>
         <Link to="/new" className="nav-link">
-          New
+          Mới
         </Link>
         <Link to="/community" className="nav-link" style={{ color: "var(--primary-color)", fontWeight: "bold" }}>
           Cộng đồng
@@ -160,7 +160,7 @@ function Navbar() {
         <form onSubmit={handleSearch} className="navbar-search-form">
           <input
             type="text"
-            placeholder="Search for accommodation..."
+            placeholder="Tìm kiếm phòng trọ..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -223,15 +223,15 @@ function Navbar() {
                 </button>
 
                 <button type="button" className="user-menu-item logout" onClick={handleLogout}>
-                  Dang xuat
+                  Đăng xuất
                 </button>
               </div>
             )}
           </div>
         ) : (
           <>
-            <Link to="/login" className="nav-link">Login</Link>
-            <Link to="/signup" className="nav-link">Sign Up</Link>
+            <Link to="/login" className="nav-link">Đăng nhập</Link>
+            <Link to="/signup" className="nav-link">Đăng ký</Link>
           </>
         )}
 
@@ -251,9 +251,9 @@ function Navbar() {
         <div className="mobile-nav-overlay" onClick={() => setNavOpen(false)}>
           <div className="mobile-nav-menu" onClick={e => e.stopPropagation()}>
             <Link to={welcomePath} className="mobile-nav-link" onClick={() => setNavOpen(false)}>Trang chủ</Link>
-            <Link to="/blog" className="mobile-nav-link" onClick={() => setNavOpen(false)}>Blog</Link>
-            <Link to="/map" className="mobile-nav-link" onClick={() => setNavOpen(false)}>Map</Link>
-            <Link to="/new" className="mobile-nav-link" onClick={() => setNavOpen(false)}>New</Link>
+            <Link to="/blog" className="mobile-nav-link" onClick={() => setNavOpen(false)}>Bài viết</Link>
+            <Link to="/map" className="mobile-nav-link" onClick={() => setNavOpen(false)}>Bản đồ</Link>
+            <Link to="/new" className="mobile-nav-link" onClick={() => setNavOpen(false)}>Mới</Link>
             <div className="mobile-nav-divider" />
             {userRole ? (
               <>
