@@ -46,7 +46,7 @@ function ProductCard({ product }) {
             </div>
           )}
 
-          <p className="pet-policy">{product.pet_policy || "Chua co thong tin thu cung"}</p>
+          <p className="pet-policy">{product.pet_policy || "Chưa có thông tin thú cưng"}</p>
         </div>
       </Link>
     </div>

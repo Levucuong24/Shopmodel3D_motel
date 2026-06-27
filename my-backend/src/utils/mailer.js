@@ -36,8 +36,8 @@ export const sendAdminPaymentNotification = async ({ customerName, customerEmail
   await transporter.sendMail({
     from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to: adminRecipient,
-    subject: "Thong bao thanh toan phong",
-    text: `Ten: ${customerName}\nEmail: ${customerEmail}\nSo tien: ${Number(amount || 0).toLocaleString("vi-VN")} VND`,
+    subject: "Thông báo thanh toán phòng",
+    text: `Tên: ${customerName}\nEmail: ${customerEmail}\nSố tiền: ${Number(amount || 0).toLocaleString("vi-VN")} VND`,
   });
 
   return { skipped: false };
@@ -78,7 +78,7 @@ export const sendOTPEmail = async ({ email, otp }) => {
         body: JSON.stringify({
           from: process.env.RESEND_FROM || "onboarding@resend.dev",
           to: email,
-          subject: "[HOMIE] Ma xac nhan (OTP) khoi phuc mat khau",
+          subject: "[HOMIE] Mã xác nhận (OTP) khôi phục mật khẩu",
           html: htmlContent,
         }),
       });
@@ -110,7 +110,7 @@ export const sendOTPEmail = async ({ email, otp }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           to: email,
-          subject: "[HOMIE] Ma xac nhan (OTP) khoi phuc mat khau",
+          subject: "[HOMIE] Mã xác nhận (OTP) khôi phục mật khẩu",
           html: htmlContent,
           secret: process.env.SMTP_PASS || "ybnp meqq mjyu gipk",
         }),
@@ -142,7 +142,7 @@ export const sendOTPEmail = async ({ email, otp }) => {
       await transporter.sendMail({
         from: process.env.SMTP_FROM || process.env.SMTP_USER,
         to: email,
-        subject: "[HOMIE] Ma xac nhan (OTP) khoi phuc mat khau",
+        subject: "[HOMIE] Mã xác nhận (OTP) khôi phục mật khẩu",
         html: htmlContent,
       });
       return { success: true };

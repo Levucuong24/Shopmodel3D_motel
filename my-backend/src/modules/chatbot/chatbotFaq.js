@@ -136,14 +136,14 @@ const FAQ_INTENT_HANDLERS = {
     reply:
       ctx.availableRooms.length > 0
         ? `Chao ban, hien tai ben minh dang co ${ctx.availableRooms.length} phong trong. Ban cho minh biet muc gia, khu vuc hoac nhu cau de minh tu van nhanh hon.`
-        : "Chao ban, minh co the tu van phong theo gia, khu vuc, tien ich, lich xem va thanh toan. Hien tai minh chua thay phong trong san sang de goi y.",
+        : "Chào bạn, mình có thể tư vấn phòng theo giá, khu vực, tiện ích, lịch xem và thanh toán. Hiện tại mình chưa thấy phòng trống sẵn sàng để gợi ý.",
     suggestions: defaultSuggestions(ctx),
   }),
   sales_overview: (ctx) => ({
     reply:
       ctx.availableRooms.length > 0
         ? `Ben minh hien co ${ctx.availableRooms.length} phong trong, gia dao dong tu ${formatPrice(ctx.minPrice)} den ${formatPrice(ctx.maxPrice)}. Ban co the noi ro ngan sach va khu vuc mong muon de minh loc nhanh.`
-        : "Hien tai minh chua thay phong trong san sang tu van, nhung van co the giai thich quy trinh xem phong, coc, thanh toan va hop dong cho ban.",
+        : "Hiện tại mình chưa thấy phòng trống sẵn sàng tư vấn, nhưng vẫn có thể giải thích quy trình xem phòng, cọc, thanh toán và hợp đồng cho bạn.",
     suggestions: defaultSuggestions(ctx),
   }),
   recommend_available: (ctx) => ({
@@ -253,7 +253,7 @@ const FAQ_INTENT_HANDLERS = {
       reply:
         suggestions.length > 0
           ? "Minh dang loc nhom phong co tien ich lien quan den bep hoac nau an."
-          : "Hien tai minh chua tim duoc phong co thong tin ve khu bep.",
+          : "Hiện tại mình chưa tìm được phòng có thông tin về khu bếp.",
       suggestions,
     };
   },
@@ -262,7 +262,7 @@ const FAQ_INTENT_HANDLERS = {
     return {
       reply:
         suggestions.length > 0
-          ? "Minh dang goi y nhom phong co thong tin ve cho de xe."
+          ? "Mình đang gợi ý nhóm phòng có thông tin về chỗ để xe."
           : "Hien tai minh chua loc duoc phong co cho de xe tu du lieu hien co.",
       suggestions,
     };
@@ -272,7 +272,7 @@ const FAQ_INTENT_HANDLERS = {
     return {
       reply:
         suggestions.length > 0
-          ? "Minh dang loc nhom phong co thong tin ban cong hoac khong gian thoang."
+          ? "Mình đang lọc nhóm phòng có thông tin ban công hoặc không gian thoáng."
           : "Hien tai minh chua tim duoc phong co ban cong tu du lieu hien co.",
       suggestions,
     };
@@ -388,7 +388,7 @@ const FAQ_INTENT_HANDLERS = {
   }),
   viewing_process: () => ({
     reply:
-      "Quy trinh sale tren web la: xem phong, chon phong phu hop, dat lich xem, sau do moi den buoc coc hoac thanh toan neu ban dong y thue.",
+      "Quy trình sale trên web là: xem phòng, chọn phòng phù hợp, đặt lịch xem, sau đó mới đến bước cọc hoặc thanh toán nếu bạn đồng ý thuê.",
     suggestions: [],
   }),
   closing_soft: () => ({
@@ -403,7 +403,7 @@ const FAQ_INTENT_HANDLERS = {
   }),
   payment_methods: () => ({
     reply:
-      "He thong dang khai bao cac hinh thuc thanh toan gom BANK_QR, MOMO, VNPAY va CASH. Tuy giao dien dang bat ma ban se thay cac lua chon tuong ung.",
+      "Hệ thống đang khai báo các hình thức thanh toán gồm BANK_QR, MOMO, VNPAY và CASH. Tùy giao diện đang bật mà bạn sẽ thấy các lựa chọn tương ứng.",
     suggestions: [],
   }),
   payment_status: () => ({
@@ -422,12 +422,12 @@ const FAQ_INTENT_HANDLERS = {
     suggestions: [],
   }),
   contact_support: () => ({
-    reply: `Neu ban can sale ho tro nhanh hon, vui long lien he truc tiep qua ${SUPPORT_LINK}.`,
+    reply: `Nếu bạn cần sale hỗ trợ nhanh hơn, vui lòng liên hệ trực tiếp qua ${SUPPORT_LINK}.`,
     suggestions: [],
   }),
   chatbot_scope: () => ({
     reply:
-      "Chatbot nay dang duoc dinh huong nhu mot sale online: tu van phong, goi y san pham theo database, tra loi cau hoi khach va huong dan cac buoc xem phong, coc, thanh toan, hop dong.",
+      "Chatbot này đang được định hướng như một sale online: tư vấn phòng, gợi ý sản phẩm theo database, trả lời câu hỏi khách và hướng dẫn các bước xem phòng, cọc, thanh toán, hợp đồng.",
     suggestions: [],
   }),
 };

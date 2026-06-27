@@ -75,7 +75,7 @@ export const createPayment = async (req, res) => {
       pricing_unit: pricingUnit,
       rental_duration_unit: pricingUnit,
       rental_duration_value: rentalDurationValue,
-      note: req.body.note || `Thanh toan cho phong ${room.name}`,
+      note: req.body.note || `Thanh toán cho phòng ${room.name}`,
     };
   }
 
@@ -85,7 +85,7 @@ export const createPayment = async (req, res) => {
   const body = {
     orderCode,
     amount: paymentPayload.amount,
-    description: paymentPayload.note ? paymentPayload.note.substring(0, 25) : "Thanh toan don hang",
+    description: paymentPayload.note ? paymentPayload.note.substring(0, 25) : "Thanh toán đơn hàng",
     returnUrl: `${DOMAIN}/customer-dashboard?tab=rented`,
     cancelUrl: `${DOMAIN}/customer-dashboard?tab=rented`
   };
@@ -246,7 +246,7 @@ export const requestRentalCancellation = async (req, res) => {
     }
 
     if (payment.status !== "success") {
-      return res.status(400).json({ message: "Chi phong da thanh toan moi co the huy" });
+      return res.status(400).json({ message: "Chỉ phòng đã thanh toán mới có thể hủy" });
     }
 
     if (payment.rental_end_at && payment.rental_end_at <= new Date()) {
@@ -323,7 +323,7 @@ export const updatePayment = async (req, res) => {
       payment.room_id?.status === "rented" ||
       payment.cancellation_status === "pending"
     ) {
-      return res.status(400).json({ message: "Giao dich nay khong the chinh sua nua" });
+      return res.status(400).json({ message: "Giao dịch này không thể chỉnh sửa nữa" });
     }
 
     const allowedFields = ["customer_name", "customer_email", "amount", "note", "status", "payment_method"];
@@ -376,7 +376,7 @@ export const deletePayment = async (req, res) => {
       payment.room_id?.status === "rented" ||
       payment.cancellation_status === "pending"
     ) {
-      return res.status(400).json({ message: "Giao dich nay khong the xoa nua" });
+      return res.status(400).json({ message: "Giao dịch này không thể xóa nữa" });
     }
 
     if (payment.room_id?.status === "reserved") {

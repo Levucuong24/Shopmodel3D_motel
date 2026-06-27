@@ -185,7 +185,7 @@ function CustomerDashboard() {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || "Khong the gui yeu cau huy thue");
+        throw new Error(data.message || "Không thể gửi yêu cầu hủy thuê");
       }
 
       setRentalPayment(data.payment || null);
@@ -202,7 +202,7 @@ function CustomerDashboard() {
 
     const token = getAuthToken();
     if (!token) {
-      alert("Ban can dang nhap lai de cap nhat thong tin");
+      alert("Bạn cần đăng nhập lại để cập nhật thông tin");
       return;
     }
 
@@ -220,7 +220,7 @@ function CustomerDashboard() {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || "Khong the cap nhat thong tin");
+        throw new Error(data.message || "Không thể cập nhật thông tin");
       }
 
       setCustomerName(data.full_name || "Khach hang");
@@ -231,7 +231,7 @@ function CustomerDashboard() {
         avatar: data.avatar || "",
       });
       setUserData(data);
-      alert("Cap nhat thong tin thanh cong");
+      alert("Cập nhật thông tin thành công");
     } catch (error) {
       alert(error.message);
     } finally {
@@ -246,7 +246,7 @@ function CustomerDashboard() {
     if (!file) return;
 
     if (!token) {
-      alert("Ban can dang nhap lai de tai anh");
+      alert("Bạn cần đăng nhập lại để tải ảnh");
       return;
     }
 
@@ -266,7 +266,7 @@ function CustomerDashboard() {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || "Khong the tai anh dai dien");
+        throw new Error(data.message || "Không thể tải ảnh đại diện");
       }
 
       setCustomerName(data.full_name || "Khach hang");
@@ -303,7 +303,7 @@ function CustomerDashboard() {
       return (
         <div className="profile-card">
           <div className="profile-card-header">
-            <h3 className="section-title">Thong tin ca nhan</h3>
+            <h3 className="section-title">Thông tin cá nhân</h3>
             <img src={customerAvatar} alt={customerName} className="profile-preview-avatar" />
           </div>
 
@@ -589,7 +589,7 @@ function CustomerDashboard() {
                       const token = getAuthToken();
                     if (!token || !rentalPayment?._id) return;
                 
-                    if (!window.confirm("Ban chac chan muon huy thue phong nay?Hanh dong nay khong the hoan tac.")) return;
+                    if (!window.confirm("Bạn chắc chắn muốn hủy thuê phòng này? Hành động này không thể hoàn tác.")) return;
                 
                     setRequestingCancellation(true);
                 
@@ -605,7 +605,7 @@ function CustomerDashboard() {
                 
                       const data = await response.json();
                       if (!response.ok) {
-                        throw new Error(data.message || "Khong the huy thue phong");
+                        throw new Error(data.message || "Không thể hủy thuê phòng");
                       }
                 
                       setRentalPayment(data.payment || null);
@@ -684,7 +684,7 @@ function CustomerDashboard() {
                 setActiveTab("profile");
               }}
             >
-              Thong tin ca nhan
+              Thông tin cá nhân
             </a>
           </li>
           <li className={activeTab === "saved" ? "active" : ""}>
