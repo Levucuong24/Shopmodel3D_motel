@@ -2,10 +2,13 @@
 import User from "./User.js";
 import { uploadToCloudinary } from "../../config/cloudinary.js";
 
+// Số bù thêm để hiển thị "Khách hàng hài lòng" trên trang chủ
+const SATISFIED_CUSTOMER_OFFSET = 64;
+
 export const getUserCount = async (req, res) => {
   try {
     const count = await User.countDocuments();
-    res.json({ count });
+    res.json({ count: count + SATISFIED_CUSTOMER_OFFSET });
   } catch (error) {
     res.status(500).json({ message: "Lỗi server" });
   }

@@ -73,7 +73,7 @@ const roomSchema = new mongoose.Schema(
     },
     views: {
       type: Number,
-      default: () => Math.floor(Math.random() * 400) + 1300,
+      default: () => Math.floor(Math.random() * 100) + 200,
     },
   },
   { timestamps: true }

@@ -34,7 +34,7 @@ export const getRoomById = async (req, res) => {
     const roomForViews = await Room.findById(req.params.id);
     if (roomForViews) {
       if (typeof roomForViews.views !== "number") {
-        roomForViews.views = Math.floor(Math.random() * 400) + 1300 + 1;
+        roomForViews.views = Math.floor(Math.random() * 100) + 200 + 1;
         await roomForViews.save();
       } else {
         await Room.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });
