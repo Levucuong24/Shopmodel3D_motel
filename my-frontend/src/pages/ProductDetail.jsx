@@ -359,6 +359,13 @@ function ProductDetail() {
             </svg>
             {reviews.length > 0 ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1) : "Mới"} ({reviews.length} đánh giá)
           </span>
+          <span className="pd-views" style={{ marginLeft: "15px" }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="meta-icon" style={{ width: "16px", height: "16px", display: "inline-block", verticalAlign: "middle", marginRight: "5px", position: "relative", top: "-1px" }}>
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            {(product.views || 0).toLocaleString("vi-VN")} lượt xem
+          </span>
         </div>
         <div className="pd-price">
           {formatPriceByUnit(product.price, product.price_unit)}

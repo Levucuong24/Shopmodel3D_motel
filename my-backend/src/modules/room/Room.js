@@ -71,6 +71,10 @@ const roomSchema = new mongoose.Schema(
       type: Array,
       default: [],
     },
+    views: {
+      type: Number,
+      default: () => Math.floor(Math.random() * 400) + 1300,
+    },
   },
   { timestamps: true }
 );

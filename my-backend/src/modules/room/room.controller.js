@@ -30,6 +30,17 @@ export const getAdminRooms = async (req, res) => {
 
 export const getRoomById = async (req, res) => {
   try {
+    // Increment or initialize the room's views count
+    const roomForViews = await Room.findById(req.params.id);
+    if (roomForViews) {
+      if (typeof roomForViews.views !== "number") {
+        roomForViews.views = Math.floor(Math.random() * 400) + 1300 + 1;
+        await roomForViews.save();
+      } else {
+        await Room.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });
+      }
+    }
+
     const data = await getRoomByIdService(req.params.id);
     if (!data) return res.status(404).json({ message: "Room not found" });
 
